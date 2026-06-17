@@ -1,0 +1,10 @@
+{
+    "imports": {
+        "razorpay": "https://esm.sh/razorpay@2.9.6",
+        "shared/": "./_shared",
+        "supabase-types": "../../src/database.types.ts",
+        "@/": "./",
+        "uuid": "npm:uuid@9.0.1",
+        "node:crypto": "node:crypto"
+    }
+}

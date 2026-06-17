@@ -1,0 +1,92 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+body {
+  min-height: 100vh;
+}
+
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@tailwind utilities;
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cccccc;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #aaaaaa;
+}
+
+.prose h1 {
+  @apply mb-4 text-3xl font-bold text-gray-800;
+}
+
+.prose h2 {
+  @apply mt-6 mb-3 text-2xl font-semibold text-gray-700;
+}
+
+.prose p {
+  @apply mb-4 text-base leading-relaxed text-gray-600;
+}
+
+.prose ul {
+  @apply mb-4 pl-5 list-disc space-y-1 text-gray-600;
+}
+
+.prose a {
+  @apply text-gray-600 hover:text-gray-800 underline;
+}
+
+.h-screen-minus-navbar {
+  /* Adjust the height calculation based on your fixed navbar height */
+  height: calc(100vh - 61px);
+}
+
+.h-screen-minus-navbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cccccc #f1f1f1;
+}
+
+
+.leaflet-price-marker {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  overflow: visible;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply rounded-lg shadow-lg border border-gray-200;
+}
+
+.leaflet-popup-content {
+  @apply text-sm p-3;
+  margin: 0 !important;
+  width: auto !important;
+  min-width: 200px;
+}
+
+.leaflet-popup-tip-container {
+  display: none;
+}
+
+.leaflet-popup-content p {
+  margin: 0 !important;
+}

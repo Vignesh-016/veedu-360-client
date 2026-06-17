@@ -1,0 +1,54 @@
+[functions.create-payment]
+enabled = true
+verify_jwt = true
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/create-payment/index.ts"
+
+[functions.verify-payment]
+enabled = true
+verify_jwt = true
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/verify-payment/index.ts"
+
+[functions.webhook-handler]
+enabled = true
+verify_jwt = true
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/webhook-handler/index.ts"
+
+[functions.upload-property-image]
+enabled = true
+verify_jwt = true
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/upload-property-image/index.ts"
+
+[functions.upload-ticket-images]
+enabled = true
+verify_jwt = true
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/upload-ticket-images/index.ts"
+
+[functions.sms-hook]
+enabled = true
+verify_jwt = false
+import_map = "./functions/sms-hook/deno.json"
+entrypoint = "./functions/sms-hook/index.ts"
+
+[functions.upload-property-document]
+enabled = true
+verify_jwt = true
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/upload-property-document/index.ts"
+
+[functions.upload-customer-document]
+enabled = true
+verify_jwt = true
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/upload-customer-document/index.ts"
+
+[functions.process-sms-queue]
+enabled = true
+verify_jwt = false
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/process-sms-queue/index.ts"
+
