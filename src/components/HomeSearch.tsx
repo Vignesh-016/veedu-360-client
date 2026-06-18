@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { IconSearch, IconMapPin, IconHome, IconBuildingCommunity, IconBed, IconBuildingWarehouse, IconSquarePlus, IconCurrentLocation } from '@tabler/icons-react';
-import { ListingType, PropertyType, HouseType } from '../lib/types';
+import { PropertyType, HouseType } from '../lib/types';
 import { useAuth } from '../lib/AuthContext';
 import { DEFAULT_CITY } from '../lib/geoUtils';
 
