@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import api from '../lib/supabaseClient';
 import { VisitPlan } from '../lib/types';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { IconAlertCircle, IconPackage, IconStarFilled, IconCrown, IconMedal, IconMapPin, IconBuildingCommunity } from '@tabler/icons-react';
+import { IconAlertCircle, IconPackage, IconStarFilled, IconCrown, IconMapPin, IconBuildingCommunity } from '@tabler/icons-react';
 import { useNotification } from '../components/NotificationProvider';
 import { useAuth } from '../lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
