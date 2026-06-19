@@ -315,7 +315,7 @@ function Navbar() {
                         <div className="flex h-16 items-center justify-between gap-4">
                             <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
                                 <Link to="/" className="flex items-center gap-2 group" onClick={closePopover}>
-                                    <img src="/logo.png" alt="Company Logo" className="h-8 w-auto" />
+                                    <img src="/veedu360-logo.png" alt="Company Logo" className="h-20 w-auto" />
                                 </Link>
 
                                 <Popover className="relative">
@@ -499,7 +499,7 @@ function Navbar() {
                             <div className="rounded-lg bg-white shadow-md ring-1 ring-black ring-opacity-5 border border-gray-100">
                                 <div className="px-5 pt-4 pb-3 flex items-center justify-between">
                                     <Link to="/" className="flex items-center gap-2 group" onClick={closePopover}>
-                                        <img src="/logo.png" alt="Company Logo" className="h-8 w-auto" />
+                                        <img src="/veedu360-logo.png" alt="Company Logo" className="h-20 w-auto" />
                                     </Link>
                                     <div className="-mr-2">
                                         <PopoverButton className="inline-flex items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500">

@@ -63,7 +63,7 @@ function Login() {
                         {/* Logo */}
                         <div className="text-center mb-10">
                             <Link to="/">
-                                <img src="/logo.png" alt={companyName} className="h-12 w-auto mx-auto mb-2" />
+                                <img src="/veedu360-logo.png" alt={companyName} className="h-12 w-auto mx-auto mb-2" />
                             </Link>
                         </div>
 
