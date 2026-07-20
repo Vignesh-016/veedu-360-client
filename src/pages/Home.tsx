@@ -15,6 +15,8 @@ import ServicePlanCard from '../components/ServicePlanCard';
 function Home() {
     const [recommendations, setRecommendations] = useState<Property[]>([]);
     const [loadingRecs, setLoadingRecs] = useState(true);
+    const [latestProperties, setLatestProperties] = useState<Property[]>([]);
+    const [loadingLatest, setLoadingLatest] = useState(true);
     const [managementPlans, setManagementPlans] = useState<ManagementPlan[]>([]);
     const [loadingPlans, setLoadingPlans] = useState(true);
 
@@ -50,7 +52,28 @@ function Home() {
                 setLoadingRecs(false);
             }
         };
+
+        const fetchLatestPropertiesUploaded = async () => {
+            setLoadingLatest(true);
+            try {
+                const { data, error } = await api.getLatestPropertiesUploaded(4);
+                if (error) throw error;
+                const sanitizedData = (data || []).map((item) => ({
+                    ...item,
+                    property_images: Array.isArray(item.property_images) ? item.property_images : [],
+                }));
+                setLatestProperties(sanitizedData);
+            } catch (err: any) {
+                console.error("Failed to fetch latest properties:", err);
+                showErrorNotification('Load Failed', 'Could not load latest properties.');
+                setLatestProperties([]);
+            } finally {
+                setLoadingLatest(false);
+            }
+        };
+
         fetchRecommendations();
+        fetchLatestPropertiesUploaded();
 
     }, [currentCity, geolocationLoading, showErrorNotification]);
 
@@ -224,6 +247,29 @@ function Home() {
                     </div>
                 </div>
 
+                <div className="container mx-auto px-6 md:px-16 py-12 max-w-7xl">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                        Latest Properties Uploaded
+                    </h2>
+                    {loadingLatest ? (
+                        <div className="flex justify-center py-8">
+                            <LoadingSpinner />
+                        </div>
+                    ) : latestProperties.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {latestProperties.map((prop) => (
+                                <PropertyCard
+                                    key={prop.property_id}
+                                    property={prop}
+                                    variant="simple"
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 text-center py-8">No latest properties available in {displayCityName} right now.</p>
+                    )}
+                </div>
+
                 {/* WHY CHOOSE US SECTION */}
                 <div className="bg-gray-50 py-16">
                     <div className="container mx-auto px-4 max-w-6xl">
@@ -360,15 +406,15 @@ function Home() {
                                     {/* Evaluation Card 1 */}
                                     <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex items-start gap-4 transform transition hover:-translate-y-1 hover:shadow-xl relative z-10 ml-0 md:ml-12">
                                         <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
-                                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=128&q=80" alt="Mehwish" className="w-full h-full object-cover" />
+                                            {/* <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=128&q=80" alt="Mehwish" className="w-full h-full object-cover" /> */}
                                         </div>
                                         <div>
                                             <div className="flex justify-between items-center mb-1">
-                                                <h4 className="font-bold text-gray-900">Mehwish</h4>
+                                                <h4 className="font-bold text-gray-900">Arul Joseph</h4>
                                                 <IconStar className="w-4 h-4 text-amber-400 fill-current" />
                                             </div>
                                             <p className="text-gray-600 text-sm leading-relaxed">
-                                                "Found the perfect rental apartment within days! The verification process was so smooth and gave me total peace of mind."
+                                                "Clean, comfy, and affordable! Perfect bachelor pad with all essentials. Great value for money, lovely stay. Highly recommend!"
                                             </p>
                                         </div>
                                     </div>
@@ -376,19 +422,22 @@ function Home() {
                                     {/* Evaluation Card 2 (Active/Highlighted) */}
                                     <div className="bg-white p-6 rounded-2xl shadow-xl border-l-4 border-[#2C4964] flex items-start gap-4 transform scale-105 relative z-20">
                                         <div className="absolute -left-[3.25rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#2C4964] hidden md:block ring-4 ring-white" />
-                                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-[#2C4964] shadow-sm">
-                                            <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-1.2.1&auto=format&fit=crop&w=128&q=80" alt="Elizabeth" className="w-full h-full object-cover" />
+                                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
+                                            {/* <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-1.2.1&auto=format&fit=crop&w=128&q=80" alt="Elizabeth" className="w-full h-full object-cover" /> */}
                                         </div>
                                         <div>
                                             <div className="flex justify-between items-center mb-1">
-                                                <h4 className="font-bold text-gray-900">Elizabeth Jeff</h4>
+                                                <h4 className="font-bold text-gray-900">Chithra Ramesh</h4>
                                                 <div className="flex gap-0.5">
+                                                    <IconStar className="w-3 h-3 text-amber-400 fill-current" />
+                                                    <IconStar className="w-3 h-3 text-amber-400 fill-current" />
+                                                    <IconStar className="w-3 h-3 text-amber-400 fill-current" />
                                                     <IconStar className="w-3 h-3 text-amber-400 fill-current" />
                                                     <IconStar className="w-3 h-3 text-amber-400 fill-current" />
                                                 </div>
                                             </div>
                                             <p className="text-gray-600 text-sm leading-relaxed font-medium">
-                                                "Veedu360's property management is top-notch. They handle everything from maintenance to tenant search, letting me relax as a landlord."
+                                                "Luxury, Quiet, Great value"
                                             </p>
                                         </div>
                                     </div>
@@ -396,15 +445,15 @@ function Home() {
                                     {/* Evaluation Card 3 */}
                                     <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex items-start gap-4 transform transition hover:-translate-y-1 hover:shadow-xl relative z-10 ml-0 md:ml-12">
                                         <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
-                                            <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=128&q=80" alt="Emily" className="w-full h-full object-cover" />
+                                            {/* <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=128&q=80" alt="Emily" className="w-full h-full object-cover" /> */}
                                         </div>
                                         <div>
                                             <div className="flex justify-between items-center mb-1">
-                                                <h4 className="font-bold text-gray-900">Emily Thomas</h4>
+                                                <h4 className="font-bold text-gray-900">Mohanraj Sathya</h4>
                                                 <IconStar className="w-4 h-4 text-amber-400 fill-current" />
                                             </div>
                                             <p className="text-gray-600 text-sm leading-relaxed">
-                                                "As a tenant, I love the transparency. Any issues I have are resolved quickly through their dedicated ticket system. Highly recommend!"
+                                                "More comfortable to stay"
                                             </p>
                                         </div>
                                     </div>

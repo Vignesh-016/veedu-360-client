@@ -91,8 +91,8 @@ function PropertyCard({ property, variant = 'detailed', onInteractionUpdate }: P
         property_id, price, area, area_unit, locality, is_featured, listing_type, interaction_status, interaction_id
     } = property;
     let image_url = "";
-    if (property.property_images && property.property_images.length > 0) {
-        image_url = property.property_images[0].image_url;
+    if (Array.isArray(property.property_images) && property.property_images.length > 0) {
+        image_url = property.property_images[0]?.image_url || "";
     }
 
     let displayName = property.property_name;

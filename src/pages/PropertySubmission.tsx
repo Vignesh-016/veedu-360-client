@@ -167,9 +167,26 @@ function PropertySubmission() {
             );
             if (plan) {
                 setListingPlan(plan);
+            } else {
+                setListingPlan({
+                    plan_id: '00000000-0000-0000-0000-000000000000',
+                    name: 'Property Listing Fee',
+                    description: 'Listing fee for additional properties',
+                    visits: 1,
+                    price: 1.00,
+                    is_active: true
+                } as any);
             }
         } catch (err) {
             console.error("Error checking listing quota:", err);
+            setListingPlan({
+                plan_id: '00000000-0000-0000-0000-000000000000',
+                name: 'Property Listing Fee',
+                description: 'Listing fee for additional properties',
+                visits: 1,
+                price: 1.00,
+                is_active: true
+            } as any);
         } finally {
             setLoadingPricingCheck(false);
         }
@@ -902,7 +919,7 @@ function PropertySubmission() {
                                                         </>
                                                     )}
                                                     
-                                                    {needsPayment && !listingPlan && (
+                                                    {needsPayment && (!listingPlan || listingPlan.plan_id === '00000000-0000-0000-0000-000000000000') && (
                                                         <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-800 font-medium">
                                                             Warning: The property listing fee plan was not found in the database. Please verify with the administrator.
                                                         </div>

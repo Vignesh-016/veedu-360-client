@@ -246,8 +246,8 @@ export type Database = {
           area: number
           area_unit: Database["public"]["Enums"]["area_unit_enum"]
           availability_status:
-            | Database["public"]["Enums"]["availability_status_enum"]
-            | null
+          | Database["public"]["Enums"]["availability_status_enum"]
+          | null
           can_reachout: boolean
           city: string
           created_at: string
@@ -273,15 +273,15 @@ export type Database = {
           property_id: string
           property_type: Database["public"]["Enums"]["property_type_enum"]
           proximity_unit:
-            | Database["public"]["Enums"]["proximity_unit_enum"]
-            | null
+          | Database["public"]["Enums"]["proximity_unit_enum"]
+          | null
           rent_due_day: number | null
           submitted_at: string
           submitter: string | null
           submitter_notes: string | null
           submitter_type:
-            | Database["public"]["Enums"]["submitter_type_enum"]
-            | null
+          | Database["public"]["Enums"]["submitter_type_enum"]
+          | null
           tenant: string | null
           updated_at: string
           year_built: number | null
@@ -295,8 +295,8 @@ export type Database = {
           area: number
           area_unit: Database["public"]["Enums"]["area_unit_enum"]
           availability_status?:
-            | Database["public"]["Enums"]["availability_status_enum"]
-            | null
+          | Database["public"]["Enums"]["availability_status_enum"]
+          | null
           can_reachout?: boolean
           city: string
           created_at?: string
@@ -322,15 +322,15 @@ export type Database = {
           property_id?: string
           property_type: Database["public"]["Enums"]["property_type_enum"]
           proximity_unit?:
-            | Database["public"]["Enums"]["proximity_unit_enum"]
-            | null
+          | Database["public"]["Enums"]["proximity_unit_enum"]
+          | null
           rent_due_day?: number | null
           submitted_at?: string
           submitter?: string | null
           submitter_notes?: string | null
           submitter_type?:
-            | Database["public"]["Enums"]["submitter_type_enum"]
-            | null
+          | Database["public"]["Enums"]["submitter_type_enum"]
+          | null
           tenant?: string | null
           updated_at?: string
           year_built?: number | null
@@ -344,8 +344,8 @@ export type Database = {
           area?: number
           area_unit?: Database["public"]["Enums"]["area_unit_enum"]
           availability_status?:
-            | Database["public"]["Enums"]["availability_status_enum"]
-            | null
+          | Database["public"]["Enums"]["availability_status_enum"]
+          | null
           can_reachout?: boolean
           city?: string
           created_at?: string
@@ -371,15 +371,15 @@ export type Database = {
           property_id?: string
           property_type?: Database["public"]["Enums"]["property_type_enum"]
           proximity_unit?:
-            | Database["public"]["Enums"]["proximity_unit_enum"]
-            | null
+          | Database["public"]["Enums"]["proximity_unit_enum"]
+          | null
           rent_due_day?: number | null
           submitted_at?: string
           submitter?: string | null
           submitter_notes?: string | null
           submitter_type?:
-            | Database["public"]["Enums"]["submitter_type_enum"]
-            | null
+          | Database["public"]["Enums"]["submitter_type_enum"]
+          | null
           tenant?: string | null
           updated_at?: string
           year_built?: number | null
@@ -3133,125 +3133,125 @@ export type Database = {
     }
     Enums: {
       admin_role_enum:
-        | "super-admin"
-        | "telecalling-owner-team"
-        | "marketing-team"
-        | "telecalling-tenant-team"
-        | "sales-team"
-        | "accounts-team"
+      | "super-admin"
+      | "telecalling-owner-team"
+      | "marketing-team"
+      | "telecalling-tenant-team"
+      | "sales-team"
+      | "accounts-team"
       area_unit_enum: "SQ_FT" | "CENTS" | "ACRES"
       availability_status_enum: "UNDER_CONSTRUCTION" | "READY_TO_MOVE"
       building_type_enum:
-        | "OFFICE"
-        | "WAREHOUSE"
-        | "RETAIL"
-        | "INDUSTRIAL"
-        | "HOSPITALITY"
+      | "OFFICE"
+      | "WAREHOUSE"
+      | "RETAIL"
+      | "INDUSTRIAL"
+      | "HOSPITALITY"
       direction_enum: "NORTH" | "SOUTH" | "EAST" | "WEST"
       furnished_status_enum:
-        | "UNFURNISHED"
-        | "SEMI_FURNISHED"
-        | "FULLY_FURNISHED"
+      | "UNFURNISHED"
+      | "SEMI_FURNISHED"
+      | "FULLY_FURNISHED"
       house_type_enum: "APARTMENT_FLAT" | "INDEPENDENT_VILLA" | "HOSTEL_PG"
       interaction_status_enum:
-        | "WISHLISTED"
-        | "VISIT_PENDING"
-        | "VISIT_CONFIRMED_PENDING_SALES"
-        | "VISIT_SCHEDULED_WITH_SALES"
-        | "VISIT_COMPLETED"
-        | "VISIT_CANCELLED"
-        | "RENTAL_APPLICATION_SUBMITTED"
-        | "LEASE_CONVERTED"
+      | "WISHLISTED"
+      | "VISIT_PENDING"
+      | "VISIT_CONFIRMED_PENDING_SALES"
+      | "VISIT_SCHEDULED_WITH_SALES"
+      | "VISIT_COMPLETED"
+      | "VISIT_CANCELLED"
+      | "RENTAL_APPLICATION_SUBMITTED"
+      | "LEASE_CONVERTED"
       land_type_enum: "RESIDENTIAL" | "COMMERCIAL" | "AGRICULTURAL"
       listing_type_enum: "RENTAL" | "SALE"
       power_backup_enum: "NONE" | "PARTIAL" | "FULL"
       property_admin_status_enum:
-        | "SUBMITTED"
-        | "OWNER_CONTACT_PENDING"
-        | "OWNER_VERIFIED"
-        | "MARKETING_VISIT_PENDING"
-        | "MARKETING_VERIFIED"
-        | "AWAITING_LISTING"
-        | "REJECTED"
-        | "SUSPENDED"
-        | "RENTED"
-        | "SOLD"
+      | "SUBMITTED"
+      | "OWNER_CONTACT_PENDING"
+      | "OWNER_VERIFIED"
+      | "MARKETING_VISIT_PENDING"
+      | "MARKETING_VERIFIED"
+      | "AWAITING_LISTING"
+      | "REJECTED"
+      | "SUSPENDED"
+      | "RENTED"
+      | "SOLD"
       property_type_enum: "LAND" | "HOUSE" | "BUILDING"
       proximity_unit_enum: "KM" | "METERS" | "MINUTES_WALK" | "MINUTES_DRIVE"
       rent_status_enum:
-        | "DUE"
-        | "PAID"
-        | "PARTIALLY_PAID"
-        | "OVERDUE"
-        | "CANCELLED"
+      | "DUE"
+      | "PAID"
+      | "PARTIALLY_PAID"
+      | "OVERDUE"
+      | "CANCELLED"
       rental_application_status_enum:
-        | "SUBMITTED"
-        | "REVIEW_IN_PROGRESS"
-        | "AWAITING_LANDLORD_CONTACT"
-        | "LANDLORD_INFO_PENDING"
-        | "LANDLORD_APPROVED"
-        | "LANDLORD_REJECTED"
-        | "DOCUMENTS_REQUESTED"
-        | "DOCUMENTS_VERIFIED"
-        | "APPROVED_AWAITING_PAYMENT"
-        | "PAYMENT_CONFIRMED"
-        | "LEASE_FINALIZED"
-        | "TENANCY_ACTIVE"
-        | "APPLICATION_WITHDRAWN_CUSTOMER"
-        | "CANCELLED_ADMIN"
+      | "SUBMITTED"
+      | "REVIEW_IN_PROGRESS"
+      | "AWAITING_LANDLORD_CONTACT"
+      | "LANDLORD_INFO_PENDING"
+      | "LANDLORD_APPROVED"
+      | "LANDLORD_REJECTED"
+      | "DOCUMENTS_REQUESTED"
+      | "DOCUMENTS_VERIFIED"
+      | "APPROVED_AWAITING_PAYMENT"
+      | "PAYMENT_CONFIRMED"
+      | "LEASE_FINALIZED"
+      | "TENANCY_ACTIVE"
+      | "APPLICATION_WITHDRAWN_CUSTOMER"
+      | "CANCELLED_ADMIN"
       service_category_enum:
-        | "MAINTENANCE"
-        | "REPAIR"
-        | "CONSTRUCTION"
-        | "DESIGN"
-        | "CLEANING"
-        | "SECURITY"
-        | "LANDSCAPING"
-        | "POOL"
-        | "PEST_CONTROL"
-        | "UTILITIES"
-        | "OTHER"
+      | "MAINTENANCE"
+      | "REPAIR"
+      | "CONSTRUCTION"
+      | "DESIGN"
+      | "CLEANING"
+      | "SECURITY"
+      | "LANDSCAPING"
+      | "POOL"
+      | "PEST_CONTROL"
+      | "UTILITIES"
+      | "OTHER"
       sms_status_enum: "NOT_SENT" | "SENT" | "FAILED"
       sms_type_enum:
-        | "POST_SUBMITTED"
-        | "MARKETING_ASSIGNED_TO_MARKETER"
-        | "MARKETING_ASSIGNED_TO_CUSTOMER"
-        | "MARKETING_REASSIGNED_TO_CUSTOMER"
-        | "RENT_APPROVAL_TO_CUSTOMER"
-        | "RENTED_APPROVAL_TO_OWNER"
-        | "TICKET_CREATED"
-        | "TICKET_CLOSED"
-        | "CREDITS_PURCHASED"
-        | "RENT_DUE"
-        | "VISIT_BOOKING_TO_OWNER"
-        | "VISIT_BOOKING_TO_TENANT"
-        | "TICKET_ASSIGNED_TO_VENDOR"
-        | "TICKET_VENDOR_DETAILS_TO_RAISER"
+      | "POST_SUBMITTED"
+      | "MARKETING_ASSIGNED_TO_MARKETER"
+      | "MARKETING_ASSIGNED_TO_CUSTOMER"
+      | "MARKETING_REASSIGNED_TO_CUSTOMER"
+      | "RENT_APPROVAL_TO_CUSTOMER"
+      | "RENTED_APPROVAL_TO_OWNER"
+      | "TICKET_CREATED"
+      | "TICKET_CLOSED"
+      | "CREDITS_PURCHASED"
+      | "RENT_DUE"
+      | "VISIT_BOOKING_TO_OWNER"
+      | "VISIT_BOOKING_TO_TENANT"
+      | "TICKET_ASSIGNED_TO_VENDOR"
+      | "TICKET_VENDOR_DETAILS_TO_RAISER"
       submitter_type_enum: "OWNER" | "BUILDER" | "AGENT"
       ticket_category_enum:
-        | "MAINTENANCE_REPAIR"
-        | "PLUMBING"
-        | "ELECTRICAL"
-        | "APPLIANCE"
-        | "CLEANING"
-        | "LANDSCAPING"
-        | "PEST_CONTROL"
-        | "NOISE_COMPLAINT"
-        | "LEASE_QUERY"
-        | "PAYMENT_QUERY"
-        | "GENERAL_INQUIRY"
-        | "OTHER"
+      | "MAINTENANCE_REPAIR"
+      | "PLUMBING"
+      | "ELECTRICAL"
+      | "APPLIANCE"
+      | "CLEANING"
+      | "LANDSCAPING"
+      | "PEST_CONTROL"
+      | "NOISE_COMPLAINT"
+      | "LEASE_QUERY"
+      | "PAYMENT_QUERY"
+      | "GENERAL_INQUIRY"
+      | "OTHER"
       ticket_priority_enum: "LOW" | "MEDIUM" | "HIGH"
       ticket_status_enum:
-        | "NEW"
-        | "OPEN"
-        | "ASSIGNED"
-        | "WAITING_TENANT_RESPONSE"
-        | "WAITING_OWNER_RESPONSE"
-        | "IN_PROGRESS"
-        | "RESOLVED"
-        | "CLOSED"
-        | "CANCELLED"
+      | "NEW"
+      | "OPEN"
+      | "ASSIGNED"
+      | "WAITING_TENANT_RESPONSE"
+      | "WAITING_OWNER_RESPONSE"
+      | "IN_PROGRESS"
+      | "RESOLVED"
+      | "CLOSED"
+      | "CANCELLED"
       vendor_status_enum: "ACTIVE" | "INACTIVE" | "UNDER_REVIEW"
       water_source_enum: "BOREWELL" | "MUNICIPAL" | "BOTH"
     }
@@ -3267,116 +3267,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    DefaultSchema["Views"])
+  ? (DefaultSchema["Tables"] &
+    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Enums"]
+  | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["CompositeTypes"]
+  | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never
 
 export const Constants = {
   public: {

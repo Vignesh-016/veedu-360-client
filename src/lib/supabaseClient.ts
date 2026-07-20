@@ -141,6 +141,16 @@ class RealEstateApi {
         return this.handleRpc<Property[]>('get_properties_customer', params);
     }
 
+    async getLatestPropertiesUploaded(limit: number = 4): Promise<ApiResponse<Property[]>> {
+        return this.getProperties({
+            p_limit: limit,
+            p_sort_by: 'created_at',
+            p_sort_direction: 'DESC',
+            p_city: undefined,
+            p_location_search: undefined,
+        });
+    }
+
     getPropertyFromId(propertyId: string): Promise<ApiResponse<Property[]>> {
         return this.handleRpc<Property[]>('get_property_from_id_customer', { p_requested_property_id: propertyId });
     }
