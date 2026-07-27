@@ -1,11 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { v4 as uuidv4 } from 'npm:uuid';
 import { corsHeaders } from '../_shared/cors.ts';
 import supabaseAdmin from "../_shared/supabaseAdmin.ts";
 import { Database } from '../../../src/database.types.ts';
 
+declare const Deno: any;
+
 // --- Configuration ---
-const STORAGE_BUCKET_NAME = Deno.env.get('STORAGE_BUCKET');
+const STORAGE_BUCKET_NAME = 'property-images';
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const ALLOWED_MIME_TYPES = [
@@ -19,7 +20,7 @@ const ALLOWED_MIME_TYPES = [
 type PropertyImageInsert = Database['public']['Tables']['property_images']['Insert'];
 type AdminRoleEnum = Database['public']['Enums']['admin_role_enum'];
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
     // Handle CORS preflight request
     if (req.method === 'OPTIONS') {
         console.log("Handling OPTIONS request");
@@ -86,7 +87,7 @@ Deno.serve(async (req) => {
             console.error(`Database error fetching admin record for user ${userId}:`, adminRecordError);
             // Fail safely, do not grant permission
         } else if (adminRecord && adminRecord.roles) {
-            userIsAuthorizedAdmin = adminRecord.roles.some(role => permittedAdminRoles.includes(role));
+            userIsAuthorizedAdmin = adminRecord.roles.some((role: AdminRoleEnum) => permittedAdminRoles.includes(role));
         }
         console.log(`User Admin Role Check: IsAuthorizedAdmin=${userIsAuthorizedAdmin}`);
 
@@ -136,8 +137,14 @@ Deno.serve(async (req) => {
         if (!STORAGE_BUCKET_NAME) {
             throw new Error("Storage bucket name is not configured in environment variables.");
         }
-        const fileExt = imageFile.name.split('.').pop()?.toLowerCase() || 'bin';
-        const uniqueFileName = `${uuidv4()}.${fileExt}`;
+        let fileExt = imageFile.name.split('.').pop()?.toLowerCase();
+        if (!fileExt || fileExt === imageFile.name.toLowerCase() || fileExt === 'blob') {
+            if (imageFile.type === 'image/jpeg') fileExt = 'jpg';
+            else if (imageFile.type === 'image/png') fileExt = 'png';
+            else if (imageFile.type === 'image/webp') fileExt = 'webp';
+            else fileExt = 'jpg';
+        }
+        const uniqueFileName = `${crypto.randomUUID()}.${fileExt}`;
         const filePath = `properties/${propertyId}/${uniqueFileName}`;
 
         console.log(`Uploading file to storage path: ${filePath}`);

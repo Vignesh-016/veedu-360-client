@@ -96,6 +96,8 @@ const initialFormData = {
     agree_terms: false,
 };
 
+const PROPERTY_LISTING_FEE = 99;
+
 type FormDataState = typeof initialFormData;
 type FormErrorKeys = keyof FormDataState | 'images' | 'details';
 type FormErrors = Partial<Record<FormErrorKeys, string>>;
@@ -166,14 +168,14 @@ function PropertySubmission() {
                 p.name.toLowerCase().includes('post')
             );
             if (plan) {
-                setListingPlan(plan);
+                setListingPlan({ ...plan, price: PROPERTY_LISTING_FEE });
             } else {
                 setListingPlan({
                     plan_id: '00000000-0000-0000-0000-000000000000',
                     name: 'Property Listing Fee',
                     description: 'Listing fee for additional properties',
                     visits: 1,
-                    price: 1.00,
+                    price: PROPERTY_LISTING_FEE,
                     is_active: true
                 } as any);
             }
@@ -184,7 +186,7 @@ function PropertySubmission() {
                 name: 'Property Listing Fee',
                 description: 'Listing fee for additional properties',
                 visits: 1,
-                price: 1.00,
+                price: PROPERTY_LISTING_FEE,
                 is_active: true
             } as any);
         } finally {
@@ -607,7 +609,7 @@ function PropertySubmission() {
                             {/* Message */}
                             <p className="text-sm text-gray-500 mb-6">
                                 Your property listing has been created and published. 
-                                {needsPayment && " Your payment of ₹1.00 has been processed and verified successfully."}
+                                {needsPayment && ` Your payment of ₹${(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)} has been processed and verified successfully.`}
                             </p>
                             
                             {/* Buttons */}
@@ -893,14 +895,14 @@ function PropertySubmission() {
                                                             </div>
                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
                                                                 <span className="text-gray-600">Additional Listing Fee ({listingPlan?.name || 'Property Listing Fee'})</span>
-                                                                <span className="font-semibold text-slate-800">₹{(listingPlan?.price ?? 1).toFixed(2)}</span>
+                                                                <span className="font-semibold text-slate-800">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
                                                             </div>
                                                             <div className="flex justify-between items-center pt-2">
                                                                 <span className="font-bold text-slate-900">Total Amount Due</span>
-                                                                <span className="text-lg font-bold text-indigo-600">₹{(listingPlan?.price ?? 1).toFixed(2)}</span>
+                                                                <span className="text-lg font-bold text-indigo-600">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
                                                             </div>
                                                             <div className="mt-4 bg-indigo-50/50 border border-indigo-100 rounded-lg p-3 text-xs text-indigo-800 leading-relaxed">
-                                                                <strong>Note:</strong> Since this is your second or subsequent property listing, a listing fee of ₹{(listingPlan?.price ?? 1).toFixed(2)} is required. The property will be published instantly once the payment is completed securely via Razorpay.
+                                                                <strong>Note:</strong> Since this is your second or subsequent property listing, a listing fee of ₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)} is required. The property will be published instantly once the payment is completed securely via Razorpay.
                                                             </div>
                                                         </>
                                                     ) : (
@@ -980,7 +982,7 @@ function PropertySubmission() {
                                     ) : (
                                         <>
                                             <IconCheck size={20} />
-                                            <span>{needsPayment ? `Pay & Post Property (₹${(listingPlan?.price ?? 1).toFixed(2)})` : "Post Property"}</span>
+                                            <span>{needsPayment ? `Pay & Post Property (₹${(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)})` : "Post Property"}</span>
                                         </>
                                     )}
                                 </button>

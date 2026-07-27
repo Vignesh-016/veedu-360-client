@@ -1,6 +1,6 @@
 {
     "imports": {
-        "razorpay": "https://esm.sh/razorpay@2.9.6",
+        "razorpay": "npm:razorpay@2.9.6",
         "shared/": "./_shared",
         "supabase-types": "../../src/database.types.ts",
         "@/": "./",

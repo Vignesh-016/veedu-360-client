@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import Razorpay from 'npm:razorpay@2.9.6';
+import Razorpay from "razorpay";
 import supabaseAdmin from "../_shared/supabaseAdmin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
@@ -15,7 +15,7 @@ const razorpay = new Razorpay({
   key_secret: razorpayKeySecret!,
 });
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
 
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
 
     const { data: plansData, error: planError } = await supabaseAdmin
       .from('visit_plans')
-      .select('plan_id, price, is_active')
+      .select('plan_id, name, price, is_active')
       .eq('plan_id', plan_id)
       .maybeSingle();
 
@@ -77,7 +77,8 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const selectedPlanPrice = plansData.price;
+    const isPropertyListingPlan = plansData.name.toLowerCase().includes('listing');
+    const selectedPlanPrice = isPropertyListingPlan ? 99 : plansData.price;
 
     const timestamp = Date.now().toString().slice(-8);
     const receipt = `P${plan_id.substring(0, 6)}_U${userId.substring(0, 6)}_${timestamp}`;

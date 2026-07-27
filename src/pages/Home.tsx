@@ -178,7 +178,7 @@ function Home() {
                         {/* Image Side - Increased Size to 50% */}
                         <div className="relative h-64 md:h-[400px] rounded-2xl overflow-hidden shadow-lg group">
                             <img
-                                src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
+                                src="/images/buy-plots.webp"
                                 alt="Plots and Land"
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             />
@@ -309,7 +309,7 @@ function Home() {
                                     src="https://images.unsplash.com/photo-1590650046871-92c887180603?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                                     alt="Why Choose Us - Support"
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                
+
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                             </div>
