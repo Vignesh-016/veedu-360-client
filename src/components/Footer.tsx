@@ -15,7 +15,7 @@ const Footer = () => {
   const contactAddress = import.meta.env.VITE_CONTACT_ADDRESS || '233 Pothigai Nagar, Perumalpuram, Tirunelveli - 627007';
   const contactPhone = import.meta.env.VITE_CONTACT_PHONE || '+91 74186 99622';
   const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'admin@veedu360.com';
-  const copyrightYear = import.meta.env.VITE_COPYRIGHT_YEAR || '2025';
+  const copyrightYear = new Date().getFullYear();
 
   return (
     <footer className="bg-slate-900 text-slate-300 font-sans border-t border-slate-800">

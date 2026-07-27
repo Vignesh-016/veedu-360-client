@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+/// <reference path="../global.d.ts" />
 import crypto from 'node:crypto';
 import supabaseAdmin from "../_shared/supabaseAdmin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -10,7 +10,7 @@ if (!razorpayKeySecret) {
   // Consider throwing an error or exiting if this is critical for function startup
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -86,13 +86,13 @@ Deno.serve(async (req) => {
 
     console.log(`Signature valid for order ${razorpay_order_id}. Updating transaction to 'paid'.`);
     const { error: updatePaidError } = await supabaseAdmin.rpc(
-      'update_transaction_status', // This name implies a generic status update function
+      'update_transaction_status',
       {
         p_razorpay_order_id: razorpay_order_id,
         p_status: 'paid',
         p_razorpay_payment_id: razorpay_payment_id,
         p_razorpay_signature: razorpay_signature,
-        p_error_message: null // Clear any previous errors
+        p_error_message: undefined // Clear any previous errors
       }
     );
 

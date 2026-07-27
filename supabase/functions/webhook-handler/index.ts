@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+/// <reference path="../global.d.ts" />
 import crypto from 'node:crypto';
 import supabaseAdmin from '../_shared/supabaseAdmin.ts';
 
@@ -9,7 +9,7 @@ if (!razorpayWebhookSecret) {
   // This is a critical configuration. The function should ideally not proceed without it.
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (!razorpayWebhookSecret) {
     // Return 500 if secret is not set, as webhook verification is impossible
     return new Response('Webhook secret not configured on server', { status: 500 });
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
           p_status: 'paid',
           p_razorpay_payment_id: paymentId,
           p_razorpay_signature: paymentSignature, // Store the payment signature for reference
-          p_error_message: null // Clear any previous errors
+          p_error_message: undefined // Clear any previous errors
         });
 
         if (updateError) {
@@ -118,8 +118,8 @@ Deno.serve(async (req) => {
         const { error: updateFailedError } = await supabaseAdmin.rpc('update_transaction_status', {
           p_razorpay_order_id: orderId,
           p_status: 'failed',
-          p_razorpay_payment_id: paymentId || null,
-          p_razorpay_signature: null, // No signature to store for failed payment typically
+          p_razorpay_payment_id: paymentId || undefined,
+          p_razorpay_signature: undefined, // No signature to store for failed payment
           p_error_message: `Payment failed: ${errorCode} - ${errorDescription}`
         });
         if (updateFailedError) {

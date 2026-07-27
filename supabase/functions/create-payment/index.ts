@@ -1,5 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import Razorpay from "razorpay";
+/// <reference path="../global.d.ts" />
+import Razorpay from "npm:razorpay@2.9.6";
 import supabaseAdmin from "../_shared/supabaseAdmin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
