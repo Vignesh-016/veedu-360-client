@@ -1,135 +1,109 @@
 import { ManagementPlan } from '../lib/types';
-import { IconCheck, IconCrown, IconStarFilled } from '@tabler/icons-react';
+import { IconUserCheck, IconFileCheck, IconTools, IconHelpCircle } from '@tabler/icons-react';
 
 interface ServicePlanCardProps {
     plan: ManagementPlan;
     highlight?: 'gold' | 'silver';
 }
 
-const parseFeatures = (description: string): string[] =>
-    description
-        ?.replace(/\s*\+\s*/g, ',')
-        .split(',')
+const getPlanIcon = (name: string, index: number) => {
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes('tenant') || lowerName.includes('placement')) {
+        return <IconUserCheck className="w-6 h-6 text-[#2C4964] group-hover:text-white transition-colors duration-300" stroke={2} />;
+    } else if (lowerName.includes('rent') || lowerName.includes('agreement')) {
+        return <IconFileCheck className="w-6 h-6 text-[#2C4964] group-hover:text-white transition-colors duration-300" stroke={2} />;
+    } else if (lowerName.includes('full') || lowerName.includes('stack') || lowerName.includes('complete')) {
+        return <IconTools className="w-6 h-6 text-[#2C4964] group-hover:text-white transition-colors duration-300" stroke={2} />;
+    } else if (lowerName.includes('why') || lowerName.includes('choose')) {
+        return <IconHelpCircle className="w-6 h-6 text-[#2C4964] group-hover:text-white transition-colors duration-300" stroke={2} />;
+    }
+    const icons = [
+        <IconUserCheck className="w-6 h-6 text-[#2C4964] group-hover:text-white transition-colors duration-300" stroke={2} />,
+        <IconFileCheck className="w-6 h-6 text-[#2C4964] group-hover:text-white transition-colors duration-300" stroke={2} />,
+        <IconTools className="w-6 h-6 text-[#2C4964] group-hover:text-white transition-colors duration-300" stroke={2} />,
+        <IconHelpCircle className="w-6 h-6 text-[#2C4964] group-hover:text-white transition-colors duration-300" stroke={2} />
+    ];
+    return icons[index % icons.length];
+};
+
+const parseFeatures = (description: string): string[] => {
+    if (!description) return [];
+    return description
+        .split('\n')
+        .flatMap(line => line.split(/\s*\+\s*/))
         .map(f => f.trim())
-        .filter(Boolean) || [];
+        .filter(Boolean);
+};
 
-function ServicePlanCard({ plan, highlight }: ServicePlanCardProps) {
-    const features = parseFeatures(plan.description || '');
-
-    const isGold = highlight === 'gold';
-    const isSilver = highlight === 'silver';
-
-    // Dynamic styles based on highlight
-    const cardStyles = isGold
-        ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-amber-300 shadow-amber-100'
-        : isSilver
-            ? 'bg-gradient-to-br from-slate-50 via-[#2C4964]/5 to-slate-50 border-slate-200 shadow-slate-100'
-            : 'bg-white border-gray-200';
-
-    const accentColor = isGold
-        ? 'text-amber-600'
-        : 'text-[#2C4964]';
-
-    const buttonStyles = isGold
-        ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-600 hover:via-orange-600 hover:to-amber-600 shadow-lg shadow-amber-200'
-        : 'bg-[#2C4964] hover:bg-[#1E3347] shadow-lg shadow-slate-200';
-
-    const checkBg = isGold
-        ? 'bg-amber-500'
-        : 'bg-[#2C4964]';
+function ServicePlanCard({ plan }: ServicePlanCardProps) {
+    const rawFeatures = parseFeatures(plan.description || '');
 
     return (
         <div
-            className={`relative flex flex-col h-full rounded-xl border-2 ${cardStyles} 
-      transition-all duration-500 hover:-translate-y-2 hover:shadow-xl group overflow-hidden`}
+            className="relative flex flex-col h-full rounded-2xl border-2 border-gray-200 bg-white 
+      hover:bg-gradient-to-b hover:from-blue-50/60 hover:via-white hover:to-blue-50/40 hover:border-[#2C4964]/40
+      transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl group overflow-hidden p-7"
         >
-            {/* Background Decoration */}
-            <div className="absolute top-0 right-0 w-24 h-24 opacity-10">
-                <div className={`w-full h-full rounded-full blur-2xl ${isGold ? 'bg-amber-400' : 'bg-slate-400'}`} />
-            </div>
-
-            {/* Popular Badge */}
-            {isGold && (
-                <div className="absolute top-0 right-0">
-                    <div className="bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm flex items-center gap-1">
-                        <IconCrown size={12} className="fill-current" />
-                        MOST POPULAR
-                    </div>
+            {/* Header Title with Icon & Title */}
+            <div className="flex items-center gap-3.5 mb-6 border-b border-gray-100 pb-4">
+                <div className="w-13 h-13 p-3 rounded-2xl bg-gray-100 group-hover:bg-[#2C4964] flex items-center justify-center shadow-sm flex-shrink-0 transition-colors duration-300">
+                    {getPlanIcon(plan.name, 0)}
                 </div>
-            )}
-
-            {/* Recommended Badge */}
-            {isSilver && (
-                <div className="absolute top-0 right-0">
-                    <div className="bg-[#2C4964] text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm flex items-center gap-1">
-                        <IconStarFilled size={10} />
-                        RECOMMENDED
-                    </div>
+                <div>
+                    <h3 className="text-xl md:text-2xl font-extrabold text-[#2C4964] group-hover:text-[#1E3347] transition-colors leading-snug">
+                        {plan.name}
+                    </h3>
                 </div>
-            )}
-
-            {/* Header */}
-            <div className="p-4 pb-2">
-                <h3 className="text-lg font-bold text-gray-900 mb-0.5">
-                    {plan.name}
-                </h3>
-                <p className="text-xs text-gray-500">Property Management Service</p>
             </div>
 
-            {/* Pricing Section */}
-            <div className="px-4 py-2">
-                <div className="flex items-end gap-1">
-                    <span className={`text-4xl font-extrabold ${accentColor}`}>
-                        {plan.percentage}%
-                    </span>
-                    <span className="text-gray-500 text-xs font-medium mb-1.5">
-                        fee
-                    </span>
-                </div>
-                <p className="text-gray-400 text-[10px] mt-0.5">of monthly rent collected</p>
-            </div>
+            {/* Bullet Points with Subheadings & Descriptions */}
+            <div className="flex-grow space-y-4 mb-7">
+                {rawFeatures.map((feature, idx) => {
+                    const colonIndex = feature.indexOf(':');
+                    let titlePart = '';
+                    let bodyPart = feature;
 
-            {/* Divider */}
-            <div className="px-4 my-1">
-                <div className={`h-px ${isGold ? 'bg-amber-200' : 'bg-gray-200'}`} />
-            </div>
+                    if (colonIndex !== -1) {
+                        titlePart = feature.substring(0, colonIndex).trim();
+                        bodyPart = feature.substring(colonIndex + 1).trim();
+                    }
 
-            {/* Features */}
-            <div className="p-4 flex-grow">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">
-                    What's Included
-                </p>
-                <ul className="space-y-1.5">
-                    {features.map((feature, index) => (
-                        <li key={index} className="flex items-start gap-2 group/item">
-                            <div
-                                className={`mt-0.5 h-4 w-4 rounded-full ${checkBg} flex items-center justify-center flex-shrink-0 
-                transition-transform group-hover/item:scale-110`}
-                            >
-                                <IconCheck size={10} className="text-white" strokeWidth={3} />
-                            </div>
-                            <span className="text-xs text-gray-600 leading-tight">
-                                {feature}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
+                    const isCostLine = titlePart.toLowerCase().includes('cost');
+
+                    return (
+                        <div key={idx} className={`${isCostLine ? 'bg-amber-50/80 p-3.5 rounded-xl border border-amber-200/70 font-semibold' : ''}`}>
+                            {titlePart ? (
+                                <p className="text-sm md:text-base leading-relaxed text-gray-800">
+                                    <span className={`font-bold italic ${isCostLine ? 'text-amber-900 text-base' : 'text-[#2C4964]'} mr-1.5`}>
+                                        {titlePart}:
+                                    </span>
+                                    <span className="text-gray-700 font-medium">{bodyPart}</span>
+                                </p>
+                            ) : (
+                                <div className="flex items-start gap-2.5">
+                                    <div className="mt-2 w-2 h-2 rounded-full bg-[#2C4964] flex-shrink-0 group-hover:bg-blue-600 transition-colors" />
+                                    <p className="text-sm md:text-base text-gray-700 font-medium leading-relaxed">{bodyPart}</p>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
 
             {/* CTA Button */}
-            <div className="p-4 pt-0 pb-4">
+            <div className="mt-auto pt-2">
                 <button
-                    className={`w-full py-2.5 rounded-lg text-xs font-bold text-white ${buttonStyles}
-          transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]`}
+                    className="w-full py-3.5 rounded-xl text-sm font-extrabold text-white bg-[#2C4964] hover:bg-[#1E3347]
+          transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] shadow-md uppercase tracking-wider"
                 >
-                    Get Started
+                    Learn More & Select
                 </button>
-                <p className="text-center text-[10px] text-gray-400 mt-2">
-                    No hidden charges • Cancel anytime
-                </p>
             </div>
         </div>
     );
 }
 
 export default ServicePlanCard;
+
+
+

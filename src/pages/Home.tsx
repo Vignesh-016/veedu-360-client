@@ -19,9 +19,24 @@ function Home() {
     const [loadingLatest, setLoadingLatest] = useState(true);
     const [managementPlans, setManagementPlans] = useState<ManagementPlan[]>([]);
     const [loadingPlans, setLoadingPlans] = useState(true);
+    const [homepageSettings, setHomepageSettings] = useState<any>(null);
 
     const { currentCity, geolocationLoading } = useAuth();
     const { showErrorNotification } = useNotification();
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const { data } = await api.getHomepageSettings();
+                if (data) {
+                    setHomepageSettings(data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch homepage settings:", err);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     useEffect(() => {
         const fetchRecommendations = async () => {
@@ -84,10 +99,7 @@ function Home() {
                 const { data, error } = await api.getManagementPlans();
                 if (error) throw error;
                 if (data) {
-                    const sortedAndFilteredPlans = data
-                        .filter(plan => plan.percentage > 0)
-                        .sort((a, b) => a.percentage - b.percentage);
-                    setManagementPlans(sortedAndFilteredPlans);
+                    setManagementPlans(data);
                 }
             } catch (err: any) {
                 console.error("Failed to fetch management plans:", err);
@@ -354,24 +366,12 @@ function Home() {
                             </div>
                         ) : managementPlans.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                                {managementPlans.map((plan, index) => {
-                                    const totalPlans = managementPlans.length;
-                                    let highlight: 'gold' | 'silver' | undefined = undefined;
-
-                                    if (index === totalPlans - 1) {
-                                        highlight = 'gold';
-                                    }
-                                    else if (totalPlans > 1 && index === totalPlans - 2) {
-                                        highlight = 'silver';
-                                    }
-                                    return (
-                                        <ServicePlanCard
-                                            key={plan.plan_id}
-                                            plan={plan}
-                                            highlight={highlight}
-                                        />
-                                    );
-                                })}
+                                {managementPlans.map((plan) => (
+                                    <ServicePlanCard
+                                        key={plan.plan_id}
+                                        plan={plan}
+                                    />
+                                ))}
                             </div>
                         ) : (
                             <p className="text-gray-500 text-center py-8">Management service plans are not available at the moment.</p>
@@ -387,11 +387,10 @@ function Home() {
                             {/* Left Content */}
                             <div className="text-left relative z-10">
                                 <h2 className="text-4xl md:text-5xl font-extrabold text-[#2C4964] mb-6 leading-tight">
-                                    What Our <br />
-                                    <span className="text-[#2C4964]">Customers Say</span>
+                                    {homepageSettings?.testimonials?.title || "What Our Customers Say"}
                                 </h2>
                                 <p className="text-gray-600 text-lg leading-relaxed mb-8 max-w-md">
-                                    Hear from homeowners who rely on our management services and tenants who found their perfect homes through Veedu360.
+                                    {homepageSettings?.testimonials?.subtitle || "Hear from homeowners who rely on our management services and tenants who found their perfect homes through Veedu360."}
                                 </p>
                                 {/* Decorative circle */}
                                 <div className="absolute -left-20 -top-20 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-50 -z-10" />
@@ -403,60 +402,51 @@ function Home() {
                                 <div className="absolute left-8 top-10 bottom-10 w-0.5 bg-gradient-to-b from-transparent via-blue-200 to-transparent hidden md:block" />
 
                                 <div className="space-y-6 md:pl-8">
-                                    {/* Evaluation Card 1 */}
-                                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex items-start gap-4 transform transition hover:-translate-y-1 hover:shadow-xl relative z-10 ml-0 md:ml-12">
-                                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
-                                            {/* <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=128&q=80" alt="Mehwish" className="w-full h-full object-cover" /> */}
-                                        </div>
-                                        <div>
-                                            <div className="flex justify-between items-center mb-1">
-                                                <h4 className="font-bold text-gray-900">Arul Joseph</h4>
-                                                <IconStar className="w-4 h-4 text-amber-400 fill-current" />
-                                            </div>
-                                            <p className="text-gray-600 text-sm leading-relaxed">
-                                                "Clean, comfy, and affordable! Perfect bachelor pad with all essentials. Great value for money, lovely stay. Highly recommend!"
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Evaluation Card 2 (Active/Highlighted) */}
-                                    <div className="bg-white p-6 rounded-2xl shadow-xl border-l-4 border-[#2C4964] flex items-start gap-4 transform scale-105 relative z-20">
-                                        <div className="absolute -left-[3.25rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#2C4964] hidden md:block ring-4 ring-white" />
-                                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
-                                            {/* <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-1.2.1&auto=format&fit=crop&w=128&q=80" alt="Elizabeth" className="w-full h-full object-cover" /> */}
-                                        </div>
-                                        <div>
-                                            <div className="flex justify-between items-center mb-1">
-                                                <h4 className="font-bold text-gray-900">Chithra Ramesh</h4>
-                                                <div className="flex gap-0.5">
-                                                    <IconStar className="w-3 h-3 text-amber-400 fill-current" />
-                                                    <IconStar className="w-3 h-3 text-amber-400 fill-current" />
-                                                    <IconStar className="w-3 h-3 text-amber-400 fill-current" />
-                                                    <IconStar className="w-3 h-3 text-amber-400 fill-current" />
-                                                    <IconStar className="w-3 h-3 text-amber-400 fill-current" />
+                                    {(homepageSettings?.testimonials?.list && homepageSettings.testimonials.list.length > 0
+                                        ? homepageSettings.testimonials.list
+                                        : [
+                                            { name: "Arul Joseph", rating: 5, avatar: "", comment: "Clean, comfy, and affordable! Perfect bachelor pad with all essentials. Great value for money, lovely stay. Highly recommend!" },
+                                            { name: "Chithra Ramesh", rating: 5, avatar: "", comment: "Luxury, Quiet, Great value" },
+                                            { name: "Mohanraj Sathya", rating: 5, avatar: "", comment: "More comfortable to stay" }
+                                        ]
+                                    ).map((item: any, idx: number) => {
+                                        const isHighlighted = idx === 1 || (homepageSettings?.testimonials?.list?.length === 1);
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className={`bg-white p-6 rounded-2xl shadow-lg border flex items-start gap-4 transform transition hover:-translate-y-1 hover:shadow-xl relative ${isHighlighted
+                                                    ? 'border-l-4 border-[#2C4964] shadow-xl scale-105 z-20'
+                                                    : 'border-gray-100 z-10 ml-0 md:ml-12'
+                                                    }`}
+                                            >
+                                                {isHighlighted && (
+                                                    <div className="absolute -left-[3.25rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#2C4964] hidden md:block ring-4 ring-white" />
+                                                )}
+                                                {item.avatar ? (
+                                                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
+                                                        <img src={item.avatar} alt={item.name} className="w-full h-full object-cover" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-12 h-12 rounded-full bg-[#2C4964] text-white flex items-center justify-center font-bold text-base flex-shrink-0 shadow-sm">
+                                                        {item.name ? item.name.charAt(0).toUpperCase() : 'U'}
+                                                    </div>
+                                                )}
+                                                <div className="flex-1">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <h4 className="font-bold text-gray-900">{item.name}</h4>
+                                                        <div className="flex gap-0.5">
+                                                            {Array.from({ length: item.rating || 5 }).map((_, rIdx) => (
+                                                                <IconStar key={rIdx} className="w-3.5 h-3.5 text-amber-400 fill-current" />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-gray-600 text-sm leading-relaxed">
+                                                        "{item.comment}"
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <p className="text-gray-600 text-sm leading-relaxed font-medium">
-                                                "Luxury, Quiet, Great value"
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Evaluation Card 3 */}
-                                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex items-start gap-4 transform transition hover:-translate-y-1 hover:shadow-xl relative z-10 ml-0 md:ml-12">
-                                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
-                                            {/* <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=128&q=80" alt="Emily" className="w-full h-full object-cover" /> */}
-                                        </div>
-                                        <div>
-                                            <div className="flex justify-between items-center mb-1">
-                                                <h4 className="font-bold text-gray-900">Mohanraj Sathya</h4>
-                                                <IconStar className="w-4 h-4 text-amber-400 fill-current" />
-                                            </div>
-                                            <p className="text-gray-600 text-sm leading-relaxed">
-                                                "More comfortable to stay"
-                                            </p>
-                                        </div>
-                                    </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>

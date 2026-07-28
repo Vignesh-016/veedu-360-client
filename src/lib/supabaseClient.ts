@@ -479,6 +479,21 @@ class RealEstateApi {
         const response = await this.handleRpc<void>('customer_withdraw_rental_application', { p_application_id: applicationId });
         return { data: null, error: response.error };
     }
+
+    async getHomepageSettings(): Promise<ApiResponse<any>> {
+        try {
+            const { data, error } = await this.supabase
+                .from('site_settings' as any)
+                .select('content')
+                .eq('key', 'homepage')
+                .single();
+            if (error) throw error;
+            return { data: (data as any)?.content, error: null };
+        } catch (err: any) {
+            console.error("Failed to fetch homepage settings:", err);
+            return { data: null, error: err.message || err };
+        }
+    }
 }
 
 const api = new RealEstateApi();
