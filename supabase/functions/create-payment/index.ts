@@ -43,7 +43,9 @@ Deno.serve(async (req: Request) => {
     const userId: string = user.id;
 
     const requestBody = await req.json();
-    const { plan_id } = requestBody;
+    const { plan_id, plan_type = 'visit' } = requestBody;
+    console.log(`[create-payment] Received plan_id: ${plan_id}, plan_type: ${plan_type}`);
+
 
     if (!plan_id) {
       console.error('Missing plan_id in request');
@@ -53,11 +55,27 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { data: plansData, error: planError } = await supabaseAdmin
-      .from('visit_plans')
-      .select('plan_id, name, price, is_active')
-      .eq('plan_id', plan_id)
-      .maybeSingle();
+    let plansData: { plan_id: string; name: string; price: number; is_active: boolean } | null = null;
+    let planError;
+
+    if (plan_type === 'contact') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabaseAdmin as any)
+        .from('contact_plans')
+        .select('plan_id, name, price, is_active')
+        .eq('plan_id', plan_id)
+        .maybeSingle();
+      plansData = data;
+      planError = error;
+    } else {
+      const { data, error } = await supabaseAdmin
+        .from('visit_plans')
+        .select('plan_id, name, price, is_active')
+        .eq('plan_id', plan_id)
+        .maybeSingle();
+      plansData = data;
+      planError = error;
+    }
 
     if (planError) {
       console.error('Error fetching plan:', planError);
@@ -77,6 +95,7 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
     const isPropertyListingPlan = plansData.name.toLowerCase().includes('listing');
     const selectedPlanPrice = isPropertyListingPlan ? 99 : plansData.price;
 
@@ -89,19 +108,25 @@ Deno.serve(async (req: Request) => {
       receipt: receipt,
       notes: {
         customer_id: userId,
-        plan_id: plan_id
+        plan_id: plan_id,
+        plan_type: plan_type
       }
     };
 
     const order = await razorpay.orders.create(orderOptions);
 
-    const transactionData = {
+    const transactionData: any = {
       user_id: userId,
-      plan_id: plan_id,
       amount: selectedPlanPrice,
       razorpay_order_id: order.id,
       status: 'created'
     };
+
+    if (plan_type === 'contact') {
+      transactionData.contact_plan_id = plan_id;
+    } else {
+      transactionData.plan_id = plan_id;
+    }
 
     const { data: transactionInsertData, error: transactionError } = await supabaseAdmin
       .from('transactions')

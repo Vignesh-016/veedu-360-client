@@ -60,6 +60,11 @@ export interface TicketImage {
 // --- Property Interfaces ---
 export type Property = Omit<Database['public']['Functions']['get_properties_customer']['Returns'][0], 'property_images'> & {
     property_images: PropertyImage[];
+    submitter_info?: {
+        name: string;
+        phone?: string;
+        is_unlocked: boolean;
+    } | null;
 }
 
 // Further specialized property types if needed for UI logic based on property_type
@@ -158,6 +163,15 @@ export type VisitPlan = Database['public']['Functions']['get_visit_plans_custome
 export interface VisitStatus {
     visit_balance: number;
     expiry_date: string | null; // Date string, e.g., "YYYY-MM-DD"
+    contact_balance: number;
+}
+
+export interface ContactPlan {
+    plan_id: string;
+    name: string;
+    price: number;
+    contacts: number;
+    description: string | null;
 }
 
 export type MyTransactions = Database['public']['Functions']['get_my_transactions_customer']['Returns'][0];
@@ -171,6 +185,7 @@ export type PropertiesFilterParams = Database['public']['Functions']['get_proper
 
 export interface CreatePaymentOrderPayload {
     plan_id: string;
+    plan_type?: 'visit' | 'contact';
 }
 
 export interface CreatePaymentOrderResponse {

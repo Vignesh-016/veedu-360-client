@@ -1,7 +1,7 @@
 
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
-import { IconUserCircle, IconWallet, IconHeart, IconLogout, IconChevronRight, IconCalendarPlus, IconSettings, IconShieldLock, IconHomeUp, IconReceipt, IconHomeCheck, IconTicket } from '@tabler/icons-react';
+import { IconUserCircle, IconWallet, IconHeart, IconLogout, IconChevronRight, IconCalendarPlus, IconSettings, IconShieldLock, IconHomeUp, IconReceipt, IconHomeCheck, IconTicket, IconPhoneCall } from '@tabler/icons-react';
 import { getBaseCardClasses, getSecondaryButtonClasses } from '../lib/twUtils';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { format } from 'date-fns';
@@ -112,6 +112,26 @@ function Profile() {
                                 </div>
                                 <Link to="/plans" className={`${getSecondaryButtonClasses()} !text-xs !px-3 !py-1.5 hover:!bg-gray-100 flex items-center gap-1 whitespace-nowrap`}>
                                     <IconCalendarPlus size={14} stroke={1.5} /> Buy More Credits
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Contact Unlock Credits Section */}
+                        <div className="pb-6 mb-6 border-b border-gray-200">
+                            <h2 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <IconPhoneCall size={20} stroke={1.5} className="text-[#D9A619]" /> Contact Unlock Credits
+                            </h2>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                <div>
+                                    <p className="text-2xl font-bold text-gray-800">
+                                        {balance?.contact_balance ?? 0} <span className="text-base font-medium text-gray-600">{(balance?.contact_balance ?? 0) === 1 ? 'credit' : 'credits'} left</span>
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Valid for lifetime
+                                    </p>
+                                </div>
+                                <Link to="/buy-contact-plans" className={`${getSecondaryButtonClasses()} !text-xs !px-3 !py-1.5 hover:!bg-gray-100 flex items-center gap-1 whitespace-nowrap`}>
+                                    <IconPhoneCall size={14} stroke={1.5} /> Buy Contact Plans
                                 </Link>
                             </div>
                         </div>

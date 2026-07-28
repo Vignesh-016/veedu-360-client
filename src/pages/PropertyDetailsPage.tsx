@@ -4,13 +4,14 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
     IconArrowLeft, IconAlertCircle, IconBuildingCommunity,
     IconHome2, IconMapPin2, IconFileDescription, IconListDetails, IconSparkles,
-    IconMap, IconVideo, IconInfoCircle
+    IconMap, IconVideo, IconInfoCircle, IconLock, IconPhoneCall
 } from '@tabler/icons-react';
 import { format, startOfTomorrow, addWeeks } from 'date-fns';
 
 import api from '../lib/supabaseClient';
 import { Property, HouseDetailsSpecific, LandDetailsSpecific, BuildingDetailsSpecific } from '../lib/types';
 import FullScreenLoader from '../components/FullScreenLoader';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../lib/AuthContext';
 import { useNotification } from '../components/NotificationProvider';
 import { getPrimaryButtonClasses, getSecondaryButtonClasses } from '../lib/twUtils';
@@ -50,6 +51,43 @@ function PropertyDetailsPage() {
     const [isRentalApplicationModalOpen, setIsRentalApplicationModalOpen] = useState(false);
     const [primaryActionLoading, setPrimaryActionLoading] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [unlockLoading, setUnlockLoading] = useState(false);
+
+    const handleUnlockContact = async () => {
+        if (!user) {
+            showErrorNotification('Login Required', 'Please log in to unlock contact details.');
+            navigate('/login', { state: { from: location.pathname } });
+            return;
+        }
+        if (!details) return;
+
+        // Guard: no contact credits
+        if (!balance || (balance.contact_balance ?? 0) <= 0) {
+            showErrorNotification('No Contact Credits', 'You have no contact credits. Purchase a plan to unlock owner contacts.');
+            navigate('/buy-contact-plans');
+            return;
+        }
+
+        setUnlockLoading(true);
+        try {
+            const { data, error: unlockErr } = await api.unlockPropertyContact(details.property_id);
+            if (unlockErr || !data?.success) {
+                throw new Error(
+                    (unlockErr as any)?.message ||
+                    (typeof unlockErr === 'string' ? unlockErr : null) ||
+                    data?.error ||
+                    'Failed to unlock contact.'
+                );
+            }
+            showSuccessNotification('Contact Unlocked!', 'Owner contact details are now visible.');
+            await refetchBalance();
+            await fetchDetails();
+        } catch (err: any) {
+            showErrorNotification('Unlock Failed', err.message || 'Could not unlock contact. Please try again.');
+        } finally {
+            setUnlockLoading(false);
+        }
+    };
 
     const fetchDetails = useCallback(async () => {
         if (!propertyId) { setError("Property ID is missing."); setLoading(false); return; }
@@ -240,6 +278,81 @@ function PropertyDetailsPage() {
                             <ImageGallery images={details.property_images} propertyName={displayName} />
                             <PropertyHeader details={details} displayName={displayName} PropertyIcon={PropertyIconComponent} />
                             <KeyFeatures details={details} />
+                            {details.submitter_info && (
+                                <DetailSection title="Owner Contact Details" icon={IconPhoneCall} gridCols={1}>
+                                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                            <div>
+                                                <h4 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Property Submitter</h4>
+                                                <p className="text-gray-800 font-bold text-lg">{details.submitter_info.name}</p>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Phone Number</h4>
+                                                {details.submitter_info.is_unlocked && details.submitter_info.phone ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[#2C4964] font-bold text-lg">{details.submitter_info.phone}</span>
+                                                        <a
+                                                            href={`tel:${details.submitter_info.phone}`}
+                                                            className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 transition-colors"
+                                                            title="Call Owner"
+                                                        >
+                                                            <IconPhoneCall size={16} />
+                                                        </a>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-gray-400 font-mono tracking-wider font-semibold text-lg select-none">+91 ••••• •••••</span>
+                                                        <button
+                                                            onClick={handleUnlockContact}
+                                                            disabled={unlockLoading}
+                                                            className="px-4 py-2.5 bg-[#D9A619] hover:bg-[#8F6F1B] disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition-all shadow-sm flex items-center gap-1.5 transform active:scale-95"
+                                                        >
+                                                            {unlockLoading ? <LoadingSpinner size={12} /> : <IconLock size={14} />}
+                                                            Unlock Contact (1 Credit)
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {/* Credit balance info strip */}
+                                        {!details.submitter_info.is_unlocked && (
+                                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                                {!user ? (
+                                                    <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                                                        <IconInfoCircle size={13} className="text-[#D9A619] shrink-0" />
+                                                        <span>
+                                                            <button
+                                                                onClick={() => navigate('/login', { state: { from: location.pathname } })}
+                                                                className="text-[#D9A619] font-semibold hover:underline"
+                                                            >
+                                                                Log in
+                                                            </button>
+                                                            {' '}to unlock owner contact details using your contact credits.
+                                                        </span>
+                                                    </p>
+                                                ) : balance && (balance.contact_balance ?? 0) > 0 ? (
+                                                    <p className="text-xs text-emerald-600 flex items-center gap-1.5">
+                                                        <IconInfoCircle size={13} className="shrink-0" />
+                                                        You have <strong>{balance.contact_balance}</strong> contact credit{balance.contact_balance !== 1 ? 's' : ''} remaining. Each unlock uses 1 credit.
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-xs text-red-500 flex items-center gap-1.5">
+                                                        <IconInfoCircle size={13} className="shrink-0" />
+                                                        You have no contact credits.{' '}
+                                                        <button
+                                                            onClick={() => navigate('/buy-contact-plans')}
+                                                            className="text-[#D9A619] font-semibold hover:underline"
+                                                        >
+                                                            Buy a plan
+                                                        </button>
+                                                        {' '}to unlock owner contacts.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </DetailSection>
+                            )}
                             {details.description && (
                                 <DetailSection title="Description" icon={IconFileDescription} gridCols={1}>
                                     <p className="whitespace-pre-wrap leading-relaxed">{details.description}</p>

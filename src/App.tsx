@@ -15,6 +15,7 @@ const VerifyPhone = lazy(() => import('./pages/VerifyPhone'));
 const Catalogue = lazy(() => import('./pages/Catalogue'));
 const Wishlist = lazy(() => import('./pages/Wishlist'));
 const Plans = lazy(() => import('./pages/Plans'));
+const BuyContactPlans = lazy(() => import('./pages/BuyContactPlans'));
 const PropertySubmission = lazy(() => import('./pages/PropertySubmission'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const PropertyDetailsPage = lazy(() => import('./pages/PropertyDetailsPage'));
@@ -94,6 +95,10 @@ function App() {
                   <Route
                     path="/plans"
                     element={<RequirePhone><Plans /></RequirePhone>}
+                  />
+                  <Route
+                    path="/buy-contact-plans"
+                    element={<RequirePhone><BuyContactPlans /></RequirePhone>}
                   />
                   <Route
                     path="/submit-property"

@@ -30,7 +30,8 @@ import {
     WishlistItem,
     CustomerSubmitRentalApplicationPayload,
     MyRentalApplication,
-    MyRentalApplicationDetails
+    MyRentalApplicationDetails,
+    ContactPlan
 } from './types';
 import { format } from 'date-fns';
 
@@ -189,13 +190,26 @@ class RealEstateApi {
     // =========================================
 
     async getVisitStatus(): Promise<ApiResponse<VisitStatus>> {
-        const response = await this.handleRpc<VisitStatus[]>('get_visit_status_customer');
-        if (response.error || !response.data) {
-            // Ensure default structure if data is null or empty array
-            return { data: { visit_balance: 0, expiry_date: null }, error: response.error };
+        const visitResponse = await this.handleRpc<VisitStatus[]>('get_visit_status_customer');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const contactResponse = await (this.supabase.rpc as any)('get_contact_status_customer');
+        
+        let visit_balance = 0;
+        let expiry_date: string | null = null;
+        let contact_balance = 0;
+
+        if (visitResponse.data && visitResponse.data.length > 0) {
+            visit_balance = visitResponse.data[0].visit_balance;
+            expiry_date = visitResponse.data[0].expiry_date;
         }
-        const statusData = response.data.length > 0 ? response.data[0] : { visit_balance: 0, expiry_date: null };
-        return { data: statusData, error: null };
+        if (contactResponse.data && contactResponse.data.length > 0) {
+            contact_balance = contactResponse.data[0].contact_balance;
+        }
+
+        return {
+            data: { visit_balance, expiry_date, contact_balance },
+            error: visitResponse.error || contactResponse.error
+        };
     }
 
     async requestVisit(propertyId: string, preferredDate: Date): Promise<ApiResponse<string>> {
@@ -207,6 +221,27 @@ class RealEstateApi {
 
     async getVisitPlans(): Promise<ApiResponse<VisitPlan[]>> {
         return this.handleRpc<VisitPlan[]>('get_visit_plans_customer');
+    }
+
+    async getContactPlans(): Promise<ApiResponse<ContactPlan[]>> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (this.supabase.rpc as any)('get_contact_plans_customer').then(
+            ({ data, error }: any) => ({ data: data as ContactPlan[] | null, error })
+        );
+    }
+
+    async claimFreeContactPlan(planId: string): Promise<ApiResponse<{ success: boolean; message?: string; error?: string }>> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (this.supabase.rpc as any)('claim_free_contact_plan', { p_plan_id: planId }).then(
+            ({ data, error }: any) => ({ data, error })
+        );
+    }
+
+    async unlockPropertyContact(propertyId: string): Promise<ApiResponse<{ success: boolean; phone?: string; error?: string }>> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (this.supabase.rpc as any)('unlock_property_contact', { p_property_id: propertyId }).then(
+            ({ data, error }: any) => ({ data, error })
+        );
     }
 
     // =========================================
@@ -257,21 +292,43 @@ class RealEstateApi {
 
     async createPaymentOrder(payload: CreatePaymentOrderPayload): Promise<ApiResponse<CreatePaymentOrderResponse>> {
         try {
-            const { data, error } = await this.supabase.functions.invoke('create-payment', {
+            const { data: sessionData } = await this.supabase.auth.getSession();
+            const token = sessionData?.session?.access_token;
+
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const url = `${supabaseUrl}/functions/v1/create-payment`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                },
                 body: JSON.stringify(payload),
             });
-            if (error) throw error;
-            return { data: data as CreatePaymentOrderResponse, error: null };
+
+            // Parse response body regardless of status
+            let responseData: any = null;
+            try {
+                responseData = await response.json();
+            } catch {
+                return { data: null, error: `Server error (${response.status}): Unable to parse response.` };
+            }
+
+            if (!response.ok) {
+                const msg = responseData?.error || `Request failed with status ${response.status}`;
+                console.error('[createPaymentOrder] Error response:', responseData);
+                return { data: null, error: msg };
+            }
+
+            return { data: responseData as CreatePaymentOrderResponse, error: null };
         } catch (err: unknown) {
             const error = err as Error;
             console.error('Error creating payment order:', error);
-            let message = error.message;
-            if ((error as any).context?.errorMessage) {
-                message = (error as any).context.errorMessage;
-            }
-            return { data: null, error: message };
+            return { data: null, error: error.message };
         }
     }
+
 
     async verifyPayment(payload: VerifyPaymentPayload): Promise<ApiResponse<VerifyPaymentResponse>> {
         try {
