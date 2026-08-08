@@ -134,16 +134,24 @@ function PropertySubmission() {
     // Listing Quota & Payment States
     const [propertyCount, setPropertyCount] = useState(0);
     const [paidListingCount, setPaidListingCount] = useState(0);
+    const [userListingQuota, setUserListingQuota] = useState(50);
     const [listingPlan, setListingPlan] = useState<VisitPlan | null>(null);
     const [loadingPricingCheck, setLoadingPricingCheck] = useState(true);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-    const needsPayment = propertyCount >= 1 && paidListingCount < propertyCount;
+    const effectiveAllowedQuota = userListingQuota + paidListingCount;
+    const remainingCredits = Math.max(0, effectiveAllowedQuota - propertyCount);
+    const needsPayment = remainingCredits <= 0;
 
     const checkListingQuota = useCallback(async () => {
         if (!user) return;
         setLoadingPricingCheck(true);
         try {
+            // 0. Fetch user's custom or default listing quota
+            const quotaRes = await api.getCustomerListingQuota(user.id);
+            const quota = quotaRes.data ?? 50;
+            setUserListingQuota(quota);
+
             // 1. Fetch properties count
             const { data: propertiesData } = await api.getMyProperties(0, 1);
             const propCount = propertiesData && propertiesData.length > 0 ? Number(propertiesData[0].total_count) : 0;
@@ -162,11 +170,10 @@ function PropertySubmission() {
             // 3. Fetch active plans to find the listing fee plan
             const { data: plansData } = await api.getVisitPlans();
             const activePlans = plansData || [];
-            const plan = activePlans.find(p => 
-                p.name.toLowerCase().includes('listing') || 
-                p.name.toLowerCase().includes('property') ||
-                p.name.toLowerCase().includes('post')
-            );
+            const plan = activePlans.find(p => p.name.toLowerCase().includes('listing')) ||
+                         activePlans.find(p => p.name.toLowerCase().includes('property') || p.name.toLowerCase().includes('post')) ||
+                         activePlans[0];
+
             if (plan) {
                 setListingPlan({ ...plan, price: PROPERTY_LISTING_FEE });
             } else {
@@ -362,7 +369,8 @@ function PropertySubmission() {
 
         // Show notification for errors
         if (Object.keys(errors).length > 0) {
-            showErrorNotification('Incomplete Details', 'Please fill in all required fields to proceed.');
+            const missingFieldList = Object.values(errors).join(', ');
+            showErrorNotification('Incomplete Details', `Please fix the following: ${missingFieldList}`);
         }
 
         return Object.keys(errors).length === 0;
@@ -496,13 +504,22 @@ function PropertySubmission() {
         }
     };
 
+    const validateAllSteps = (): boolean => {
+        for (let s = 1; s <= MAX_STEPS; s++) {
+            if (!validateStep(s)) {
+                setCurrentStep(s);
+                return false;
+            }
+        }
+        return true;
+    };
+
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
         setPageError(null);
         setFormErrors({});
 
-        if (!validateStep(MAX_STEPS)) {
-            // Validate final step specifically (Terms agreement) before submitting
+        if (!validateAllSteps()) {
             return;
         }
 
@@ -518,6 +535,8 @@ function PropertySubmission() {
                 showInfoNotification('Processing Payment', 'Creating payment order...');
                 const { data: orderData, error: orderError } = await api.createPaymentOrder({
                     plan_id: listingPlan.plan_id,
+                    plan_type: 'property_listing',
+                    custom_amount: PROPERTY_LISTING_FEE,
                 });
 
                 if (orderError || !orderData) {
@@ -882,44 +901,56 @@ function PropertySubmission() {
                                                 </h3>
                                                 
                                                 <div className="space-y-3">
-                                                    <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                        <span className="text-gray-600">Properties already listed</span>
-                                                        <span className="font-semibold text-slate-800">{propertyCount}</span>
-                                                    </div>
-                                                    
-                                                    {needsPayment ? (
-                                                        <>
-                                                            <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                <span className="text-gray-600">Free Listings Quota (1 property)</span>
-                                                                <span className="font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded text-xs">Used</span>
-                                                            </div>
-                                                            <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                <span className="text-gray-600">Additional Listing Fee ({listingPlan?.name || 'Property Listing Fee'})</span>
-                                                                <span className="font-semibold text-slate-800">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
-                                                            </div>
-                                                            <div className="flex justify-between items-center pt-2">
-                                                                <span className="font-bold text-slate-900">Total Amount Due</span>
-                                                                <span className="text-lg font-bold text-indigo-600">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
-                                                            </div>
-                                                            <div className="mt-4 bg-indigo-50/50 border border-indigo-100 rounded-lg p-3 text-xs text-indigo-800 leading-relaxed">
-                                                                <strong>Note:</strong> Since this is your second or subsequent property listing, a listing fee of ₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)} is required. The property will be published instantly once the payment is completed securely via Razorpay.
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                <span className="text-gray-600">Free Listings Quota (1 property)</span>
-                                                                <span className="font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-xs">Available</span>
-                                                            </div>
-                                                            <div className="flex justify-between items-center pt-2">
-                                                                <span className="font-bold text-slate-900">Total Amount Due</span>
-                                                                <span className="text-lg font-bold text-emerald-600">₹0.00 (Free)</span>
-                                                            </div>
-                                                            <div className="mt-4 bg-emerald-50/50 border border-emerald-100 rounded-lg p-3 text-xs text-emerald-800 leading-relaxed">
-                                                                <strong>Note:</strong> Excellent! This is your first property listing, so it is completely free of charge. No payment is required.
-                                                            </div>
-                                                        </>
-                                                    )}
+                                                     <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                         <span className="text-gray-600">Properties already listed</span>
+                                                         <span className="font-semibold text-slate-800">{propertyCount}</span>
+                                                     </div>
+
+                                                     <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                         <span className="text-gray-600">Free Listing Quota Limit</span>
+                                                         <span className="font-semibold text-slate-800">{userListingQuota} properties</span>
+                                                     </div>
+
+                                                     <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                         <span className="text-gray-600">Remaining Free Listing Credits</span>
+                                                         <span className={`font-bold ${remainingCredits > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                             {remainingCredits} {remainingCredits === 1 ? 'credit' : 'credits'}
+                                                         </span>
+                                                     </div>
+                                                     
+                                                     {needsPayment ? (
+                                                         <>
+                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                 <span className="text-gray-600">Quota Status</span>
+                                                                 <span className="font-semibold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md text-xs">Expired (0 remaining)</span>
+                                                             </div>
+                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                 <span className="text-gray-600">Additional Listing Fee ({listingPlan?.name || 'Property Listing Fee'})</span>
+                                                                 <span className="font-semibold text-slate-800">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
+                                                             </div>
+                                                             <div className="flex justify-between items-center pt-2">
+                                                                 <span className="font-bold text-slate-900">Total Amount Due</span>
+                                                                 <span className="text-lg font-bold text-indigo-600">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
+                                                             </div>
+                                                             <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 leading-relaxed">
+                                                                 <strong>Note:</strong> Your free listing quota of {userListingQuota} {userListingQuota === 1 ? 'property' : 'properties'} has expired. You need to pay a listing fee of ₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)} to post this property.
+                                                             </div>
+                                                         </>
+                                                     ) : (
+                                                         <>
+                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                 <span className="text-gray-600">Quota Status</span>
+                                                                 <span className="font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md text-xs">Active ({remainingCredits} left)</span>
+                                                             </div>
+                                                             <div className="flex justify-between items-center pt-2">
+                                                                 <span className="font-bold text-slate-900">Total Amount Due</span>
+                                                                 <span className="text-lg font-bold text-emerald-600">₹0.00 (Free)</span>
+                                                             </div>
+                                                             <div className="mt-4 bg-emerald-50/50 border border-emerald-100 rounded-lg p-3 text-xs text-emerald-800 leading-relaxed">
+                                                                 <strong>Note:</strong> Excellent! You have {remainingCredits} free listing credit(s) remaining out of your quota of {userListingQuota}. No payment is required.
+                                                             </div>
+                                                         </>
+                                                     )}
                                                     
                                                     {needsPayment && (!listingPlan || listingPlan.plan_id === '00000000-0000-0000-0000-000000000000') && (
                                                         <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-800 font-medium">

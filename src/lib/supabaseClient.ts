@@ -212,6 +212,29 @@ class RealEstateApi {
         };
     }
 
+    async getCustomerListingQuota(userId: string): Promise<ApiResponse<number>> {
+        try {
+            const rpcRes = await (this.supabase.rpc as any)('get_visit_status_customer');
+            if (!rpcRes.error && rpcRes.data && rpcRes.data.length > 0 && typeof rpcRes.data[0].listing_quota === 'number') {
+                return { data: rpcRes.data[0].listing_quota, error: null };
+            }
+
+            const { data, error } = await this.supabase
+                .from('customers')
+                .select('listing_quota')
+                .eq('user_id', userId)
+                .maybeSingle();
+
+            if (!error && data && typeof (data as any).listing_quota === 'number') {
+                return { data: (data as any).listing_quota, error: null };
+            }
+
+            return { data: 50, error: null };
+        } catch {
+            return { data: 50, error: null };
+        }
+    }
+
     async requestVisit(propertyId: string, preferredDate: Date): Promise<ApiResponse<string>> {
         return this.handleRpc<string>('request_visit_customer', {
             p_property_id: propertyId,

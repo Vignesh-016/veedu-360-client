@@ -185,7 +185,8 @@ export type PropertiesFilterParams = Database['public']['Functions']['get_proper
 
 export interface CreatePaymentOrderPayload {
     plan_id: string;
-    plan_type?: 'visit' | 'contact';
+    plan_type?: 'visit' | 'contact' | 'property_listing';
+    custom_amount?: number;
 }
 
 export interface CreatePaymentOrderResponse {
