@@ -6,6 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
 import RequirePhone from './components/RequirePhone';
 import ScrollToTop from './components/ScrollToTop';
+import GoogleAnalytics from './components/GoogleAnalytics';
 
 const Navbar = lazy(() => import('./components/Navbar'));
 const Home = lazy(() => import('./pages/Home'));
@@ -61,6 +62,7 @@ function App() {
       <Router>
         <AuthProvider>
           <ScrollToTop />
+          <GoogleAnalytics />
           <ErrorBoundary>
             <Suspense fallback={<div className="flex justify-center items-center h-screen"><LoadingSpinner /></div>}>
               <AppLayout>
