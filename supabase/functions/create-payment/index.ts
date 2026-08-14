@@ -96,8 +96,10 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const isPropertyListingPlan = plan_type === 'property_listing' || plansData.name.toLowerCase().includes('listing');
-    const selectedPlanPrice = typeof custom_amount === 'number' && custom_amount > 0 ? custom_amount : (isPropertyListingPlan ? 99 : plansData.price);
+    const isPropertyListingPlan = plan_type === 'property_listing' || (plansData && plansData.name.toLowerCase().includes('listing'));
+    const selectedPlanPrice = isPropertyListingPlan 
+      ? (typeof custom_amount === 'number' && custom_amount > 0 ? custom_amount : (plansData.price || 99)) 
+      : plansData.price;
 
     const timestamp = Date.now().toString().slice(-8);
     const receipt = `P${plan_id.substring(0, 6)}_U${userId.substring(0, 6)}_${timestamp}`;

@@ -229,9 +229,9 @@ class RealEstateApi {
                 return { data: (data as any).listing_quota, error: null };
             }
 
-            return { data: 50, error: null };
+            return { data: 1, error: null };
         } catch {
-            return { data: 50, error: null };
+            return { data: 1, error: null };
         }
     }
 

@@ -135,7 +135,7 @@ function PropertySubmission() {
     // Listing Quota & Payment States
     const [propertyCount, setPropertyCount] = useState(0);
     const [paidListingCount, setPaidListingCount] = useState(0);
-    const [userListingQuota, setUserListingQuota] = useState(50);
+    const [userListingQuota, setUserListingQuota] = useState(1);
     const [listingPlan, setListingPlan] = useState<VisitPlan | null>(null);
     const [loadingPricingCheck, setLoadingPricingCheck] = useState(true);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -150,7 +150,7 @@ function PropertySubmission() {
         try {
             // 0. Fetch user's custom or default listing quota
             const quotaRes = await api.getCustomerListingQuota(user.id);
-            const quota = quotaRes.data ?? 50;
+            const quota = quotaRes.data ?? 1;
             setUserListingQuota(quota);
 
             // 1. Fetch properties count
@@ -172,11 +172,10 @@ function PropertySubmission() {
             const { data: plansData } = await api.getVisitPlans();
             const activePlans = plansData || [];
             const plan = activePlans.find(p => p.name.toLowerCase().includes('listing')) ||
-                         activePlans.find(p => p.name.toLowerCase().includes('property') || p.name.toLowerCase().includes('post')) ||
-                         activePlans[0];
+                         activePlans.find(p => p.name.toLowerCase().includes('property') || p.name.toLowerCase().includes('post'));
 
             if (plan) {
-                setListingPlan({ ...plan, price: PROPERTY_LISTING_FEE });
+                setListingPlan({ ...plan, price: plan.price || PROPERTY_LISTING_FEE, visits: 1 });
             } else {
                 setListingPlan({
                     plan_id: '00000000-0000-0000-0000-000000000000',
@@ -895,93 +894,109 @@ function PropertySubmission() {
                             {currentStep === 6 && (
                                 <div className="animate-fade-in-up">
                                     <SectionWrapper title="Review & Preferences" icon={IconUser} gridCols="1" defaultOpen={true}>
-                                        <div className="bg-slate-50 p-4 rounded-lg mb-4 text-sm text-slate-700 border border-slate-200">
-                                            <p className="font-semibold flex items-center gap-2">
-                                                <IconInfoCircle size={16} /> Nearly there!
-                                            </p>
-                                            <p className="mt-1">Please review your pricing breakdown and agreements below, then click to post your listing.</p>
-                                        </div>
-
-                                        {loadingPricingCheck ? (
-                                            <div className="bg-white p-6 rounded-lg mb-6 border border-gray-100 flex flex-col items-center justify-center">
-                                                <LoadingSpinner size={24} className="text-indigo-600 mb-2" />
-                                                <span className="text-sm text-gray-500">Checking listing quota...</span>
+                                        <div className="col-span-full flex flex-col gap-5 w-full">
+                                            <div className="bg-slate-50 p-4 rounded-lg text-sm text-slate-700 border border-slate-200">
+                                                <p className="font-semibold flex items-center gap-2">
+                                                    <IconInfoCircle size={16} /> Nearly there!
+                                                </p>
+                                                <p className="mt-1">Please review your pricing breakdown and agreements below, then click to post your listing.</p>
                                             </div>
-                                        ) : (
-                                            <div className="bg-white p-6 rounded-xl mb-6 border border-gray-200/80 shadow-sm">
-                                                <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                                    <IconCoins className="text-indigo-600" size={20} />
-                                                    Listing Quota & Pricing Breakdown
-                                                </h3>
-                                                
-                                                <div className="space-y-3">
-                                                     <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                         <span className="text-gray-600">Properties already listed</span>
-                                                         <span className="font-semibold text-slate-800">{propertyCount}</span>
-                                                     </div>
 
-                                                     <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                         <span className="text-gray-600">Free Listing Quota Limit</span>
-                                                         <span className="font-semibold text-slate-800">{userListingQuota} properties</span>
-                                                     </div>
-
-                                                     <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                         <span className="text-gray-600">Remaining Free Listing Credits</span>
-                                                         <span className={`font-bold ${remainingCredits > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                                             {remainingCredits} {remainingCredits === 1 ? 'credit' : 'credits'}
-                                                         </span>
-                                                     </div>
-                                                     
-                                                     {needsPayment ? (
-                                                         <>
-                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                 <span className="text-gray-600">Quota Status</span>
-                                                                 <span className="font-semibold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md text-xs">Expired (0 remaining)</span>
-                                                             </div>
-                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                 <span className="text-gray-600">Additional Listing Fee ({listingPlan?.name || 'Property Listing Fee'})</span>
-                                                                 <span className="font-semibold text-slate-800">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
-                                                             </div>
-                                                             <div className="flex justify-between items-center pt-2">
-                                                                 <span className="font-bold text-slate-900">Total Amount Due</span>
-                                                                 <span className="text-lg font-bold text-indigo-600">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
-                                                             </div>
-                                                             <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 leading-relaxed">
-                                                                 <strong>Note:</strong> Your free listing quota of {userListingQuota} {userListingQuota === 1 ? 'property' : 'properties'} has expired. You need to pay a listing fee of ₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)} to post this property.
-                                                             </div>
-                                                         </>
-                                                     ) : (
-                                                         <>
-                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                 <span className="text-gray-600">Quota Status</span>
-                                                                 <span className="font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md text-xs">Active ({remainingCredits} left)</span>
-                                                             </div>
-                                                             <div className="flex justify-between items-center pt-2">
-                                                                 <span className="font-bold text-slate-900">Total Amount Due</span>
-                                                                 <span className="text-lg font-bold text-emerald-600">₹0.00 (Free)</span>
-                                                             </div>
-                                                             <div className="mt-4 bg-emerald-50/50 border border-emerald-100 rounded-lg p-3 text-xs text-emerald-800 leading-relaxed">
-                                                                 <strong>Note:</strong> Excellent! You have {remainingCredits} free listing credit(s) remaining out of your quota of {userListingQuota}. No payment is required.
-                                                             </div>
-                                                         </>
-                                                     )}
-                                                    
-                                                    {needsPayment && (!listingPlan || listingPlan.plan_id === '00000000-0000-0000-0000-000000000000') && (
-                                                        <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-800 font-medium">
-                                                            Warning: The property listing fee plan was not found in the database. Please verify with the administrator.
-                                                        </div>
-                                                    )}
+                                            {loadingPricingCheck ? (
+                                                <div className="bg-white p-6 rounded-lg border border-gray-100 flex flex-col items-center justify-center">
+                                                    <LoadingSpinner size={24} className="text-indigo-600 mb-2" />
+                                                    <span className="text-sm text-gray-500">Checking listing quota...</span>
                                                 </div>
-                                            </div>
-                                        )}
+                                            ) : (
+                                                <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-sm">
+                                                    <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                                        <IconCoins className="text-indigo-600" size={20} />
+                                                        Listing Quota & Pricing Breakdown
+                                                    </h3>
+                                                    
+                                                    <div className="space-y-3">
+                                                         <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                             <span className="text-gray-600">Base Free Listing Quota</span>
+                                                             <span className="font-semibold text-slate-800">{userListingQuota} {userListingQuota === 1 ? 'property' : 'properties'}</span>
+                                                         </div>
 
-                                        <TermsAndPreferencesSection
-                                            formData={formData}
-                                            onFormDataChange={(fieldName, value) => handleFormDataChange(fieldName, value)}
-                                            formErrors={formErrors}
-                                            companyName={companyName}
-                                            disabled={loading}
-                                        />
+                                                         {paidListingCount > 0 && (
+                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                 <span className="text-gray-600">Purchased Extra Listing Credits</span>
+                                                                 <span className="font-semibold text-slate-800">+{paidListingCount}</span>
+                                                             </div>
+                                                         )}
+
+                                                         {paidListingCount > 0 && (
+                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                 <span className="text-gray-600">Total Allowed Quota</span>
+                                                                 <span className="font-bold text-indigo-700">{effectiveAllowedQuota} properties</span>
+                                                             </div>
+                                                         )}
+
+                                                         <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                             <span className="text-gray-600">Properties Already Listed</span>
+                                                             <span className="font-semibold text-slate-800">{propertyCount}</span>
+                                                         </div>
+
+                                                         <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                             <span className="text-gray-600">Remaining Available Credits</span>
+                                                             <span className={`font-bold ${remainingCredits > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                                 {remainingCredits} {remainingCredits === 1 ? 'credit' : 'credits'}
+                                                             </span>
+                                                         </div>
+                                                         
+                                                         {needsPayment ? (
+                                                             <>
+                                                                 <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                     <span className="text-gray-600">Quota Status</span>
+                                                                     <span className="font-semibold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md text-xs">Expired (0 remaining)</span>
+                                                                 </div>
+                                                                 <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                     <span className="text-gray-600">Additional Listing Fee ({listingPlan?.name || 'Property Listing Fee'})</span>
+                                                                     <span className="font-semibold text-slate-800">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
+                                                                 </div>
+                                                                 <div className="flex justify-between items-center pt-2">
+                                                                     <span className="font-bold text-slate-900">Total Amount Due</span>
+                                                                     <span className="text-lg font-bold text-indigo-600">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
+                                                                 </div>
+                                                                 <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 leading-relaxed">
+                                                                     <strong>Note:</strong> Your free listing quota of {effectiveAllowedQuota} {effectiveAllowedQuota === 1 ? 'property' : 'properties'} has been fully used. You need to pay a listing fee of ₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)} to post this property.
+                                                                 </div>
+                                                             </>
+                                                         ) : (
+                                                             <>
+                                                                 <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                     <span className="text-gray-600">Quota Status</span>
+                                                                     <span className="font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md text-xs">Active ({remainingCredits} left)</span>
+                                                                 </div>
+                                                                 <div className="flex justify-between items-center pt-2">
+                                                                     <span className="font-bold text-slate-900">Total Amount Due</span>
+                                                                     <span className="text-lg font-bold text-emerald-600">₹0.00 (Free)</span>
+                                                                 </div>
+                                                                 <div className="mt-4 bg-emerald-50/50 border border-emerald-100 rounded-lg p-3 text-xs text-emerald-800 leading-relaxed">
+                                                                     <strong>Note:</strong> Excellent! You have {remainingCredits} listing credit(s) remaining out of your total quota of {effectiveAllowedQuota}. No payment is required.
+                                                                 </div>
+                                                             </>
+                                                         )}
+                                                        
+                                                        {needsPayment && (!listingPlan || listingPlan.plan_id === '00000000-0000-0000-0000-000000000000') && (
+                                                            <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-800 font-medium">
+                                                                Warning: The property listing fee plan was not found in the database. Please verify with the administrator.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <TermsAndPreferencesSection
+                                                formData={formData}
+                                                onFormDataChange={(fieldName, value) => handleFormDataChange(fieldName, value)}
+                                                formErrors={formErrors}
+                                                companyName={companyName}
+                                                disabled={loading}
+                                            />
+                                        </div>
                                     </SectionWrapper>
                                 </div>
                             )}
