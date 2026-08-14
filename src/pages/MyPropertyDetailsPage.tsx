@@ -142,7 +142,11 @@ function MyPropertyDetailsPage() {
             if (house.num_balconies) addListItem("Balconies", house.num_balconies);
             if (house.total_floors) addListItem("Total Floors (Building)", house.total_floors);
             if (house.floor_number) addListItem("Floor Number", house.floor_number);
-            if (house.num_carparking) addListItem("Car Parking Spaces", house.num_carparking);
+            if (house.car_parking) {
+                addListItem("Car Parking", house.car_parking.charAt(0).toUpperCase() + house.car_parking.slice(1).toLowerCase());
+            } else if (house.num_carparking) {
+                addListItem("Car Parking Spaces", house.num_carparking);
+            }
             if (house.furnished_status) addListItem("Furnishing", getDisplayValue(furnishedStatusMap, house.furnished_status));
             if (house.facing_direction) addListItem("Facing Direction", getDisplayValue(directionMap, house.facing_direction));
             addListItem("Corner Plot/House", house.is_corner_plot);
@@ -157,6 +161,9 @@ function MyPropertyDetailsPage() {
             if (land.plot_dimensions) addListItem("Plot Dimensions", land.plot_dimensions);
             if (land.road_access_width_ft) addListItem("Road Access Width", `${land.road_access_width_ft} ft`);
             addListItem("Corner Plot", land.is_corner_plot);
+            if (land.is_dtcp_approved !== undefined) {
+                addListItem("DTCP Approved", land.is_dtcp_approved ? "Yes" : "No");
+            }
         } else if (details.property_type === 'BUILDING') {
             const building = propertyDetails as BuildingDetailsSpecific['details'];
             addListItem("Type of Building", getDisplayValue(buildingTypeMap, building.building_type));

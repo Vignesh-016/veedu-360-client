@@ -79,6 +79,7 @@ export interface HouseDetailsSpecific extends Property {
         total_floors?: number;
         floor_number?: number;
         num_carparking?: number;
+        car_parking?: 'COVERED' | 'AMPLE' | 'OPEN';
         furnished_status?: Database['public']['Enums']['furnished_status_enum'];
         facing_direction?: Database['public']['Enums']['direction_enum'];
         is_corner_plot?: boolean;
@@ -96,6 +97,7 @@ export interface LandDetailsSpecific extends Property {
         plot_dimensions?: string;
         road_access_width_ft?: number;
         is_corner_plot?: boolean;
+        is_dtcp_approved?: boolean;
     } & Json;
 }
 

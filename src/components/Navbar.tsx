@@ -51,7 +51,8 @@ const renderNavLinks = (closeMobileMenu?: () => void) => {
                 { name: 'Apartments', path: '/catalogue?p_listing_types=RENTAL&p_property_types=HOUSE&p_house_types=APARTMENT_FLAT', icon: IconBuildingCommunity },
             ],
         },
-        { name: 'Buy Visit Credits', path: '/plans' },
+        { name: 'Visit Credits', path: '/plans#visit-credits' },
+        { name: 'Contact Credits', path: '/plans#contact-credits' },
     ];
 
     return navItems.map((item) => (

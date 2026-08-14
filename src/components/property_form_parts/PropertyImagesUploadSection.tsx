@@ -37,7 +37,7 @@ const PropertyImagesUploadSection: React.FC<Props> = ({
                         />
                     </label>
                     <p className='mt-2 text-xs text-gray-500'>
-                        Upload at least one photo. Max {maxImages}. Accepted: JPG, PNG, WebP. Max 5MB each. Rec. 1024x768.
+                        Upload at least one photo. Max {maxImages}. Accepted: JPG, PNG, WebP. Max 20MB each. Rec. 1024x768.
                     </p>
                 </>
             </FormFieldWrapper>

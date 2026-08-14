@@ -8,12 +8,13 @@ interface Props {
         youtube_url: string;
         notes: string;
     };
+    propertyType: 'HOUSE' | 'LAND' | 'BUILDING';
     onFormDataChange: (fieldName: string, value: any) => void;
     formErrors: Partial<Record<keyof Props['formData'], string>>;
     disabledFields?: Partial<Record<keyof Props['formData'], boolean>>;
 }
 
-const AdditionalPropertyInfoSection: React.FC<Props> = ({ formData, onFormDataChange, formErrors, disabledFields = {} }) => {
+const AdditionalPropertyInfoSection: React.FC<Props> = ({ formData, propertyType, onFormDataChange, formErrors, disabledFields = {} }) => {
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         if (name === 'year_built') {
@@ -25,10 +26,12 @@ const AdditionalPropertyInfoSection: React.FC<Props> = ({ formData, onFormDataCh
 
     return (
         <>
-            <FormFieldWrapper label="Year Built (Optional)" htmlFor="year_built" errorMessage={formErrors.year_built} disabled={disabledFields.year_built}>
-                <input type="number" name="year_built" id="year_built" value={formData.year_built ?? ''} onChange={handleInputChange}
-                    className={getBaseInputClasses()} placeholder="e.g., 2010" min="1800" max={new Date().getFullYear() + 5} step="1" disabled={disabledFields.year_built} />
-            </FormFieldWrapper>
+            {propertyType !== 'LAND' && (
+                <FormFieldWrapper label="Year Built (Optional)" htmlFor="year_built" errorMessage={formErrors.year_built} disabled={disabledFields.year_built}>
+                    <input type="number" name="year_built" id="year_built" value={formData.year_built ?? ''} onChange={handleInputChange}
+                        className={getBaseInputClasses()} placeholder="e.g., 2010" min="1800" max={new Date().getFullYear() + 5} step="1" disabled={disabledFields.year_built} />
+                </FormFieldWrapper>
+            )}
             <div className="md:col-span-2">
                 <FormFieldWrapper label="YouTube Video URL (Optional)" htmlFor="youtube_url" errorMessage={formErrors.youtube_url} disabled={disabledFields.youtube_url}>
                     <input type="url" name="youtube_url" id="youtube_url" value={formData.youtube_url} onChange={handleInputChange}

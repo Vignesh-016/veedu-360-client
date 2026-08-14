@@ -10,12 +10,13 @@ interface Props {
         availability_status: AvailabilityStatus;
     };
     listingType: ListingType;
+    propertyType: 'HOUSE' | 'LAND' | 'BUILDING';
     onFormDataChange: (fieldName: string, value: any) => void;
     formErrors: Partial<Record<keyof Props['formData'], string>>;
     disabledFields?: Partial<Record<keyof Props['formData'], boolean>>;
 }
 
-const PricingAvailabilitySection: React.FC<Props> = ({ formData, listingType, onFormDataChange, formErrors, disabledFields = {} }) => {
+const PricingAvailabilitySection: React.FC<Props> = ({ formData, listingType, propertyType, onFormDataChange, formErrors, disabledFields = {} }) => {
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         if (['price', 'advance_amount'].includes(name)) {
@@ -37,17 +38,19 @@ const PricingAvailabilitySection: React.FC<Props> = ({ formData, listingType, on
 
     return (
         <>
-            <div className="md:col-span-2">
-                <FormFieldWrapper label="Availability Status" htmlFor="availability_status" required errorMessage={formErrors.availability_status} disabled={disabledFields.availability_status}>
-                    <FormSegmentedControl
-                        name="availability_status"
-                        value={formData.availability_status}
-                        onChange={(value) => onFormDataChange('availability_status', value as AvailabilityStatus)}
-                        options={[{ label: 'Ready to Move', value: 'READY_TO_MOVE' }, { label: 'Under Construction', value: 'UNDER_CONSTRUCTION' }]}
-                        disabled={disabledFields.availability_status}
-                    />
-                </FormFieldWrapper>
-            </div>
+            {propertyType !== 'LAND' && (
+                <div className="md:col-span-2">
+                    <FormFieldWrapper label="Availability Status" htmlFor="availability_status" required errorMessage={formErrors.availability_status} disabled={disabledFields.availability_status}>
+                        <FormSegmentedControl
+                            name="availability_status"
+                            value={formData.availability_status}
+                            onChange={(value) => onFormDataChange('availability_status', value as AvailabilityStatus)}
+                            options={[{ label: 'Ready to Move', value: 'READY_TO_MOVE' }, { label: 'Under Construction', value: 'UNDER_CONSTRUCTION' }]}
+                            disabled={disabledFields.availability_status}
+                        />
+                    </FormFieldWrapper>
+                </div>
+            )}
             <div className="md:col-span-2">
                 <FormFieldWrapper label={`Expected Price ${listingType === 'RENTAL' ? 'Per Month' : ''}`} htmlFor="price" required errorMessage={formErrors.price} disabled={disabledFields.price}>
                     <input type="number" name="price" id="price" value={formData.price ?? ''} onChange={handleInputChange}

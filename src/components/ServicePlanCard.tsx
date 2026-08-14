@@ -8,22 +8,22 @@ interface ServicePlanCardProps {
 
 const getPlanIcon = (name: string, index: number) => {
     const lowerName = name.toLowerCase();
-    const iconClass = "w-6 h-6 text-[#2C4964] group-hover:text-white transition-colors duration-300";
+    const iconClass = "w-5 h-5 text-[#2C4964] group-hover:text-white transition-colors duration-300";
 
     if (lowerName.includes('tenant') || lowerName.includes('placement')) {
-        return <IconUserCheck className={iconClass} stroke={2} />;
+        return <IconUserCheck className={iconClass} stroke={1.8} />;
     } else if (lowerName.includes('rent') || lowerName.includes('agreement')) {
-        return <IconFileCheck className={iconClass} stroke={2} />;
+        return <IconFileCheck className={iconClass} stroke={1.8} />;
     } else if (lowerName.includes('full') || lowerName.includes('stack') || lowerName.includes('complete')) {
-        return <IconTools className={iconClass} stroke={2} />;
+        return <IconTools className={iconClass} stroke={1.8} />;
     } else if (lowerName.includes('why') || lowerName.includes('choose')) {
-        return <IconHelpCircle className={iconClass} stroke={2} />;
+        return <IconHelpCircle className={iconClass} stroke={1.8} />;
     }
     const icons = [
-        <IconUserCheck className={iconClass} stroke={2} />,
-        <IconFileCheck className={iconClass} stroke={2} />,
-        <IconTools className={iconClass} stroke={2} />,
-        <IconHelpCircle className={iconClass} stroke={2} />
+        <IconUserCheck className={iconClass} stroke={1.8} />,
+        <IconFileCheck className={iconClass} stroke={1.8} />,
+        <IconTools className={iconClass} stroke={1.8} />,
+        <IconHelpCircle className={iconClass} stroke={1.8} />
     ];
     return icons[index % icons.length];
 };
@@ -42,19 +42,20 @@ function ServicePlanCard({ plan }: ServicePlanCardProps) {
 
     return (
         <div
-            className="relative flex flex-col h-full rounded-2xl border border-gray-100 bg-white 
-              hover:border-transparent hover:bg-gradient-to-b hover:from-[#2C4964] hover:to-[#1e3347] hover:text-white
-              transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl group overflow-hidden"
+            className="relative flex flex-col h-full rounded-2xl border border-white/80 bg-white/50 
+              backdrop-blur-xl hover:bg-white/30 hover:backdrop-blur-2xl hover:border-white 
+              hover:shadow-[0_20px_45px_rgba(44,73,100,0.14)]
+              transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
             style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}
         >
-            {/* Header Section with subtle gradient */}
-            <div className="p-6 pb-4 border-b bg-gradient-to-br from-slate-50/50 to-white border-gray-50 group-hover:from-transparent group-hover:to-transparent group-hover:border-white/10 transition-all duration-300">
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 bg-slate-50 group-hover:bg-white/10 transition-colors duration-300">
+            {/* Header Section with glass styling */}
+            <div className="p-6 pb-4 border-b border-gray-100/60 bg-white/40 backdrop-blur-md group-hover:bg-white/20 transition-all duration-300">
+                <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-slate-100/80 group-hover:bg-[#2C4964] transition-all duration-300 shadow-sm group-hover:shadow-md">
                         {getPlanIcon(plan.name, 0)}
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-xl md:text-2xl font-bold leading-snug text-gray-900 group-hover:text-white transition-colors">
+                        <h3 className="text-lg md:text-xl font-semibold leading-snug tracking-tight text-gray-800 group-hover:text-[#2C4964] transition-colors">
                             {plan.name}
                         </h3>
                     </div>
@@ -62,7 +63,7 @@ function ServicePlanCard({ plan }: ServicePlanCardProps) {
             </div>
 
             {/* Content Section */}
-            <div className="flex-grow p-6 space-y-5">
+            <div className="flex-grow p-6 space-y-4.5">
                 {rawFeatures.map((feature, idx) => {
                     const colonIndex = feature.indexOf(':');
                     let titlePart = '';
@@ -79,13 +80,13 @@ function ServicePlanCard({ plan }: ServicePlanCardProps) {
                         return (
                             <div 
                                 key={idx} 
-                                className="p-4 rounded-xl border mt-auto bg-[#2C4964]/5 border-[#2C4964]/10 group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-300"
+                                className="p-3.5 rounded-xl border border-[#2C4964]/10 bg-[#2C4964]/5 backdrop-blur-sm group-hover:bg-white/60 group-hover:border-[#2C4964]/20 transition-all duration-300 mt-auto"
                             >
-                                <p className="text-[15px] md:text-[16px] leading-relaxed flex flex-wrap items-center gap-1.5">
-                                    <span className="font-bold text-sm tracking-wide uppercase text-[#2C4964] group-hover:text-amber-300 transition-colors">
+                                <p className="text-[14px] md:text-[15px] leading-relaxed flex flex-wrap items-center gap-1.5">
+                                    <span className="font-semibold text-xs tracking-wider uppercase text-[#2C4964]">
                                         {titlePart}:
                                     </span>
-                                    <span className="text-[#2C4964] font-semibold group-hover:text-white transition-colors">
+                                    <span className="text-[#2C4964] font-medium group-hover:text-gray-900 transition-colors">
                                         {bodyPart}
                                     </span>
                                 </p>
@@ -95,19 +96,19 @@ function ServicePlanCard({ plan }: ServicePlanCardProps) {
 
                     return (
                         <div key={idx} className="flex items-start gap-3">
-                            <div className="mt-2 w-2 h-2 rounded-full flex-shrink-0 bg-[#2C4964] opacity-75 group-hover:bg-amber-400 group-hover:scale-125 transition-all duration-300" />
+                            <div className="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0 bg-[#2C4964]/40 group-hover:bg-[#2C4964] transition-all duration-300" />
                             <div className="flex-1">
                                 {titlePart ? (
-                                    <p className="text-[15px] md:text-[16px] leading-relaxed">
-                                        <span className="font-bold block mb-0.5 text-gray-900 group-hover:text-white transition-colors">
+                                    <p className="text-[14px] md:text-[15px] leading-relaxed">
+                                        <span className="font-semibold text-gray-800 tracking-tight block mb-0.5 group-hover:text-[#2C4964] transition-colors">
                                             {titlePart}
                                         </span>
-                                        <span className="font-normal text-gray-700 group-hover:text-slate-200 transition-colors">
+                                        <span className="font-normal text-gray-600 group-hover:text-gray-700 transition-colors">
                                             {bodyPart}
                                         </span>
                                     </p>
                                 ) : (
-                                    <p className="text-[15px] md:text-[16px] font-normal leading-relaxed text-gray-700 group-hover:text-slate-200 transition-colors">{bodyPart}</p>
+                                    <p className="text-[14px] md:text-[15px] font-normal leading-relaxed text-gray-600 group-hover:text-gray-700 transition-colors">{bodyPart}</p>
                                 )}
                             </div>
                         </div>
@@ -118,7 +119,7 @@ function ServicePlanCard({ plan }: ServicePlanCardProps) {
             {/* CTA Button Section */}
             <div className="p-6 pt-0 mt-auto">
                 <button
-                    className="w-full py-3.5 rounded-xl text-[15px] font-bold transition-all duration-300 shadow-md hover:shadow-lg uppercase tracking-wider bg-[#2C4964] group-hover:bg-amber-400 text-white group-hover:text-gray-900"
+                    className="w-full py-3 rounded-xl text-xs font-semibold tracking-wider uppercase bg-[#2C4964] text-white hover:bg-[#1e3347] shadow-sm hover:shadow-md transition-all duration-300 active:scale-[0.99]"
                 >
                     Learn More & Select
                 </button>

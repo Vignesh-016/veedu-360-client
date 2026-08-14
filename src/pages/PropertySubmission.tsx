@@ -60,7 +60,8 @@ const initialFormData = {
     num_balconies: null as number | null,
     total_floors_house: null as number | null,
     floor_number: null as number | null,
-    num_carparking: null as number | null,
+    car_parking: null as string | null,
+    is_dtcp_approved: false,
     furnished_status: null as FurnishedStatus | null,
     facing_direction: null as Direction | null,
     is_corner_plot: false,
@@ -252,7 +253,13 @@ function PropertySubmission() {
         if (fieldName === 'city') {
             setUserHasTypedCity(true);
         }
-        setFormData(prev => ({ ...prev, [fieldName]: value }));
+        setFormData(prev => {
+            const nextData = { ...prev, [fieldName]: value };
+            if (fieldName === 'property_type' && value === 'LAND') {
+                nextData.availability_status = 'READY_TO_MOVE';
+            }
+            return nextData;
+        });
     };
 
 
@@ -279,8 +286,8 @@ function PropertySubmission() {
 
             for (const file of fileListArray) {
                 if (newImages.length + currentImageCount >= maxImages) break;
-                if (file.size > 5 * 1024 * 1024) {
-                    showErrorNotification('File Too Large', `Skipping ${file.name}, size exceeds 5MB.`);
+                if (file.size > 20 * 1024 * 1024) {
+                    showErrorNotification('File Too Large', `Skipping ${file.name}, size exceeds 20MB.`);
                     continue;
                 }
                 try {
@@ -335,8 +342,12 @@ function PropertySubmission() {
         }
 
         if (step === 3) { // Property Details
-            if (formData.area === null || formData.area <= 0) errors.area = 'Valid Area (>0) is required.';
-            if (!formData.area_unit) errors.area_unit = 'Area unit is required.';
+            if (formData.area !== null && formData.area !== undefined && formData.area <= 0) {
+                errors.area = 'Area must be greater than 0 if entered.';
+            }
+            if (formData.area !== null && formData.area !== undefined && !formData.area_unit) {
+                errors.area_unit = 'Area unit is required when area is entered.';
+            }
 
             if (formData.property_type === 'HOUSE') {
                 if (!formData.house_type) errors.house_type = 'Type of House is required.';
@@ -401,7 +412,7 @@ function PropertySubmission() {
             if (formData.num_balconies !== null) detailsJson.num_balconies = formData.num_balconies;
             if (formData.total_floors_house !== null) detailsJson.total_floors = formData.total_floors_house;
             if (formData.floor_number !== null) detailsJson.floor_number = formData.floor_number;
-            if (formData.num_carparking !== null) detailsJson.num_carparking = formData.num_carparking;
+            if (formData.car_parking) detailsJson.car_parking = formData.car_parking;
             if (formData.furnished_status) detailsJson.furnished_status = formData.furnished_status;
             if (formData.facing_direction) detailsJson.facing_direction = formData.facing_direction;
             if (formData.house_type === 'APARTMENT_FLAT') {
@@ -417,6 +428,7 @@ function PropertySubmission() {
             if (formData.plot_dimensions) detailsJson.plot_dimensions = formData.plot_dimensions;
             if (formData.road_access_width_ft !== null) detailsJson.road_access_width_ft = formData.road_access_width_ft;
             detailsJson.is_corner_plot = formData.is_corner_plot;
+            detailsJson.is_dtcp_approved = formData.is_dtcp_approved;
         } else if (formData.property_type === 'BUILDING') {
             detailsJson.building_name = formData.building_name;
             detailsJson.building_type = formData.building_type;
@@ -432,15 +444,15 @@ function PropertySubmission() {
             p_property_type: formData.property_type,
             p_listing_type: formData.listing_type,
             p_price: formData.price!,
-            p_area: formData.area!,
-            p_area_unit: formData.area_unit,
+            p_area: formData.area as any,
+            p_area_unit: (formData.area ? formData.area_unit : null) as any,
             p_details: detailsJson,
             p_locality: formData.locality,
             p_city: formData.city,
             p_address: formData.address,
             p_pincode: formData.pincode!,
             p_submitter_type: formData.submitter_type,
-            p_year_built: formData.year_built,
+            p_year_built: formData.property_type === 'LAND' ? null : formData.year_built,
             p_description: formData.description || undefined,
             p_youtube_url: formData.youtube_url || undefined,
             p_latitude: formData.latitude,
@@ -824,6 +836,7 @@ function PropertySubmission() {
                                     <SectionWrapper title="Additional Details" icon={IconInfoCircle} defaultOpen={false}>
                                         <AdditionalPropertyInfoSection
                                             formData={formData}
+                                            propertyType={formData.property_type}
                                             onFormDataChange={handleFormDataChange}
                                             formErrors={formErrors}
                                         />
@@ -838,6 +851,7 @@ function PropertySubmission() {
                                         <PricingAvailabilitySection
                                             formData={formData}
                                             listingType={formData.listing_type}
+                                            propertyType={formData.property_type}
                                             onFormDataChange={handleFormDataChange}
                                             formErrors={formErrors}
                                         />

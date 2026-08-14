@@ -7,6 +7,7 @@ interface Props {
         plot_dimensions: string;
         road_access_width_ft: number | null | undefined;
         is_corner_plot: boolean;
+        is_dtcp_approved: boolean;
     };
     onFormDataChange: (fieldName: string, value: any) => void;
     formErrors: Partial<Record<keyof Props['formData'], string>>;
@@ -39,6 +40,11 @@ const LandFeaturesSection: React.FC<Props> = ({ formData, onFormDataChange, form
                 <input type="checkbox" id="is_corner_plot_land" name="is_corner_plot" checked={!!formData.is_corner_plot} onChange={handleInputChange}
                     className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500 mr-2 mt-1" disabled={disabledFields.is_corner_plot} />
                 <label htmlFor="is_corner_plot_land" className="text-sm text-gray-700">Is this a Corner Plot?</label>
+            </div>
+            <div className="md:col-span-2 mt-2 flex items-start">
+                <input type="checkbox" id="is_dtcp_approved" name="is_dtcp_approved" checked={!!formData.is_dtcp_approved} onChange={handleInputChange}
+                    className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500 mr-2 mt-1" disabled={disabledFields.is_dtcp_approved} />
+                <label htmlFor="is_dtcp_approved" className="text-sm text-gray-700">Is DTCP Approved?</label>
             </div>
         </>
     );

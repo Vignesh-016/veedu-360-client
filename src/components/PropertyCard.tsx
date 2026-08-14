@@ -54,8 +54,12 @@ const renderPropertySpecificDetails = (property: Property): React.ReactNode[] =>
         addDetail('house_type', IconHome2, 'Type', getDisplayValue(houseTypeMap, houseDetails.house_type));
         addDetail('bedrooms', IconBed, 'Beds', houseDetails.num_bedrooms ? `${houseDetails.num_bedrooms} bedroom${houseDetails.num_bedrooms > 1 ? 's' : ''}` : undefined);
         addDetail('bathrooms', IconBath, 'Baths', houseDetails.num_bathrooms ? `${houseDetails.num_bathrooms} bathroom${houseDetails.num_bathrooms > 1 ? 's' : ''}` : undefined);
-        if (houseDetails.num_carparking && houseDetails.num_carparking > 0)
+        if (houseDetails.car_parking) {
+            const displayParking = houseDetails.car_parking.toLowerCase();
+            addDetail('parking', IconCarGarage, 'Parking', `${displayParking.charAt(0).toUpperCase() + displayParking.slice(1)} parking`);
+        } else if (houseDetails.num_carparking && houseDetails.num_carparking > 0) {
             addDetail('parking', IconCarGarage, 'Parking', `${houseDetails.num_carparking} parking${houseDetails.num_carparking > 1 ? 's' : ''}`);
+        }
         addDetail('furnishing', IconArmchair, 'Furnishing', getDisplayValue(furnishedStatusMap, houseDetails.furnished_status));
         if (houseDetails.facing_direction)
             addDetail('facing', IconCompass, 'Facing', getDisplayValue(directionMap, houseDetails.facing_direction) + ' facing');

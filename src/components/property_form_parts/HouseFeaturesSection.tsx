@@ -12,7 +12,7 @@ interface Props {
         num_balconies: number | null | undefined;
         total_floors_house: number | null | undefined;
         floor_number: number | null | undefined;
-        num_carparking: number | null | undefined;
+        car_parking: string | null | undefined;
         furnished_status: FurnishedStatus | null | undefined;
         facing_direction: Direction | null | undefined;
         is_corner_plot: boolean;
@@ -31,7 +31,7 @@ const HouseFeaturesSection: React.FC<Props> = ({ formData, onFormDataChange, for
         const { name, value, type } = e.target;
         if (type === 'checkbox') {
             onFormDataChange(name, (e.target as HTMLInputElement).checked);
-        } else if (['num_bedrooms', 'num_bathrooms', 'num_balconies', 'total_floors_house', 'floor_number', 'num_carparking'].includes(name)) {
+        } else if (['num_bedrooms', 'num_bathrooms', 'num_balconies', 'total_floors_house', 'floor_number'].includes(name)) {
             onFormDataChange(name, value === '' ? null : Number(value));
         } else {
             onFormDataChange(name, value || null);
@@ -63,9 +63,14 @@ const HouseFeaturesSection: React.FC<Props> = ({ formData, onFormDataChange, for
                 <input type="number" name="floor_number" id="floor_number" value={formData.floor_number ?? ''} onChange={handleInputChange}
                     className={getBaseInputClasses()} placeholder="e.g., 5" min="0" step="1" disabled={disabledFields.floor_number} />
             </FormFieldWrapper>
-            <FormFieldWrapper label="Car Parking Spaces (Optional)" htmlFor="num_carparking" errorMessage={formErrors.num_carparking} disabled={disabledFields.num_carparking}>
-                <input type="number" name="num_carparking" id="num_carparking" value={formData.num_carparking ?? ''} onChange={handleInputChange}
-                    className={getBaseInputClasses()} placeholder="e.g., 1" min="0" step="1" disabled={disabledFields.num_carparking} />
+            <FormFieldWrapper label="Car Parking (Optional)" htmlFor="car_parking" errorMessage={formErrors.car_parking} disabled={disabledFields.car_parking}>
+                <select name="car_parking" id="car_parking" value={formData.car_parking ?? ''} onChange={handleInputChange}
+                    className={getBaseInputClasses()} disabled={disabledFields.car_parking}>
+                    <option value="">Select parking type</option>
+                    <option value="COVERED">Covered</option>
+                    <option value="AMPLE">Ample</option>
+                    <option value="OPEN">Open</option>
+                </select>
             </FormFieldWrapper>
             <FormFieldWrapper label="Facing Direction (Optional)" htmlFor="facing_direction" errorMessage={formErrors.facing_direction} disabled={disabledFields.facing_direction}>
                 <select name="facing_direction" id="facing_direction" value={formData.facing_direction ?? ''} onChange={handleInputChange}

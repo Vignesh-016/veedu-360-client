@@ -34,8 +34,8 @@ CREATE TABLE IF NOT EXISTS public.properties (
     listing_type listing_type_enum NOT NULL,
 
     price DECIMAL(12,2) NOT NULL CHECK (price > 0),
-    area DECIMAL(10,2) NOT NULL CHECK (area > 0),
-    area_unit area_unit_enum NOT NULL,
+    area DECIMAL(10,2) CHECK (area > 0),
+    area_unit area_unit_enum,
 
     year_built INTEGER CHECK (year_built > 1800 AND year_built <= date_part('year', CURRENT_DATE) + 10),
     description TEXT,
