@@ -452,7 +452,7 @@ function PropertySubmission() {
             p_address: formData.address,
             p_pincode: formData.pincode!,
             p_submitter_type: formData.submitter_type,
-            p_year_built: formData.property_type === 'LAND' ? null : formData.year_built,
+            p_year_built: formData.property_type === 'LAND' ? undefined : (formData.year_built ?? undefined),
             p_description: formData.description || undefined,
             p_youtube_url: formData.youtube_url || undefined,
             p_latitude: formData.latitude,
