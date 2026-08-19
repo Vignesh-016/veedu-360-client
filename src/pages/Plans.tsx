@@ -13,8 +13,7 @@ import {
     IconBuildingCommunity,
     IconPhoneCall,
     IconGift,
-    IconCheckbox,
-    IconHomePlus
+    IconCheckbox
 } from '@tabler/icons-react';
 import { useNotification } from '../components/NotificationProvider';
 import { useAuth } from '../lib/AuthContext';
@@ -31,9 +30,7 @@ function Plans() {
     const [visitPlans, setVisitPlans] = useState<VisitPlan[]>([]);
     const [selectedVisitPlan, setSelectedVisitPlan] = useState<VisitPlan | null>(null);
 
-    // Listing Plans state (only listing plans)
-    const [listingPlans, setListingPlans] = useState<VisitPlan[]>([]);
-    const [selectedListingPlan, setSelectedListingPlan] = useState<VisitPlan | null>(null);
+
 
     const [visitLoading, setVisitLoading] = useState(false);
     const [visitPaymentLoading, setVisitPaymentLoading] = useState(false);
@@ -61,19 +58,14 @@ function Plans() {
                 if (fetchErr) throw fetchErr;
                 const activePlans = data || [];
 
-                // Separate visit plans from listing plans
+                // Filter out listing plans from visit plans
                 const vPlans = activePlans.filter(p => !p.name.toLowerCase().includes('listing'));
-                const lPlans = activePlans.filter(p => p.name.toLowerCase().includes('listing'));
 
                 setVisitPlans(vPlans);
-                setListingPlans(lPlans);
 
                 if (vPlans.length > 0) {
                     const middleIndex = Math.floor(vPlans.length / 2);
                     setSelectedVisitPlan(vPlans[middleIndex]);
-                }
-                if (lPlans.length > 0) {
-                    setSelectedListingPlan(lPlans[0]);
                 }
             } catch (err: any) {
                 showErrorNotification('Load Failed', err.message || 'Failed to fetch plans.');
