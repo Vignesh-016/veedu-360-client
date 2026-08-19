@@ -4,6 +4,11 @@ import { IconUserCheck, IconFileCheck, IconTools, IconHelpCircle } from '@tabler
 interface ServicePlanCardProps {
     plan: ManagementPlan;
     highlight?: 'gold' | 'silver';
+    showIcon?: boolean;
+    selected?: boolean;
+    disabled?: boolean;
+    className?: string;
+    onSelect?: () => void;
 }
 
 const getPlanIcon = (name: string, index: number) => {
@@ -37,33 +42,46 @@ const parseFeatures = (description: string): string[] => {
         .filter(Boolean);
 };
 
-function ServicePlanCard({ plan }: ServicePlanCardProps) {
-    const rawFeatures = parseFeatures(plan.description || '');
+const getPlanContent = (description: string | null) => {
+    const lines = (description || '').split('\n');
+    const buttonLine = lines.find(line => /^button\s*:/i.test(line.trim()));
+    const subtitleLine = lines.find(line => /^subtitle\s*:/i.test(line.trim()));
+    return {
+        subtitle: subtitleLine?.replace(/^subtitle\s*:/i, '').trim() || '',
+        features: parseFeatures(lines.filter(line => !/^button\s*:/i.test(line.trim()) && !/^subtitle\s*:/i.test(line.trim())).join('\n')),
+        buttonText: buttonLine?.replace(/^button\s*:/i, '').trim() || 'Learn More & Select'
+    };
+};
+
+function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = false, className = '', onSelect }: ServicePlanCardProps) {
+    const { subtitle, features: rawFeatures, buttonText } = getPlanContent(plan.description);
 
     return (
         <div
-            className="relative flex flex-col h-full rounded-2xl border border-white/80 bg-white/50 
+                        className={`relative flex flex-col h-full min-h-[580px] rounded-2xl border border-white/80 bg-white/50 
               backdrop-blur-xl hover:bg-white/30 hover:backdrop-blur-2xl hover:border-white 
               hover:shadow-[0_20px_45px_rgba(44,73,100,0.14)]
-              transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+                            transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.04)]
+                            ${selected ? 'ring-2 ring-[#2C4964] ring-offset-2' : ''} ${disabled ? 'opacity-70' : ''} ${className}`}
             style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}
         >
             {/* Header Section with glass styling */}
             <div className="p-6 pb-4 border-b border-gray-100/60 bg-white/40 backdrop-blur-md group-hover:bg-white/20 transition-all duration-300">
-                <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-slate-100/80 group-hover:bg-[#2C4964] transition-all duration-300 shadow-sm group-hover:shadow-md">
+                <div className={`flex items-center ${showIcon ? 'gap-3.5' : ''}`}>
+                    {showIcon && <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-slate-100/80 group-hover:bg-[#2C4964] transition-all duration-300 shadow-sm group-hover:shadow-md">
                         {getPlanIcon(plan.name, 0)}
-                    </div>
+                    </div>}
                     <div className="flex-1">
                         <h3 className="text-lg md:text-xl font-semibold leading-snug tracking-tight text-gray-800 group-hover:text-[#2C4964] transition-colors">
                             {plan.name}
                         </h3>
+                        {subtitle && <p className="mt-1 text-sm leading-relaxed text-gray-600">{subtitle}</p>}
                     </div>
                 </div>
             </div>
 
             {/* Content Section */}
-            <div className="flex-grow p-6 space-y-4.5">
+            <div className="flex flex-1 flex-col p-6 space-y-4.5 overflow-hidden">
                 {rawFeatures.map((feature, idx) => {
                     const colonIndex = feature.indexOf(':');
                     let titlePart = '';
@@ -75,6 +93,16 @@ function ServicePlanCard({ plan }: ServicePlanCardProps) {
                     }
 
                     const isCostLine = titlePart.toLowerCase().includes('cost');
+
+                    if (titlePart && !bodyPart) {
+                        return (
+                            <div key={idx} className="pt-1">
+                                <p className="text-[14px] md:text-[15px] font-semibold leading-relaxed tracking-tight text-gray-800 group-hover:text-[#2C4964] transition-colors">
+                                    {titlePart}
+                                </p>
+                            </div>
+                        );
+                    }
 
                     if (isCostLine) {
                         return (
@@ -119,9 +147,12 @@ function ServicePlanCard({ plan }: ServicePlanCardProps) {
             {/* CTA Button Section */}
             <div className="p-6 pt-0 mt-auto">
                 <button
+                    type="button"
+                    onClick={onSelect}
+                    disabled={disabled}
                     className="w-full py-3 rounded-xl text-xs font-semibold tracking-wider uppercase bg-[#2C4964] text-white hover:bg-[#1e3347] shadow-sm hover:shadow-md transition-all duration-300 active:scale-[0.99]"
                 >
-                    Learn More & Select
+                    {buttonText}
                 </button>
             </div>
         </div>

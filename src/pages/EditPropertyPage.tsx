@@ -113,6 +113,7 @@ function EditPropertyPage() {
     const [formErrors, setFormErrors] = useState<FormErrors>({});
     const [managementPlans, setManagementPlans] = useState<ManagementPlan[]>([]);
     const [initialMapCenter, setInitialMapCenter] = useState<LatLngTuple>([8.7139, 77.7567]);
+    const [userHasTypedCity, setUserHasTypedCity] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -227,17 +228,22 @@ function EditPropertyPage() {
         fetchData();
     }, [propertyId, navigate, showErrorNotification]);
 
+    // Handler for form field changes
+    const handleFormDataChange = (fieldName: string, value: any) => {
         if (fieldName === 'city') {
             setUserHasTypedCity(true);
         }
         setFormData(prev => {
-            const nextData = { ...prev, [fieldName]: value };
+            const nextData = { ...prev, [fieldName]: value } as FormDataState;
             if (fieldName === 'property_type' && value === 'LAND') {
-                nextData.availability_status = 'READY_TO_MOVE';
+                // Ensure availability status defaults for land
+                (nextData as any).availability_status = 'READY_TO_MOVE';
             }
             return nextData;
         });
     };
+
+
 
     const validateForm = (): boolean => {
         const errors: FormErrors = {};
@@ -355,7 +361,7 @@ function EditPropertyPage() {
             p_address: formData.address,
             p_pincode: formData.pincode!,
             p_submitter_type: formData.submitter_type,
-            p_year_built: formData.property_type === 'LAND' ? null : formData.year_built,
+            p_year_built: formData.property_type === 'LAND' ? undefined : formData.year_built,
             p_description: formData.description || undefined,
             p_youtube_url: formData.youtube_url || undefined,
             p_latitude: formData.latitude,
@@ -448,7 +454,7 @@ function EditPropertyPage() {
                                 onFormDataChange={handleFormDataChange}
                                 formErrors={formErrors}
                                 initialMapCenter={initialMapCenter}
-                                userHasTypedCity={true} // For edit, assume user has already set/confirmed city
+                                userHasTypedCity={userHasTypedCity} // Track if user typed city
                                 geolocationLoading={false} // Not relevant for edit page usually
                                 disabledFields={{ city: isSubmitting, locality: isSubmitting, address: isSubmitting }}
                             />
