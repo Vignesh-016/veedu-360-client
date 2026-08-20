@@ -175,6 +175,13 @@ const ActionCard: React.FC<ActionCardProps> = ({
                                 </div>
                             )}
                         </div>
+                        <div className="mt-2 pt-2 border-t border-dotted border-gray-150">
+                            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Marketing Manager</p>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[#2C4964] font-bold">9150015022</span>
+                                <a href="tel:9150015022" className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 transition-colors" title="Call Marketing Manager"><IconPhoneCall size={16} /></a>
+                            </div>
+                        </div>
                     </div>
                     {!details.submitter_info.is_unlocked && (
                         <div className="mt-3 pt-3 border-t border-gray-100">

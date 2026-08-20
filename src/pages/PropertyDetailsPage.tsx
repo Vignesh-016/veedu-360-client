@@ -301,7 +301,7 @@ function PropertyDetailsPage() {
                                                     </div>
                                                 ) : (
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-gray-400 font-mono tracking-wider font-semibold text-lg select-none">+91 ••••• •••••</span>
+                                                        <span className="text-gray-400 font-mono tracking-wider font-semibold text-lg select-none">+91 ..... .....</span>
                                                         <button
                                                             onClick={handleUnlockContact}
                                                             disabled={unlockLoading}
@@ -312,6 +312,21 @@ function PropertyDetailsPage() {
                                                         </button>
                                                     </div>
                                                 )}
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 pt-4 border-t border-dotted border-gray-150 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                            <div>
+                                                <h4 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Marketing Manager</h4>
+                                                <p className="text-gray-800 font-bold text-lg">9150015022</p>
+                                            </div>
+                                            <div>
+                                                <a
+                                                    href="tel:9150015022"
+                                                    className="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors inline-flex items-center gap-1.5 text-xs font-bold"
+                                                    title="Call Marketing Manager"
+                                                >
+                                                    <IconPhoneCall size={14} /> Call Manager
+                                                </a>
                                             </div>
                                         </div>
                                         {/* Credit balance info strip */}

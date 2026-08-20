@@ -69,31 +69,36 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
               backdrop-blur-xl hover:bg-white/30 hover:backdrop-blur-2xl hover:border-white 
               hover:shadow-[0_20px_45px_rgba(44,73,100,0.14)]
                             transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.04)]
-                            ${selected ? 'border-[#2C4964] ring-2 ring-[#2C4964]/25 ring-offset-2' : ''} ${disabled ? 'opacity-70' : ''} ${className}`}
+                            ${selected ? 'border-[#2C4964] bg-[#f3f7fa] ring-2 ring-[#2C4964]/25 ring-offset-2 shadow-[0_16px_35px_rgba(44,73,100,0.18)]' : ''} ${disabled ? 'opacity-70' : ''} ${className}`}
             style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}
         >
             {/* Header Section with glass styling */}
-            <div className="relative p-6 pb-4 border-b border-slate-100 bg-slate-50/70 transition-all duration-300">
-                {hasSpecialOffer && (
-                    <div className="absolute right-0 top-0 inline-flex items-center gap-1.5 rounded-bl-xl bg-rose-600 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wide text-white shadow-sm">
-                        <IconTag size={13} />
-                        Offer {formatRupees(postPrice)}
-                        <span className="font-semibold text-rose-100 line-through">{formatRupees(REGULAR_MANAGEMENT_PLAN_PRICE)}</span>
-                    </div>
-                )}
+            <div className={`relative p-6 pb-4 border-b transition-all duration-300 ${selected ? 'border-[#2C4964]/15 bg-[#eaf1f6]' : 'border-slate-100 bg-slate-50/70'}`}>
                 <div className={`flex items-center ${showIcon ? 'gap-3.5' : ''}`}>
-                    {showIcon && <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-slate-100/80 group-hover:bg-[#2C4964] transition-all duration-300 shadow-sm group-hover:shadow-md">
+                    {showIcon && <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 shadow-sm group-hover:shadow-md ${selected ? 'bg-[#2C4964]' : 'bg-slate-100/80 group-hover:bg-[#2C4964]'}`}>
                         {getPlanIcon(plan.name, 0)}
                     </div>}
-                    <div className={`flex-1 ${hasSpecialOffer ? 'pr-20' : ''}`}>
+                    <div className="flex-1">
                         <h3 className="text-lg md:text-xl font-semibold leading-snug tracking-tight text-gray-800 group-hover:text-[#2C4964] transition-colors">
                             {plan.name}
                         </h3>
                         {subtitle && <p className="mt-1 text-sm leading-relaxed text-gray-600">{subtitle}</p>}
                         {plan.document_processing_fee_enabled && postPrice > 0 && (
-                            <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-800">
+                            <span className="hidden" aria-hidden="true">
                                 <IconFileCheck size={13} /> Document charges apply · ₹{Number(plan.post_price).toFixed(2)}
                             </span>
+                        )}
+                        {plan.document_processing_fee_enabled && postPrice > 0 && (
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#2C4964]/20 bg-white px-2.5 py-1 text-[11px] font-bold text-[#2C4964]">
+                                    <IconFileCheck size={13} /> Platform fees · {formatRupees(postPrice)}
+                                </span>
+                                {hasSpecialOffer && (
+                                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#2C4964]">
+                                        <IconTag size={13} /> Offer price <span>{formatRupees(postPrice)}</span><span className="font-medium text-slate-400 line-through">{formatRupees(REGULAR_MANAGEMENT_PLAN_PRICE)}</span>
+                                    </span>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>

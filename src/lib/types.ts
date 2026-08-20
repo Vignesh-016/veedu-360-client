@@ -258,7 +258,7 @@ export type ManagementPlan = Database['public']['Functions']['list_management_pl
     display_order?: number;
 }
 
-export type HomepageEnquiryType = 'TENANT' | 'OWNER';
+export type HomepageEnquiryType = 'TENANT' | 'OWNER' | 'SELLER' | 'BUYER';
 
 export interface SubmitHomepageEnquiryPayload {
     p_enquiry_type: HomepageEnquiryType;
