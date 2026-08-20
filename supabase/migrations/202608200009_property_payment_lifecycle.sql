@@ -44,25 +44,25 @@
         UPDATE public.transactions
         SET status = 'paid',
             razorpay_payment_id = p_razorpay_payment_id,
-            razorpay_signature = p_razorpay_signature,
+            razorpay_signature = COALESCE(p_razorpay_signature, razorpay_signature),
             error_message = NULL,
             updated_at = now()
         WHERE transaction_id = v_transaction.transaction_id;
 
-        UPDATE public.properties
+        UPDATE public.properties AS p
         SET admin_status = 'SUBMITTED',
             is_listed = FALSE,
             updated_at = now()
-        WHERE property_id = v_property_id
-        AND submitter = v_transaction.user_id
-        AND admin_status = 'PAYMENT_PENDING';
+        WHERE p.property_id = v_property_id
+        AND p.submitter = v_transaction.user_id
+        AND p.admin_status = 'PAYMENT_PENDING';
 
         IF NOT FOUND THEN
                     IF EXISTS (
-                            SELECT 1 FROM public.properties
-                            WHERE property_id = v_property_id
-                                AND submitter = v_transaction.user_id
-                                AND admin_status = 'SUBMITTED'
+                            SELECT 1 FROM public.properties AS p
+                            WHERE p.property_id = v_property_id
+                                AND p.submitter = v_transaction.user_id
+                                AND p.admin_status = 'SUBMITTED'
                     ) THEN
                             RETURN QUERY SELECT v_property_id, 'paid'::TEXT;
                             RETURN;
@@ -149,11 +149,11 @@
     DECLARE
         v_property_id UUID;
     BEGIN
-        SELECT property_id INTO v_property_id
-        FROM public.transactions
-        WHERE razorpay_order_id = p_razorpay_order_id
-        AND payment_type = 'property_management'
-        AND status <> 'paid';
+        SELECT t.property_id INTO v_property_id
+        FROM public.transactions AS t
+        WHERE t.razorpay_order_id = p_razorpay_order_id
+        AND t.payment_type = 'property_management'
+        AND t.status <> 'paid';
 
         UPDATE public.transactions
         SET status = 'failed', updated_at = now()
@@ -162,9 +162,9 @@
         AND status <> 'paid';
 
         IF v_property_id IS NOT NULL THEN
-            DELETE FROM public.properties
-            WHERE property_id = v_property_id
-            AND admin_status = 'PAYMENT_PENDING';
+            DELETE FROM public.properties AS p
+            WHERE p.property_id = v_property_id
+            AND p.admin_status = 'PAYMENT_PENDING';
         END IF;
     END;
     $$;

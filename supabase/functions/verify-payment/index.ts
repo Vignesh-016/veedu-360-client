@@ -16,6 +16,13 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    if (!razorpayKeySecret) {
+      console.error('Razorpay Key Secret is not configured.');
+      return new Response(JSON.stringify({ error: 'Payment verification is not configured. Please contact support.' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error('Authentication failed: Missing authorization header');
@@ -66,7 +73,12 @@ Deno.serve(async (req: Request) => {
       match: expectedSignature === razorpay_signature
     });
 
-    const isSignatureValid = expectedSignature === razorpay_signature;
+    // Use a constant-time comparison so the supplied signature is never
+    // compared with a timing-sensitive string equality check.
+    const receivedSignature = new TextEncoder().encode(razorpay_signature);
+    const calculatedSignature = new TextEncoder().encode(expectedSignature);
+    const isSignatureValid = receivedSignature.length === calculatedSignature.length
+      && crypto.timingSafeEqual(receivedSignature, calculatedSignature);
 
     if (!isSignatureValid) {
       console.error('SIGNATURE VALIDATION FAILED for order_id:', razorpay_order_id);

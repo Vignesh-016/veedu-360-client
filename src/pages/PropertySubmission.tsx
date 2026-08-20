@@ -574,6 +574,10 @@ function PropertySubmission() {
                 }
 
                 const { orderId, amount, keyId } = orderData;
+                // Razorpay can close its modal while the success handler is still
+                // verifying the payment. Do not let that close event delete the
+                // pending property after the customer has already paid.
+                let paymentVerificationStarted = false;
 
                 const options = {
                     key: keyId,
@@ -584,6 +588,7 @@ function PropertySubmission() {
                     order_id: orderId,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     handler: async (response: any) => {
+                        paymentVerificationStarted = true;
                         setLoading(true);
                         showInfoNotification('Processing Payment', 'Verifying payment details...');
                         try {
@@ -594,21 +599,26 @@ function PropertySubmission() {
                             };
                             const { data: verifyData, error: verifyError } = await api.verifyPayment(payload);
                             if (verifyError || !verifyData?.success) {
-                                await api.discardPendingProperty(propertyId);
-                                setPendingPropertyId(null);
                                 throw new Error(verifyError as string || 'Payment verification failed.');
                             }
 
                             showSuccessNotification('Payment Verified!', 'Publishing your property and uploading images...');
                             await proceedToSubmitProperty(propertyId, true);
                         } catch (verificationError: any) {
-                            showErrorNotification('Verification Failed', verificationError.message || 'Could not verify payment. Please contact support.');
-                            setPageError(verificationError.message || 'Payment verification failed.');
+                            const message = verificationError.message || 'Payment verification could not be completed.';
+                            // The payment may already be captured even if this browser
+                            // did not receive the verification response. Keep the draft
+                            // intact; the signed webhook can complete it safely.
+                            showErrorNotification('Payment Received — Verification Pending', `${message} Do not pay again. Your post has been kept for reconciliation.`);
+                            setPageError(`${message} Do not pay again. Your post has been kept for reconciliation.`);
                             setLoading(false);
                         }
                     },
                     modal: {
                         ondismiss: async () => {
+                            if (paymentVerificationStarted) {
+                                return;
+                            }
                             await api.discardPendingProperty(propertyId);
                             setPendingPropertyId(null);
                             setLoading(false);

@@ -337,16 +337,26 @@ class RealEstateApi {
     async verifyPayment(payload: VerifyPaymentPayload): Promise<ApiResponse<VerifyPaymentResponse>> {
         try {
             const { data, error } = await this.supabase.functions.invoke('verify-payment', {
-                body: JSON.stringify(payload),
+                body: payload,
             });
             if (error) throw error;
             return { data: data as VerifyPaymentResponse, error: null };
         } catch (err: unknown) {
             const error = err as Error;
             console.error('Error verifying payment:', error);
-            let message = error.message;
-            if ((error as any).context?.errorMessage) {
-                message = (error as any).context.errorMessage;
+            let message = error.message || 'Payment verification could not be completed.';
+            const response = (error as any).context;
+            if (response instanceof Response) {
+                try {
+                    const errorBody = await response.clone().json();
+                    if (typeof errorBody?.error === 'string') {
+                        message = errorBody.error;
+                    }
+                } catch {
+                    // Keep the SDK error message when the response is not JSON.
+                }
+            } else if (typeof response?.errorMessage === 'string') {
+                message = response.errorMessage;
             }
             return { data: null, error: message };
         }

@@ -12,7 +12,9 @@ entrypoint = "./functions/verify-payment/index.ts"
 
 [functions.webhook-handler]
 enabled = true
-verify_jwt = true
+# Razorpay cannot supply a Supabase user JWT. This endpoint authenticates each
+# request with Razorpay's x-razorpay-signature HMAC inside the function.
+verify_jwt = false
 import_map = "./functions/import_map.json"
 entrypoint = "./functions/webhook-handler/index.ts"
 

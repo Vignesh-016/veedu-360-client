@@ -96,11 +96,13 @@ declare module "node:crypto" {
   }
 
   function createHmac(algorithm: string, key: string | Buffer): Hmac;
+  function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean;
 
   const crypto: {
     createHmac: typeof createHmac;
+    timingSafeEqual: typeof timingSafeEqual;
   };
 
-  export { createHmac };
+  export { createHmac, timingSafeEqual };
   export default crypto;
 }
