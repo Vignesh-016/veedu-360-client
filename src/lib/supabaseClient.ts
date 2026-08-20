@@ -352,6 +352,17 @@ class RealEstateApi {
         }
     }
 
+    async discardPendingProperty(propertyId: string): Promise<ApiResponse<boolean>> {
+        try {
+            const { data, error } = await (this.supabase.rpc as any)('discard_pending_property_customer', {
+                p_property_id: propertyId,
+            });
+            return { data: data as boolean | null, error };
+        } catch (err: unknown) {
+            return { data: null, error: err instanceof Error ? err.message : 'Failed to discard pending property.' };
+        }
+    }
+
     async openRazorpayCheckout(options: { key: string; amount: number; currency: string; name: string; description: string; order_id: string; handler: (response: any) => void; prefill?: { name?: string; email?: string; contact?: string; }; notes?: object; theme?: { color?: string; }; }): Promise<void> {
         try {
             await loadRazorpayScript();

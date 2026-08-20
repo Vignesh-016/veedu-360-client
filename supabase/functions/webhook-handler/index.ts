@@ -61,7 +61,7 @@ Deno.serve(async (req: Request) => {
 
       const { data: transaction, error: transactionError } = await supabaseAdmin
         .from('transactions')
-        .select('transaction_id, status, user_id, plan_id, amount') // Fetch necessary fields
+      .select('transaction_id, status, user_id, plan_id, amount, payment_type, property_id') // Fetch necessary fields
         .eq('razorpay_order_id', orderId)
         .maybeSingle();
 
@@ -95,10 +95,17 @@ Deno.serve(async (req: Request) => {
           return new Response('Error updating transaction status', { status: 500 }); // Server error, Razorpay might retry
         }
 
-        // Using the presumed service-role `complete_purchase` RPC
-        const { error: completeError } = await supabaseAdmin.rpc('complete_purchase', {
-          p_razorpay_order_id: orderId,
-        });
+        const completionRpc = transaction.payment_type === 'property_management'
+          ? 'complete_property_management_payment'
+          : 'complete_purchase';
+        const completionArgs = transaction.payment_type === 'property_management'
+          ? {
+              p_razorpay_order_id: orderId,
+              p_razorpay_payment_id: paymentId,
+              p_razorpay_signature: paymentSignature,
+            }
+          : { p_razorpay_order_id: orderId };
+        const { error: completeError } = await supabaseAdmin.rpc(completionRpc, completionArgs);
 
         if (completeError) {
           console.error(`Webhook Error: Failed to complete purchase for transaction ${transaction!.transaction_id} (Order ${orderId}):`, completeError.message);
@@ -128,6 +135,12 @@ Deno.serve(async (req: Request) => {
           console.error(`Webhook Error: Failed to update transaction status to 'failed' for order ${orderId}:`, updateFailedError.message);
           // Don't necessarily return 500, as this is an informational update.
         } else {
+          if (transaction?.payment_type === 'property_management') {
+            const { error: discardError } = await supabaseAdmin.rpc('discard_failed_property_management_payment', {
+              p_razorpay_order_id: orderId,
+            });
+            if (discardError) console.error(`Webhook: Failed to discard unpaid property draft for order ${orderId}:`, discardError.message);
+          }
           console.log(`Webhook: Transaction for order ${orderId} updated to 'failed'.`);
         }
       } else {

@@ -558,9 +558,11 @@ function PropertySubmission() {
         }
 
         setLoading(true);
+        let paymentPropertyId: string | null = pendingPropertyId;
         try {
                 const propertyId = pendingPropertyId || await proceedToSubmitProperty(undefined, false);
                 if (!propertyId) throw new Error('Could not create the pending property.');
+            paymentPropertyId = propertyId;
                 setPendingPropertyId(propertyId);
                 showInfoNotification('Processing Payment', 'Creating payment order...');
                 const { data: orderData, error: orderError } = await api.createPaymentOrder({
@@ -594,6 +596,8 @@ function PropertySubmission() {
                             };
                             const { data: verifyData, error: verifyError } = await api.verifyPayment(payload);
                             if (verifyError || !verifyData?.success) {
+                                await api.discardPendingProperty(propertyId);
+                                setPendingPropertyId(null);
                                 throw new Error(verifyError as string || 'Payment verification failed.');
                             }
 
@@ -606,9 +610,11 @@ function PropertySubmission() {
                         }
                     },
                     modal: {
-                        ondismiss: () => {
+                        ondismiss: async () => {
+                            await api.discardPendingProperty(propertyId);
+                            setPendingPropertyId(null);
                             setLoading(false);
-                            showInfoNotification('Payment Cancelled', 'Your property is saved as payment pending. You can retry payment without entering the details again.');
+                            showInfoNotification('Payment Cancelled', 'Your property post was discarded because payment was not completed.');
                         }
                     },
                     prefill: {
@@ -629,6 +635,10 @@ function PropertySubmission() {
                 await api.openRazorpayCheckout(options);
         } catch (err: any) {
                 console.error("Payment initiation error:", err);
+                if (paymentPropertyId) {
+                    await api.discardPendingProperty(paymentPropertyId);
+                    setPendingPropertyId(null);
+                }
                 showErrorNotification('Payment Error', err.message || 'Could not initiate payment.');
                 setPageError(err.message || 'Failed to start payment.');
                 setLoading(false);

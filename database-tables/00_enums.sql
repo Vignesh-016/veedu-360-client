@@ -15,6 +15,7 @@ CREATE TYPE public.property_admin_status_enum AS ENUM (
     'OWNER_VERIFIED',
     'MARKETING_VISIT_PENDING',
     'MARKETING_VERIFIED',
+    'PAYMENT_PENDING',
     'AWAITING_LISTING',
     'REJECTED',
     'SUSPENDED',
