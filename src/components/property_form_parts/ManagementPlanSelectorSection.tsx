@@ -25,17 +25,18 @@ const ManagementPlanSelectorSection: React.FC<Props> = ({
                         <p className="text-sm text-gray-500 p-4 text-center">No active management plans available.</p>
                     )}
                     {!loading && managementPlans.length > 0 && (
-                        <div className={`flex items-stretch overflow-x-auto space-x-5 px-1 py-2 pb-8 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ${disabled ? 'cursor-not-allowed' : ''}`}>
+                        <div className={`grid grid-cols-1 gap-5 px-1 py-2 md:grid-cols-2 xl:grid-cols-3 ${disabled ? 'cursor-not-allowed' : ''}`}>
                             {managementPlans.map(plan => (
-                                <ServicePlanCard
-                                    key={plan.plan_id}
-                                    plan={plan}
-                                    showIcon={false}
-                                    selected={selectedPlanId === plan.plan_id}
-                                    disabled={disabled}
-                                    className="flex-shrink-0 w-[320px] h-[580px] ml-1"
-                                    onSelect={() => onPlanSelect(selectedPlanId === plan.plan_id ? undefined : plan.plan_id)}
-                                />
+                                <div key={plan.plan_id} className="relative min-w-0">
+                                    <ServicePlanCard
+                                        plan={plan}
+                                        showIcon={false}
+                                        selected={selectedPlanId === plan.plan_id}
+                                        disabled={disabled}
+                                        className="w-full min-h-[520px]"
+                                        onSelect={() => onPlanSelect(selectedPlanId === plan.plan_id ? undefined : plan.plan_id)}
+                                    />
+                                </div>
                             ))}
                         </div>
                     )}

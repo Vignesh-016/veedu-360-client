@@ -58,15 +58,15 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
 
     return (
         <div
-                        className={`relative flex flex-col h-full min-h-[580px] rounded-2xl border border-white/80 bg-white/50 
+                        className={`relative flex flex-col h-full min-h-[500px] rounded-2xl border border-slate-200 bg-white 
               backdrop-blur-xl hover:bg-white/30 hover:backdrop-blur-2xl hover:border-white 
               hover:shadow-[0_20px_45px_rgba(44,73,100,0.14)]
                             transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.04)]
-                            ${selected ? 'ring-2 ring-[#2C4964] ring-offset-2' : ''} ${disabled ? 'opacity-70' : ''} ${className}`}
+                            ${selected ? 'border-[#2C4964] ring-2 ring-[#2C4964]/25 ring-offset-2' : ''} ${disabled ? 'opacity-70' : ''} ${className}`}
             style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}
         >
             {/* Header Section with glass styling */}
-            <div className="p-6 pb-4 border-b border-gray-100/60 bg-white/40 backdrop-blur-md group-hover:bg-white/20 transition-all duration-300">
+            <div className="p-6 pb-4 border-b border-slate-100 bg-slate-50/70 transition-all duration-300">
                 <div className={`flex items-center ${showIcon ? 'gap-3.5' : ''}`}>
                     {showIcon && <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-slate-100/80 group-hover:bg-[#2C4964] transition-all duration-300 shadow-sm group-hover:shadow-md">
                         {getPlanIcon(plan.name, 0)}
@@ -76,12 +76,17 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
                             {plan.name}
                         </h3>
                         {subtitle && <p className="mt-1 text-sm leading-relaxed text-gray-600">{subtitle}</p>}
+                        {plan.document_processing_fee_enabled && Number(plan.post_price) > 0 && (
+                            <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-800">
+                                <IconFileCheck size={13} /> Document charges apply · ₹{Number(plan.post_price).toFixed(2)}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
 
             {/* Content Section */}
-            <div className="flex flex-1 flex-col p-6 space-y-4.5 overflow-hidden">
+            <div className="flex flex-1 flex-col p-6 space-y-4 overflow-hidden">
                 {rawFeatures.map((feature, idx) => {
                     const colonIndex = feature.indexOf(':');
                     let titlePart = '';
@@ -150,7 +155,7 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
                     type="button"
                     onClick={onSelect}
                     disabled={disabled}
-                    className="w-full py-3 rounded-xl text-xs font-semibold tracking-wider uppercase bg-[#2C4964] text-white hover:bg-[#1e3347] shadow-sm hover:shadow-md transition-all duration-300 active:scale-[0.99]"
+                    className={`w-full rounded-xl py-3 text-xs font-semibold tracking-wider uppercase shadow-sm transition-all duration-300 active:scale-[0.99] ${selected ? 'bg-[#1e3347] text-white ring-2 ring-[#2C4964]/20' : 'bg-[#2C4964] text-white hover:bg-[#1e3347] hover:shadow-md'}`}
                 >
                     {buttonText}
                 </button>

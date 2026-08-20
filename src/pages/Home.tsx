@@ -1,5 +1,5 @@
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Property, ManagementPlan } from '../lib/types';
 import api from '../lib/supabaseClient';
 import { useEffect, useState } from 'react';
@@ -11,8 +11,10 @@ import { useAuth } from '../lib/AuthContext';
 import { useNotification } from '../components/NotificationProvider';
 import { DEFAULT_CITY } from '../lib/geoUtils';
 import ServicePlanCard from '../components/ServicePlanCard';
+import HomeEnquiryModal from '../components/HomeEnquiryModal';
 
 function Home() {
+    const navigate = useNavigate();
     const [recommendations, setRecommendations] = useState<Property[]>([]);
     const [loadingRecs, setLoadingRecs] = useState(true);
     const [latestProperties, setLatestProperties] = useState<Property[]>([]);
@@ -21,8 +23,8 @@ function Home() {
     const [loadingPlans, setLoadingPlans] = useState(true);
     const [homepageSettings, setHomepageSettings] = useState<any>(null);
 
-    const { currentCity, geolocationLoading } = useAuth();
-    const { showErrorNotification } = useNotification();
+    const { currentCity, geolocationLoading, user } = useAuth();
+    const { showErrorNotification, showSuccessNotification } = useNotification();
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -123,6 +125,8 @@ function Home() {
                 Find Your Perfect Property {geolocationLoading && currentCity === DEFAULT_CITY ? '' : `in ${currentCity}`} | {companyName}
             </title>
             <div className="home-page bg-gray-50 min-h-screen">
+
+                <HomeEnquiryModal user={user} onSuccess={() => showSuccessNotification('Enquiry sent', 'Our team will contact you shortly.')} />
 
                 {/* HERO SECTION */}
                 <div className="relative">
@@ -354,10 +358,11 @@ function Home() {
 
                 <div className="bg-gradient-to-b from-gray-50 to-white py-16 md:py-24">
                     <div className="container mx-auto px-4">
-                        <div className="text-center mb-12">
-                            <h2 className="text-3xl font-bold text-gray-800">Our Management Services</h2>
+                        <div className="mx-auto mb-12 max-w-3xl text-center">
+                            <span className="inline-flex rounded-full bg-[#2C4964]/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-[#2C4964]">Property services</span>
+                            <h2 className="mt-4 text-3xl font-bold text-gray-800 md:text-4xl">{homepageSettings?.management_services?.title || 'Our Management Services'}</h2>
                             <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-                                Tailored plans to fit your property management needs, from basic marketing to all-inclusive care.
+                                {homepageSettings?.management_services?.subtitle || 'Tailored plans to fit your property management needs, from basic marketing to all-inclusive care.'}
                             </p>
                         </div>
                         {loadingPlans ? (
@@ -370,6 +375,7 @@ function Home() {
                                     <ServicePlanCard
                                         key={plan.plan_id}
                                         plan={plan}
+                                        onSelect={() => navigate(`/submit-property?management_plan_id=${encodeURIComponent(plan.plan_id)}`)}
                                     />
                                 ))}
                             </div>

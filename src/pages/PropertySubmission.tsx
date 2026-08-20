@@ -16,7 +16,7 @@ import {
     IconHome2, IconMapPin2, IconBuildingCommunity, IconFileDescription,
     IconChevronRight, IconChevronLeft, IconCheck
 } from '@tabler/icons-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useNotification } from '../components/NotificationProvider';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../lib/AuthContext';
@@ -114,6 +114,7 @@ const STEPS = [
 
 function PropertySubmission() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { user, currentCity: authCity, geolocationData, geolocationLoading } = useAuth();
     const [formData, setFormData] = useState<FormDataState>(initialFormData);
     const [images, setImages] = useState<ImageFileForUpload[]>([]);
@@ -139,10 +140,15 @@ function PropertySubmission() {
     const [listingPlan, setListingPlan] = useState<VisitPlan | null>(null);
     const [loadingPricingCheck, setLoadingPricingCheck] = useState(true);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [pendingPropertyId, setPendingPropertyId] = useState<string | null>(null);
 
     const effectiveAllowedQuota = userListingQuota + paidListingCount;
     const remainingCredits = Math.max(0, effectiveAllowedQuota - propertyCount);
     const needsPayment = remainingCredits <= 0;
+    const selectedManagementPlan = managementPlans.find(plan => plan.plan_id === formData.management_plan_id);
+    const managementPlanFee = selectedManagementPlan?.document_processing_fee_enabled
+        ? Number(selectedManagementPlan.post_price)
+        : 0;
 
     const checkListingQuota = useCallback(async () => {
         if (!user) return;
@@ -215,6 +221,10 @@ function PropertySubmission() {
             if (data) {
                 const activePlans = data.sort((a, b) => a.percentage - b.percentage);
                 setManagementPlans(activePlans);
+                const requestedPlanId = searchParams.get('management_plan_id');
+                if (requestedPlanId && activePlans.some(plan => plan.plan_id === requestedPlanId)) {
+                    setFormData(prev => ({ ...prev, management_plan_id: requestedPlanId }));
+                }
             }
         } catch (err: any) {
             console.error("Failed to fetch management plans:", err);
@@ -222,7 +232,7 @@ function PropertySubmission() {
         } finally {
             setManagementPlansLoading(false);
         }
-    }, [showErrorNotification]);
+    }, [showErrorNotification, searchParams]);
 
     useEffect(() => {
         fetchManagementPlans();
@@ -362,6 +372,7 @@ function PropertySubmission() {
 
         if (step === 4) { // Pricing & Status
             if (formData.price === null || formData.price <= 0) errors.price = 'Expected Price (>0) is required.';
+            if (!formData.management_plan_id) errors.management_plan_id = 'Please select a management plan.';
         }
 
         if (step === 5) { // Photos
@@ -401,7 +412,7 @@ function PropertySubmission() {
 
     const companyName = import.meta.env.VITE_COMPANY_NAME;
 
-    const proceedToSubmitProperty = async () => {
+    const proceedToSubmitProperty = async (existingPropertyId?: string, uploadImages = true): Promise<string | null> => {
         const detailsJson: Record<string, Json | undefined | null> = {};
         if (formData.property_type === 'HOUSE') {
             detailsJson.house_name = formData.house_name;
@@ -476,11 +487,14 @@ function PropertySubmission() {
         const imageUploadErrors: { name: string, error: string }[] = [];
 
         try {
-            const { data: propertyIdData, error: dataError } = await api.insertProperty(submissionPayload);
+            const { data: propertyIdData, error: dataError } = existingPropertyId
+                ? { data: existingPropertyId, error: null }
+                : await api.insertProperty(submissionPayload);
             if (dataError || !propertyIdData) {
                 throw new Error(typeof dataError === 'string' ? dataError : 'Failed to submit property data.');
             }
             newPropertyId = propertyIdData;
+            if (!uploadImages) return newPropertyId;
             showInfoNotification('Data Submitted', `Property data for ID ${newPropertyId} submitted. Now uploading images...`);
 
             if (images.length > 0 && newPropertyId) {
@@ -513,6 +527,7 @@ function PropertySubmission() {
             setLoading(false);
             setImageUploadProgress(0);
         }
+        return newPropertyId;
     };
 
     const validateAllSteps = (): boolean => {
@@ -536,18 +551,22 @@ function PropertySubmission() {
 
         if (loading) return;
 
-        if (needsPayment) {
-            if (!listingPlan) {
-                showErrorNotification('Payment Setup Error', 'Listing plan is not available. Please contact support.');
-                return;
-            }
+        if (managementPlanFee === 0 && !needsPayment) {
             setLoading(true);
-            try {
+            await proceedToSubmitProperty();
+            return;
+        }
+
+        setLoading(true);
+        try {
+                const propertyId = pendingPropertyId || await proceedToSubmitProperty(undefined, false);
+                if (!propertyId) throw new Error('Could not create the pending property.');
+                setPendingPropertyId(propertyId);
                 showInfoNotification('Processing Payment', 'Creating payment order...');
                 const { data: orderData, error: orderError } = await api.createPaymentOrder({
-                    plan_id: listingPlan.plan_id,
-                    plan_type: 'property_listing',
-                    custom_amount: PROPERTY_LISTING_FEE,
+                    plan_id: formData.management_plan_id!,
+                    property_id: propertyId,
+                    plan_type: 'property_management',
                 });
 
                 if (orderError || !orderData) {
@@ -560,8 +579,8 @@ function PropertySubmission() {
                     key: keyId,
                     amount: amount,
                     currency: "INR",
-                    name: companyName + " Property Listing",
-                    description: `Listing Fee: ${listingPlan.name}`,
+                    name: companyName + " Management Plan",
+                    description: "Property management plan payment",
                     order_id: orderId,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     handler: async (response: any) => {
@@ -578,8 +597,8 @@ function PropertySubmission() {
                                 throw new Error(verifyError as string || 'Payment verification failed.');
                             }
 
-                            showSuccessNotification('Payment Verified!', 'Proceeding to submit your property listing...');
-                            await proceedToSubmitProperty();
+                            showSuccessNotification('Payment Verified!', 'Publishing your property and uploading images...');
+                            await proceedToSubmitProperty(propertyId, true);
                         } catch (verificationError: any) {
                             showErrorNotification('Verification Failed', verificationError.message || 'Could not verify payment. Please contact support.');
                             setPageError(verificationError.message || 'Payment verification failed.');
@@ -589,7 +608,7 @@ function PropertySubmission() {
                     modal: {
                         ondismiss: () => {
                             setLoading(false);
-                            showInfoNotification('Payment Cancelled', 'You cancelled the payment. The property has not been posted.');
+                            showInfoNotification('Payment Cancelled', 'Your property is saved as payment pending. You can retry payment without entering the details again.');
                         }
                     },
                     prefill: {
@@ -598,7 +617,8 @@ function PropertySubmission() {
                         contact: user?.phone || user?.user_metadata?.phone,
                     },
                     notes: {
-                        plan_id: listingPlan.plan_id,
+                        plan_id: formData.management_plan_id,
+                        property_id: propertyId,
                         user_id: user?.id,
                     },
                     theme: {
@@ -607,15 +627,11 @@ function PropertySubmission() {
                 };
 
                 await api.openRazorpayCheckout(options);
-            } catch (err: any) {
+        } catch (err: any) {
                 console.error("Payment initiation error:", err);
                 showErrorNotification('Payment Error', err.message || 'Could not initiate payment.');
                 setPageError(err.message || 'Failed to start payment.');
                 setLoading(false);
-            }
-        } else {
-            setLoading(true);
-            await proceedToSubmitProperty();
         }
     };
 
@@ -855,7 +871,7 @@ function PropertySubmission() {
                                             formErrors={formErrors}
                                         />
                                     </SectionWrapper>
-                                    <SectionWrapper title="Management Plan (Optional)" icon={IconListCheck} gridCols="1" defaultOpen={true}>
+                                    <SectionWrapper title="Management Plan" icon={IconListCheck} gridCols="1" defaultOpen={true}>
                                         <ManagementPlanSelectorSection
                                             managementPlans={managementPlans}
                                             selectedPlanId={formData.management_plan_id}
@@ -911,10 +927,16 @@ function PropertySubmission() {
                                                 <div className="bg-white p-6 rounded-xl border border-gray-200/80 shadow-sm">
                                                     <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
                                                         <IconCoins className="text-indigo-600" size={20} />
-                                                        Listing Quota & Pricing Breakdown
+                                                        Property Payment Summary
                                                     </h3>
                                                     
                                                     <div className="space-y-3">
+                                                         {managementPlanFee > 0 && (
+                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                 <span className="text-gray-600">Document Processing</span>
+                                                                 <span className="font-semibold text-slate-800">₹{managementPlanFee.toFixed(2)}</span>
+                                                             </div>
+                                                         )}
                                                          <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
                                                              <span className="text-gray-600">Base Free Listing Quota</span>
                                                              <span className="font-semibold text-slate-800">{userListingQuota} {userListingQuota === 1 ? 'property' : 'properties'}</span>
@@ -957,7 +979,7 @@ function PropertySubmission() {
                                                                      <span className="font-semibold text-slate-800">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
                                                                  </div>
                                                                  <div className="flex justify-between items-center pt-2">
-                                                                     <span className="font-bold text-slate-900">Total Amount Due</span>
+                                                                     <span className="font-bold text-slate-900">Additional Listing Fee</span>
                                                                      <span className="text-lg font-bold text-indigo-600">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
                                                                  </div>
                                                                  <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 leading-relaxed">
@@ -971,7 +993,7 @@ function PropertySubmission() {
                                                                      <span className="font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md text-xs">Active ({remainingCredits} left)</span>
                                                                  </div>
                                                                  <div className="flex justify-between items-center pt-2">
-                                                                     <span className="font-bold text-slate-900">Total Amount Due</span>
+                                                                     <span className="font-bold text-slate-900">Additional Listing Fee</span>
                                                                      <span className="text-lg font-bold text-emerald-600">₹0.00 (Free)</span>
                                                                  </div>
                                                                  <div className="mt-4 bg-emerald-50/50 border border-emerald-100 rounded-lg p-3 text-xs text-emerald-800 leading-relaxed">
@@ -979,6 +1001,10 @@ function PropertySubmission() {
                                                                  </div>
                                                              </>
                                                          )}
+                                                         <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200">
+                                                             <span className="font-bold text-slate-900">Final Amount Due</span>
+                                                             <span className="text-lg font-bold text-indigo-600">₹{(managementPlanFee + (needsPayment ? PROPERTY_LISTING_FEE : 0)).toFixed(2)}</span>
+                                                         </div>
                                                         
                                                         {needsPayment && (!listingPlan || listingPlan.plan_id === '00000000-0000-0000-0000-000000000000') && (
                                                             <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-800 font-medium">

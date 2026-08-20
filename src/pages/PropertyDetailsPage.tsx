@@ -278,7 +278,7 @@ function PropertyDetailsPage() {
                             <ImageGallery images={details.property_images} propertyName={displayName} />
                             <PropertyHeader details={details} displayName={displayName} PropertyIcon={PropertyIconComponent} />
                             <KeyFeatures details={details} />
-                            {details.submitter_info && (
+                            {details.submitter_info && Boolean(false) && (
                                 <DetailSection title="Owner Contact Details" icon={IconPhoneCall} gridCols={1}>
                                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -381,6 +381,10 @@ function PropertyDetailsPage() {
                                 primaryActionLoading={primaryActionLoading}
                                 balance={balance}
                                 onShare={() => setIsShareModalOpen(true)}
+                                onUnlockContact={handleUnlockContact}
+                                unlockLoading={unlockLoading}
+                                onLoginToUnlock={() => navigate('/login', { state: { from: location.pathname } })}
+                                onBuyContactPlan={() => navigate('/buy-contact-plans')}
                             />
                             {details.latitude && details.longitude && (
                                 <DetailSection title="Location on Map" icon={IconMap} gridCols={1}>

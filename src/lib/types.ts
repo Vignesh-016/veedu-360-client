@@ -187,7 +187,8 @@ export type PropertiesFilterParams = Database['public']['Functions']['get_proper
 
 export interface CreatePaymentOrderPayload {
     plan_id: string;
-    plan_type?: 'visit' | 'contact' | 'property_listing';
+    plan_type?: 'visit' | 'contact' | 'property_listing' | 'property_management';
+    property_id?: string;
     custom_amount?: number;
 }
 
@@ -251,7 +252,25 @@ export interface NominatimResponse {
     boundingbox: [string, string, string, string];
 }
 
-export type ManagementPlan = Database['public']['Functions']['list_management_plans_customer']['Returns'][0]
+export type ManagementPlan = Database['public']['Functions']['list_management_plans_customer']['Returns'][0] & {
+    post_price: number;
+    document_processing_fee_enabled: boolean;
+    display_order?: number;
+}
+
+export type HomepageEnquiryType = 'TENANT' | 'OWNER';
+
+export interface SubmitHomepageEnquiryPayload {
+    p_enquiry_type: HomepageEnquiryType;
+    p_customer_name: string;
+    p_contact_phone: string;
+    p_email?: string | null;
+    p_occupancy_type?: 'FAMILY' | 'BACHELOR' | 'COMMERCIAL' | null;
+    p_budget?: number | null;
+    p_bedroom_requirement?: string | null;
+    p_preferred_area?: string | null;
+    p_message?: string | null;
+}
 
 // --- Rental Application Specific Types ---
 export type RentalApplicationData = {

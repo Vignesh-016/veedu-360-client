@@ -4,7 +4,7 @@ import { formatPrice } from '../../lib/formatUtils';
 import { getPrimaryButtonClasses, getSecondaryButtonClasses, getTertiaryButtonClasses } from '../../lib/twUtils';
 import LoadingSpinner from '../LoadingSpinner';
 import { Link } from 'react-router-dom';
-import { IconCalendarPlus, IconHeart, IconShare, IconInfoCircle, IconCash, IconClipboardCheck, IconExternalLink } from '@tabler/icons-react';
+import { IconCalendarPlus, IconHeart, IconShare, IconInfoCircle, IconCash, IconClipboardCheck, IconExternalLink, IconLock, IconPhoneCall } from '@tabler/icons-react';
 import { useAuth } from '../../lib/AuthContext';
 
 interface ActionCardProps {
@@ -17,11 +17,16 @@ interface ActionCardProps {
     primaryActionLoading: boolean;
     balance: VisitStatus | undefined;
     onShare: () => void;
+    onUnlockContact: () => void;
+    unlockLoading: boolean;
+    onLoginToUnlock: () => void;
+    onBuyContactPlan: () => void;
 }
 
 const ActionCard: React.FC<ActionCardProps> = ({
     details, isWishlisted, onWishlistToggle, onPrimaryAction, onBookAnotherVisit,
-    wishlistLoading, primaryActionLoading, balance, onShare
+    wishlistLoading, primaryActionLoading, balance, onShare, onUnlockContact,
+    unlockLoading, onLoginToUnlock, onBuyContactPlan
 }) => {
     const { user } = useAuth();
     const priceFormatted = formatPrice(details.price);
@@ -144,6 +149,45 @@ const ActionCard: React.FC<ActionCardProps> = ({
                     <IconInfoCircle size={14} className="inline mr-1" />
                     {infoText}
                 </p>
+            )}
+            {details.submitter_info && (
+                <section className="mt-5 pt-5 border-t border-gray-100" aria-labelledby="owner-contact-heading">
+                    <h3 id="owner-contact-heading" className="text-sm font-semibold text-gray-800 mb-3">Owner Contact Details</h3>
+                    <div className="flex flex-col gap-3">
+                        <div>
+                            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Property Submitter</p>
+                            <p className="text-gray-800 font-bold">{details.submitter_info.name}</p>
+                        </div>
+                        <div>
+                            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Phone Number</p>
+                            {details.submitter_info.is_unlocked && details.submitter_info.phone ? (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[#2C4964] font-bold">{details.submitter_info.phone}</span>
+                                    <a href={`tel:${details.submitter_info.phone}`} className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 transition-colors" title="Call Owner"><IconPhoneCall size={16} /></a>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-400 font-mono tracking-wider font-semibold select-none">+91 ••••• •••••</span>
+                                    <button onClick={onUnlockContact} disabled={unlockLoading} className="px-3 py-2 bg-[#D9A619] hover:bg-[#8F6F1B] disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition-all shadow-sm flex items-center gap-1.5">
+                                        {unlockLoading ? <LoadingSpinner size={12} /> : <IconLock size={14} />}
+                                        Unlock (1 Credit)
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    {!details.submitter_info.is_unlocked && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                            {!user ? (
+                                <p className="text-xs text-gray-500 flex items-center gap-1.5"><IconInfoCircle size={13} className="text-[#D9A619] shrink-0" /><span><button onClick={onLoginToUnlock} className="text-[#D9A619] font-semibold hover:underline">Log in</button> to unlock owner contact details.</span></p>
+                            ) : balance && (balance.contact_balance ?? 0) > 0 ? (
+                                <p className="text-xs text-emerald-600 flex items-center gap-1.5"><IconInfoCircle size={13} className="shrink-0" />You have <strong>{balance.contact_balance}</strong> contact credit{balance.contact_balance !== 1 ? 's' : ''} remaining. Each unlock uses 1 credit.</p>
+                            ) : (
+                                <p className="text-xs text-red-500 flex items-center gap-1.5"><IconInfoCircle size={13} className="shrink-0" />You have no contact credits. <button onClick={onBuyContactPlan} className="text-[#D9A619] font-semibold hover:underline">Buy a plan</button> to unlock owner contacts.</p>
+                            )}
+                        </div>
+                    )}
+                </section>
             )}
         </div>
     );

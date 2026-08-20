@@ -39,7 +39,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const event = JSON.parse(rawBody);
+    const event: any = JSON.parse(rawBody);
 
     // Primary focus: 'order.paid'
     if (event.event === 'order.paid') {
@@ -76,7 +76,9 @@ Deno.serve(async (req: Request) => {
         return new Response('Transaction not found by order ID', { status: 200 });
       }
 
-      if (transaction.status !== 'paid') {
+
+
+      if (transaction!.status !== 'paid') {
         console.log(`Transaction ${transaction.transaction_id} (Order ${orderId}) is not yet 'paid'. Updating via webhook...`);
 
         // Using the presumed service-role `update_transaction_status` RPC
@@ -89,7 +91,7 @@ Deno.serve(async (req: Request) => {
         });
 
         if (updateError) {
-          console.error(`Webhook Error: Failed to update transaction ${transaction.transaction_id} status to 'paid':`, updateError.message);
+          console.error(`Webhook Error: Failed to update transaction ${transaction!.transaction_id} status to 'paid':`, updateError.message);
           return new Response('Error updating transaction status', { status: 500 }); // Server error, Razorpay might retry
         }
 
@@ -99,13 +101,13 @@ Deno.serve(async (req: Request) => {
         });
 
         if (completeError) {
-          console.error(`Webhook Error: Failed to complete purchase for transaction ${transaction.transaction_id} (Order ${orderId}):`, completeError.message);
+          console.error(`Webhook Error: Failed to complete purchase for transaction ${transaction!.transaction_id} (Order ${orderId}):`, completeError.message);
           // Transaction is paid, but visits not added. Critical to investigate.
           return new Response('Error completing purchase actions', { status: 500 }); // Server error, Razorpay might retry
         }
-        console.log(`Webhook: Successfully processed order.paid for transaction ${transaction.transaction_id}.`);
+        console.log(`Webhook: Successfully processed order.paid for transaction ${transaction!.transaction_id}.`);
       } else {
-        console.log(`Webhook: Transaction ${transaction.transaction_id} (Order ${orderId}) already 'paid'. Idempotent handling, no action taken.`);
+        console.log(`Webhook: Transaction ${transaction!.transaction_id} (Order ${orderId}) already 'paid'. Idempotent handling, no action taken.`);
       }
     } else if (event.event === 'payment.failed') {
       const orderId = event.payload.payment?.entity?.order_id;

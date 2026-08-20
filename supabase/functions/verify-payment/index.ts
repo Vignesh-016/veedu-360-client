@@ -24,9 +24,11 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    // Note: User authentication (authHeader) is present but not explicitly used to fetch user details
-    // This implies the function trusts the client to send correct Razorpay IDs,
-    // and the primary security is the signature check and subsequent actions are on specific order_ids.
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid token or user not found' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const requestBody = await req.json();
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = requestBody;
@@ -41,6 +43,15 @@ Deno.serve(async (req: Request) => {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    const { data: transaction, error: transactionError } = await (supabaseAdmin as any)
+      .from('transactions')
+      .select('transaction_id, user_id, property_id, payment_type, amount')
+      .eq('razorpay_order_id', razorpay_order_id)
+      .maybeSingle();
+    if (transactionError || !transaction || transaction.user_id !== user.id) {
+      return new Response(JSON.stringify({ error: 'Payment order was not found or does not belong to you.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const bodyToVerify = `${razorpay_order_id}|${razorpay_payment_id}`;
@@ -78,6 +89,18 @@ Deno.serve(async (req: Request) => {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    if (transaction.payment_type === 'property_management') {
+      const { data: property } = await (supabaseAdmin as any).from('properties').select('submitter').eq('property_id', transaction.property_id).maybeSingle();
+      if (!property || property.submitter !== user.id) {
+        return new Response(JSON.stringify({ error: 'Property ownership verification failed.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const { data: completion, error: completionError } = await (supabaseAdmin as any).rpc('complete_property_management_payment', {
+        p_razorpay_order_id: razorpay_order_id, p_razorpay_payment_id: razorpay_payment_id, p_razorpay_signature: razorpay_signature
+      });
+      if (completionError) throw new Error(`Failed to complete property payment: ${completionError.message}`);
+      return new Response(JSON.stringify({ success: true, propertyId: completion?.[0]?.property_id, status: 'paid' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Signature is valid, proceed to mark as 'paid' and complete purchase.

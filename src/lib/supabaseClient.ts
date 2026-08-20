@@ -32,6 +32,7 @@ import {
     MyRentalApplication,
     MyRentalApplicationDetails,
     ContactPlan
+    , SubmitHomepageEnquiryPayload
 } from './types';
 import { format } from 'date-fns';
 
@@ -316,35 +317,15 @@ class RealEstateApi {
     async createPaymentOrder(payload: CreatePaymentOrderPayload): Promise<ApiResponse<CreatePaymentOrderResponse>> {
         try {
             const { data: sessionData } = await this.supabase.auth.getSession();
-            const token = sessionData?.session?.access_token;
-
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-            const url = `${supabaseUrl}/functions/v1/create-payment`;
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify(payload),
-            });
-
-            // Parse response body regardless of status
-            let responseData: any = null;
-            try {
-                responseData = await response.json();
-            } catch {
-                return { data: null, error: `Server error (${response.status}): Unable to parse response.` };
+            if (!sessionData.session?.access_token) {
+                return { data: null, error: 'Your session has expired. Please log in again before making a payment.' };
             }
 
-            if (!response.ok) {
-                const msg = responseData?.error || `Request failed with status ${response.status}`;
-                console.error('[createPaymentOrder] Error response:', responseData);
-                return { data: null, error: msg };
-            }
-
-            return { data: responseData as CreatePaymentOrderResponse, error: null };
+            // Let supabase-js attach both the project apikey and the refreshed user JWT.
+            // This is safer than recreating Edge Function auth headers with fetch.
+            const { data, error } = await this.supabase.functions.invoke('create-payment', { body: payload });
+            if (error) throw error;
+            return { data: data as CreatePaymentOrderResponse, error: null };
         } catch (err: unknown) {
             const error = err as Error;
             console.error('Error creating payment order:', error);
@@ -475,7 +456,12 @@ class RealEstateApi {
 
 
     async getManagementPlans(): Promise<ApiResponse<ManagementPlan[]>> {
-        return this.handleRpc<ManagementPlan[]>('list_management_plans_customer');
+        return (this.supabase.rpc as any)('list_management_plans_ordered', { p_is_active_filter: true })
+            .then(({ data, error }: any) => ({ data, error }));
+    }
+
+    async submitHomepageEnquiry(payload: SubmitHomepageEnquiryPayload): Promise<ApiResponse<string>> {
+        return (this.supabase.rpc as any)('submit_customer_enquiry', payload).then(({ data, error }: any) => ({ data, error }));
     }
 
     // =========================================
