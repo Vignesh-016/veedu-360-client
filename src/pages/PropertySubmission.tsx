@@ -140,7 +140,10 @@ function PropertySubmission() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [pendingPropertyId, setPendingPropertyId] = useState<string | null>(null);
 
-    const selectedManagementPlan = managementPlans.find(plan => plan.plan_id === formData.management_plan_id);
+    const isRentalListing = formData.listing_type === 'RENTAL';
+    const selectedManagementPlan = isRentalListing
+        ? managementPlans.find(plan => plan.plan_id === formData.management_plan_id)
+        : undefined;
     const managementPlanFee = selectedManagementPlan?.document_processing_fee_enabled
         ? Math.max(0, Number(selectedManagementPlan.post_price) || 0)
         : 0;
@@ -262,6 +265,9 @@ function PropertySubmission() {
         }
         setFormData(prev => {
             const nextData = { ...prev, [fieldName]: value };
+            if (fieldName === 'listing_type' && value !== 'RENTAL') {
+                nextData.management_plan_id = undefined;
+            }
             if (fieldName === 'property_type' && value === 'LAND') {
                 nextData.availability_status = 'READY_TO_MOVE';
             }
@@ -370,7 +376,7 @@ function PropertySubmission() {
 
         if (step === 4) { // Pricing & Status
             if (formData.price === null || formData.price <= 0) errors.price = 'Expected Price (>0) is required.';
-            if (!formData.management_plan_id) errors.management_plan_id = 'Please select a management plan.';
+            if (isRentalListing && !formData.management_plan_id) errors.management_plan_id = 'Please select a management plan.';
         }
 
         if (step === 5) { // Photos
@@ -477,7 +483,7 @@ function PropertySubmission() {
             p_submitter_notes: formData.notes || undefined,
             p_availability_status: formData.availability_status,
             p_can_reachout: formData.can_reachout,
-            p_management_plan_id: formData.management_plan_id,
+            p_management_plan_id: isRentalListing ? formData.management_plan_id : undefined,
             p_advance_amount: formData.listing_type === 'RENTAL' ? formData.advance_amount : undefined,
         };
 
@@ -889,7 +895,7 @@ function PropertySubmission() {
                                             formErrors={formErrors}
                                         />
                                     </SectionWrapper>
-                                    <SectionWrapper title="Management Plan" icon={IconListCheck} gridCols="1" defaultOpen={true}>
+                                    {isRentalListing && <SectionWrapper title="Management Plan" icon={IconListCheck} gridCols="1" defaultOpen={true}>
                                         <ManagementPlanSelectorSection
                                             managementPlans={managementPlans}
                                             selectedPlanId={formData.management_plan_id}
@@ -898,7 +904,7 @@ function PropertySubmission() {
                                             formErrors={formErrors}
                                             disabled={loading}
                                         />
-                                    </SectionWrapper>
+                                    </SectionWrapper>}
                                 </div>
                             )}
 

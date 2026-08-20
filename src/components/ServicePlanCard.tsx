@@ -1,5 +1,8 @@
 import { ManagementPlan } from '../lib/types';
-import { IconUserCheck, IconFileCheck, IconTools, IconHelpCircle } from '@tabler/icons-react';
+import { IconUserCheck, IconFileCheck, IconTools, IconHelpCircle, IconTag } from '@tabler/icons-react';
+
+const REGULAR_MANAGEMENT_PLAN_PRICE = 1000;
+const formatRupees = (amount: number) => `₹${amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
 interface ServicePlanCardProps {
     plan: ManagementPlan;
@@ -55,6 +58,10 @@ const getPlanContent = (description: string | null) => {
 
 function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = false, className = '', onSelect }: ServicePlanCardProps) {
     const { subtitle, features: rawFeatures, buttonText } = getPlanContent(plan.description);
+    const postPrice = Number(plan.post_price) || 0;
+    const hasSpecialOffer = plan.document_processing_fee_enabled
+        && postPrice > 0
+        && postPrice < REGULAR_MANAGEMENT_PLAN_PRICE;
 
     return (
         <div
@@ -66,17 +73,24 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
             style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}
         >
             {/* Header Section with glass styling */}
-            <div className="p-6 pb-4 border-b border-slate-100 bg-slate-50/70 transition-all duration-300">
+            <div className="relative p-6 pb-4 border-b border-slate-100 bg-slate-50/70 transition-all duration-300">
+                {hasSpecialOffer && (
+                    <div className="absolute right-0 top-0 inline-flex items-center gap-1.5 rounded-bl-xl bg-rose-600 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wide text-white shadow-sm">
+                        <IconTag size={13} />
+                        Offer {formatRupees(postPrice)}
+                        <span className="font-semibold text-rose-100 line-through">{formatRupees(REGULAR_MANAGEMENT_PLAN_PRICE)}</span>
+                    </div>
+                )}
                 <div className={`flex items-center ${showIcon ? 'gap-3.5' : ''}`}>
                     {showIcon && <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-slate-100/80 group-hover:bg-[#2C4964] transition-all duration-300 shadow-sm group-hover:shadow-md">
                         {getPlanIcon(plan.name, 0)}
                     </div>}
-                    <div className="flex-1">
+                    <div className={`flex-1 ${hasSpecialOffer ? 'pr-20' : ''}`}>
                         <h3 className="text-lg md:text-xl font-semibold leading-snug tracking-tight text-gray-800 group-hover:text-[#2C4964] transition-colors">
                             {plan.name}
                         </h3>
                         {subtitle && <p className="mt-1 text-sm leading-relaxed text-gray-600">{subtitle}</p>}
-                        {plan.document_processing_fee_enabled && Number(plan.post_price) > 0 && (
+                        {plan.document_processing_fee_enabled && postPrice > 0 && (
                             <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-800">
                                 <IconFileCheck size={13} /> Document charges apply · ₹{Number(plan.post_price).toFixed(2)}
                             </span>

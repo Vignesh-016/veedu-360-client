@@ -235,6 +235,9 @@ function EditPropertyPage() {
         }
         setFormData(prev => {
             const nextData = { ...prev, [fieldName]: value } as FormDataState;
+            if (fieldName === 'listing_type' && value !== 'RENTAL') {
+                nextData.management_plan_id = undefined;
+            }
             if (fieldName === 'property_type' && value === 'LAND') {
                 // Ensure availability status defaults for land
                 (nextData as any).availability_status = 'READY_TO_MOVE';
@@ -378,7 +381,7 @@ function EditPropertyPage() {
             p_submitter_notes: formData.notes || undefined,
             p_availability_status: formData.availability_status,
             p_can_reachout: true,
-            p_management_plan_id: formData.management_plan_id,
+            p_management_plan_id: formData.listing_type === 'RENTAL' ? formData.management_plan_id : undefined,
             p_advance_amount: formData.listing_type === 'RENTAL' ? formData.advance_amount : undefined,
         };
 
@@ -532,7 +535,7 @@ function EditPropertyPage() {
                             />
                         </SectionWrapper>
 
-                        <SectionWrapper title="Management Plan (Optional)" icon={IconListCheck} gridCols="1">
+                        {formData.listing_type === 'RENTAL' && <SectionWrapper title="Management Plan (Optional)" icon={IconListCheck} gridCols="1">
                             <ManagementPlanSelectorSection
                                 managementPlans={managementPlans}
                                 selectedPlanId={formData.management_plan_id}
@@ -541,7 +544,7 @@ function EditPropertyPage() {
                                 formErrors={formErrors}
                                 disabled={isSubmitting}
                             />
-                        </SectionWrapper>
+                        </SectionWrapper>}
 
                         <SectionWrapper title="Preferences & Agreement" icon={IconUser} gridCols="1">
                             <TermsAndPreferencesSection

@@ -72,7 +72,7 @@ Deno.serve(async (req: Request) => {
 
       const { data: property, error: propertyError } = await (supabaseAdmin as any)
         .from('properties')
-        .select('property_id, submitter, management_plan_id, admin_status')
+        .select('property_id, submitter, management_plan_id, admin_status, listing_type')
         .eq('property_id', property_id)
         .maybeSingle();
       if (propertyError || !property || property.submitter !== userId) {
@@ -80,6 +80,9 @@ Deno.serve(async (req: Request) => {
       }
       if (property.management_plan_id !== plan_id) {
         return new Response(JSON.stringify({ error: 'The selected plan does not match the pending property.' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      if (property.listing_type !== 'RENTAL') {
+        return new Response(JSON.stringify({ error: 'Management plans are available only for rental properties.' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
       const { data: managementPlan, error: managementPlanError } = await (supabaseAdmin as any)
