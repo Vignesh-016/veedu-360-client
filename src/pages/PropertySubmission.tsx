@@ -97,8 +97,6 @@ const initialFormData = {
     agree_terms: false,
 };
 
-const PROPERTY_LISTING_FEE = 99;
-
 type FormDataState = typeof initialFormData;
 type FormErrorKeys = keyof FormDataState | 'images' | 'details';
 type FormErrors = Partial<Record<FormErrorKeys, string>>;
@@ -142,13 +140,13 @@ function PropertySubmission() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [pendingPropertyId, setPendingPropertyId] = useState<string | null>(null);
 
-    const effectiveAllowedQuota = userListingQuota + paidListingCount;
-    const remainingCredits = Math.max(0, effectiveAllowedQuota - propertyCount);
-    const needsPayment = remainingCredits <= 0;
     const selectedManagementPlan = managementPlans.find(plan => plan.plan_id === formData.management_plan_id);
     const managementPlanFee = selectedManagementPlan?.document_processing_fee_enabled
-        ? Number(selectedManagementPlan.post_price)
+        ? Math.max(0, Number(selectedManagementPlan.post_price) || 0)
         : 0;
+    const needsPayment = managementPlanFee > 0;
+    const effectiveAllowedQuota = userListingQuota + paidListingCount;
+    const remainingCredits = Math.max(0, effectiveAllowedQuota - propertyCount);
 
     const checkListingQuota = useCallback(async () => {
         if (!user) return;
@@ -181,14 +179,14 @@ function PropertySubmission() {
                          activePlans.find(p => p.name.toLowerCase().includes('property') || p.name.toLowerCase().includes('post'));
 
             if (plan) {
-                setListingPlan({ ...plan, price: plan.price || PROPERTY_LISTING_FEE, visits: 1 });
+                setListingPlan({ ...plan, price: Number(plan.price) || 0, visits: 1 });
             } else {
                 setListingPlan({
                     plan_id: '00000000-0000-0000-0000-000000000000',
                     name: 'Property Listing Fee',
                     description: 'Listing fee for additional properties',
                     visits: 1,
-                    price: PROPERTY_LISTING_FEE,
+                    price: 0,
                     is_active: true
                 } as any);
             }
@@ -199,7 +197,7 @@ function PropertySubmission() {
                 name: 'Property Listing Fee',
                 description: 'Listing fee for additional properties',
                 visits: 1,
-                price: PROPERTY_LISTING_FEE,
+                price: 0,
                 is_active: true
             } as any);
         } finally {
@@ -551,7 +549,7 @@ function PropertySubmission() {
 
         if (loading) return;
 
-        if (managementPlanFee === 0 && !needsPayment) {
+        if (!needsPayment) {
             setLoading(true);
             await proceedToSubmitProperty();
             return;
@@ -665,7 +663,7 @@ function PropertySubmission() {
                             {/* Message */}
                             <p className="text-sm text-gray-500 mb-6">
                                 Your property listing has been created and published. 
-                                {needsPayment && ` Your payment of ₹${(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)} has been processed and verified successfully.`}
+                                {needsPayment && ` Your payment of ₹${managementPlanFee.toFixed(2)} has been processed and verified successfully.`}
                             </p>
                             
                             {/* Buttons */}
@@ -985,15 +983,15 @@ function PropertySubmission() {
                                                                      <span className="font-semibold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md text-xs">Expired (0 remaining)</span>
                                                                  </div>
                                                                  <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                     <span className="text-gray-600">Additional Listing Fee ({listingPlan?.name || 'Property Listing Fee'})</span>
-                                                                     <span className="font-semibold text-slate-800">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
+                                                                     <span className="text-gray-600">Management Plan Amount</span>
+                                                                     <span className="font-semibold text-slate-800">₹{managementPlanFee.toFixed(2)}</span>
                                                                  </div>
                                                                  <div className="flex justify-between items-center pt-2">
-                                                                     <span className="font-bold text-slate-900">Additional Listing Fee</span>
-                                                                     <span className="text-lg font-bold text-indigo-600">₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)}</span>
+                                                                     <span className="font-bold text-slate-900">Final Amount Due</span>
+                                                                     <span className="text-lg font-bold text-indigo-600">₹{managementPlanFee.toFixed(2)}</span>
                                                                  </div>
                                                                  <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 leading-relaxed">
-                                                                     <strong>Note:</strong> Your free listing quota of {effectiveAllowedQuota} {effectiveAllowedQuota === 1 ? 'property' : 'properties'} has been fully used. You need to pay a listing fee of ₹{(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)} to post this property.
+                                                                     <strong>Note:</strong> The amount above is the exact charge configured for the selected management plan.
                                                                  </div>
                                                              </>
                                                          ) : (
@@ -1003,17 +1001,17 @@ function PropertySubmission() {
                                                                      <span className="font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md text-xs">Active ({remainingCredits} left)</span>
                                                                  </div>
                                                                  <div className="flex justify-between items-center pt-2">
-                                                                     <span className="font-bold text-slate-900">Additional Listing Fee</span>
+                                                                     <span className="font-bold text-slate-900">Management Plan Amount</span>
                                                                      <span className="text-lg font-bold text-emerald-600">₹0.00 (Free)</span>
                                                                  </div>
                                                                  <div className="mt-4 bg-emerald-50/50 border border-emerald-100 rounded-lg p-3 text-xs text-emerald-800 leading-relaxed">
-                                                                     <strong>Note:</strong> Excellent! You have {remainingCredits} listing credit(s) remaining out of your total quota of {effectiveAllowedQuota}. No payment is required.
+                                                                     <strong>Note:</strong> This management plan is free, so no payment is required.
                                                                  </div>
                                                              </>
                                                          )}
                                                          <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200">
                                                              <span className="font-bold text-slate-900">Final Amount Due</span>
-                                                             <span className="text-lg font-bold text-indigo-600">₹{(managementPlanFee + (needsPayment ? PROPERTY_LISTING_FEE : 0)).toFixed(2)}</span>
+                                                             <span className="text-lg font-bold text-indigo-600">₹{managementPlanFee.toFixed(2)}</span>
                                                          </div>
                                                         
                                                         {needsPayment && (!listingPlan || listingPlan.plan_id === '00000000-0000-0000-0000-000000000000') && (
@@ -1078,7 +1076,7 @@ function PropertySubmission() {
                                     ) : (
                                         <>
                                             <IconCheck size={20} />
-                                            <span>{needsPayment ? `Pay & Post Property (₹${(listingPlan?.price ?? PROPERTY_LISTING_FEE).toFixed(2)})` : "Post Property"}</span>
+                                            <span>{needsPayment ? `Pay & Post Property (₹${managementPlanFee.toFixed(2)})` : "Post Property"}</span>
                                         </>
                                     )}
                                 </button>
