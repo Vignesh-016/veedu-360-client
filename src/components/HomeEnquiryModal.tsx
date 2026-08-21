@@ -4,6 +4,7 @@ import { User } from '@supabase/supabase-js';
 import api from '../lib/supabaseClient';
 import { HomepageEnquiryType } from '../lib/types';
 import LoadingSpinner from './LoadingSpinner';
+import ServicePlanCard from './ServicePlanCard';
 
 interface Props {
     user: User | null;
@@ -184,29 +185,41 @@ export default function HomeEnquiryModal({ user, onSuccess }: Props) {
                             {type === 'OWNER' && (
                                 <>
                                     <label className="text-sm font-medium text-slate-700 sm:col-span-2">Email<input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className={inputClass} /></label>
-                                    <label className="text-sm font-medium text-slate-700 sm:col-span-2">
-                                        Choose Plan
-                                        <select 
-                                            required 
-                                            value={form.selectedPlan} 
-                                            onChange={e => setForm({ ...form, selectedPlan: e.target.value })} 
-                                            className={inputClass}
-                                        >
-                                            <option value="">Select a plan</option>
-                                            {managementPlans.length > 0 ? (
-                                                managementPlans.map(plan => (
-                                                    <option key={plan.plan_id} value={plan.name}>{plan.name}</option>
-                                                ))
-                                            ) : (
-                                                <>
-                                                    <option value="Basic Self-Managed">Basic Self-Managed</option>
-                                                    <option value="Standard Rental Management">Standard Rental Management</option>
-                                                    <option value="Premium Rental Management">Premium Rental Management</option>
-                                                    <option value="Property Care Plus">Property Care Plus</option>
-                                                </>
-                                            )}
-                                        </select>
-                                    </label>
+                                    <div className="sm:col-span-2">
+                                        <p className="text-sm font-medium text-slate-700 mb-3">Choose Plan {!form.selectedPlan && <span className="text-red-400 text-xs ml-1">(required)</span>}</p>
+                                        {managementPlans.length > 0 ? (
+                                            <div className="grid grid-cols-1 gap-3 max-h-[260px] overflow-y-auto pr-1">
+                                                {managementPlans.map(plan => (
+                                                    <ServicePlanCard
+                                                        key={plan.plan_id}
+                                                        plan={plan}
+                                                        showIcon={false}
+                                                        selected={form.selectedPlan === plan.name}
+                                                        className="!min-h-0 cursor-pointer"
+                                                        onSelect={() => setForm({ ...form, selectedPlan: form.selectedPlan === plan.name ? '' : plan.name })}
+                                                    />
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 gap-3">
+                                                {['Basic Self-Managed', 'Standard Rental Management', 'Premium Rental Management', 'Property Care Plus'].map(name => (
+                                                    <button
+                                                        key={name}
+                                                        type="button"
+                                                        onClick={() => setForm({ ...form, selectedPlan: form.selectedPlan === name ? '' : name })}
+                                                        className={`w-full rounded-xl border p-4 text-left text-sm font-medium transition-all duration-200 ${
+                                                            form.selectedPlan === name
+                                                                ? 'border-[#2C4964] bg-[#2C4964] text-white ring-2 ring-[#2C4964]/25 ring-offset-1 shadow-md'
+                                                                : 'border-slate-200 bg-white text-slate-700 hover:border-[#2C4964]/40 hover:bg-slate-50'
+                                                        }`}
+                                                    >
+                                                        {name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <input type="hidden" required value={form.selectedPlan} />
+                                    </div>
                                     <label className="text-sm font-medium text-slate-700 sm:col-span-2">Message<textarea required rows={4} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} className={inputClass} /></label>
                                 </>
                             )}
