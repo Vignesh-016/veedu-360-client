@@ -138,7 +138,18 @@ export default function HomeEnquiryModal({ user, onSuccess }: Props) {
                             {type === 'TENANT' && (
                                 <>
                                     <label className="text-sm font-medium text-slate-700">For<select value={form.occupancyType} onChange={e => setForm({ ...form, occupancyType: e.target.value })} className={inputClass}><option value="FAMILY">Family</option><option value="BACHELOR">Bachelor</option><option value="COMMERCIAL">Commercial</option></select></label>
-                                    <label className="text-sm font-medium text-slate-700">Budget (₹)<input required min="0" type="number" value={form.budget} onChange={e => setForm({ ...form, budget: e.target.value })} className={inputClass} /></label>
+                                    <label className="text-sm font-medium text-slate-700">Budget (₹)<select required value={form.budget} onChange={e => setForm({ ...form, budget: e.target.value })} className={inputClass}>
+                                      <option value="">Select budget</option>
+                                      <option value="3000">3k to 5k</option>
+                                      <option value="5000">5k to 8k</option>
+                                      <option value="8000">8k to 10k</option>
+                                      <option value="10000">10k to 15k</option>
+                                      <option value="15000">15k to 20k</option>
+                                      <option value="20000">20k to 30k</option>
+                                      <option value="30000">30k to 50k</option>
+                                      <option value="50000">50k to 1L</option>
+                                      <option value="100000">1L and above</option>
+                                    </select></label>
                                     <label className="text-sm font-medium text-slate-700">Requirement<select value={form.bedroomRequirement} onChange={e => setForm({ ...form, bedroomRequirement: e.target.value })} className={inputClass}><option>1 RK</option><option>1 BHK</option><option>2 BHK</option><option>3 BHK</option><option>4+ BHK</option><option>Commercial space</option></select></label>
                                     <label className="text-sm font-medium text-slate-700">Preferred Location<input required value={form.preferredArea} onChange={e => setForm({ ...form, preferredArea: e.target.value })} className={inputClass} /></label>
                                     
