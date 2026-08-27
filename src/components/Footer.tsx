@@ -72,11 +72,11 @@ const Footer = () => {
           <div>
             <h3 className="text-white font-bold mb-6 text-sm uppercase tracking-wider">Property Types</h3>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/catalogue?p_listing_types=SALE&p_property_types=HOUSE&p_house_types=APARTMENT_FLAT" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Apartments for Sale</Link></li>
-              <li><Link to="/catalogue?p_listing_types=SALE&p_property_types=HOUSE" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Houses for Sale</Link></li>
-              <li><Link to="/catalogue?p_listing_types=SALE&p_property_types=HOUSE&house_types=INDEPENDENT_VILLA" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Villas for Sale</Link></li>
-              <li><Link to="/catalogue?p_listing_types=SALE&p_property_types=BUILDING" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Commercial for Sale</Link></li>
-              <li><Link to="/catalogue?p_listing_types=SALE&p_property_types=LAND" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Plots for Sale</Link></li>
+              <li><Link to="/apartments-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Apartments for Sale</Link></li>
+              <li><Link to="/houses-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Houses for Sale</Link></li>
+              <li><Link to="/villas-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Villas for Sale</Link></li>
+              <li><Link to="/commercial-properties-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Commercial for Sale</Link></li>
+              <li><Link to="/plots-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Plots for Sale</Link></li>
             </ul>
           </div>
 

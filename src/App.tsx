@@ -35,6 +35,11 @@ const TicketDetailsPage = lazy(() => import('./pages/TicketDetailsPage'));
 const MyPropertyDetailsPage = lazy(() => import('./pages/MyPropertyDetailsPage'));
 const EditPropertyPage = lazy(() => import('./pages/EditPropertyPage'));
 const AboutUs = lazy(() => import('./pages/AboutUs'));
+const ApartmentsForSaleTirunelveli = lazy(() => import('./pages/ApartmentsForSaleTirunelveli'));
+const CommercialPropertiesForSaleTirunelveli = lazy(() => import('./pages/CommercialPropertiesForSaleTirunelveli'));
+const HousesForSaleTirunelveli = lazy(() => import('./pages/HousesForSaleTirunelveli'));
+const PlotsForSaleTirunelveli = lazy(() => import('./pages/PlotsForSaleTirunelveli'));
+const VillasForSaleTirunelveli = lazy(() => import('./pages/VillasForSaleTirunelveli'));
 const MyRentalApplicationsPage = lazy(() => import('./pages/MyRentalApplicationsPage'));
 const MyRentalApplicationDetailsPage = lazy(() => import('./pages/MyRentalApplicationDetailsPage'));
 
@@ -76,6 +81,11 @@ function App() {
                   <Route path="/refund-policy" element={<RefundPolicy />} />
                   <Route path="/delivery-policy" element={<DeliveryPolicy />} />
                   <Route path="/about" element={<AboutUs />} />
+                  <Route path="/apartments-for-sale-in-tirunelveli" element={<ApartmentsForSaleTirunelveli />} />
+                  <Route path="/commercial-properties-for-sale-in-tirunelveli" element={<CommercialPropertiesForSaleTirunelveli />} />
+                  <Route path="/houses-for-sale-in-tirunelveli" element={<HousesForSaleTirunelveli />} />
+                  <Route path="/plots-for-sale-in-tirunelveli" element={<PlotsForSaleTirunelveli />} />
+                  <Route path="/villas-for-sale-in-tirunelveli" element={<VillasForSaleTirunelveli />} />
 
                   {/* Routes requiring login AND phone */}
                   <Route
