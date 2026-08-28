@@ -1,4 +1,6 @@
-import { Database } from 'supabase-types';
+// Use a relative import so the Deno runtime and VS Code TypeScript server both
+// resolve the generated schema without depending on editor-specific import-map support.
+import { Database } from '../../../src/database.types.ts';
 
 // --- Core Enums (Matching Database Enums) ---
 export type PropertyType = Database['public']['Enums']['property_type_enum'];

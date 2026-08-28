@@ -28,8 +28,6 @@ const completePaidTransaction = async (
       p_razorpay_order_id: orderId,
       p_status: 'paid',
       p_razorpay_payment_id: paymentId,
-      p_razorpay_signature: null,
-      p_error_message: null,
     });
     if (error) throw new Error(`Could not mark transaction paid: ${error.message}`);
   }
@@ -44,7 +42,6 @@ const completePaidTransaction = async (
     ? {
         p_razorpay_order_id: orderId,
         p_razorpay_payment_id: paymentId,
-        p_razorpay_signature: null,
       }
     : { p_razorpay_order_id: orderId };
   const { error } = await (supabaseAdmin as any).rpc(rpc, args);
@@ -150,8 +147,7 @@ Deno.serve(async (req: Request) => {
       const { error } = await supabaseAdmin.rpc('update_transaction_status', {
         p_razorpay_order_id: orderId,
         p_status: 'failed',
-        p_razorpay_payment_id: payment.id ?? null,
-        p_razorpay_signature: null,
+        p_razorpay_payment_id: payment.id ?? undefined,
         p_error_message: errorMessage,
       });
       if (error) throw new Error(`Could not mark failed transaction: ${error.message}`);
