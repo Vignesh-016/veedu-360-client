@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS public.rent_payments_razorpay_transaction_ref_unique;

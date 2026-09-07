@@ -5,6 +5,9 @@
 
 const SUPABASE_URL = 'https://wopqohofnfayjasggcux.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvcHFvaG9mbmZheWphc2dnY3V4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMjY1NDksImV4cCI6MjA5NTYwMjU0OX0.PL7aKXftt_CLOetVN6e_XA1Ogbdlorte-qQk3_Nj6Ws';
+const razorpaySecretsConfigured = Boolean(
+    process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET,
+);
 
 async function main() {
     // Step 1: Check if the plan already exists by calling the customer RPC
@@ -79,9 +82,10 @@ async function main() {
         console.log('ALSO SET RAZORPAY SECRETS:');
         console.log('========================================');
         console.log('Go to Supabase Dashboard > Project Settings > Edge Functions > Secrets');
-        console.log('Add these secrets:');
-        console.log('  RAZORPAY_KEY_ID = rzp_live_T1qyzHjpvp248Q');
-        console.log('  RAZORPAY_KEY_SECRET = ULvq2iK9IOJ2Rx9VzWhPsJlu');
+        console.log(razorpaySecretsConfigured
+            ? 'RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are present in this script environment.'
+            : 'Missing required Razorpay environment variables: RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.');
+        console.log('Configure both values in Supabase Edge Function secrets; never commit them to source.');
         console.log('========================================');
     }
 }

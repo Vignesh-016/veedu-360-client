@@ -2,12 +2,16 @@ import { MyRentDues, RentStatus } from '../lib/types';
 import { format, parseISO } from 'date-fns';
 import { IconAlertTriangle, IconCalendarDue, IconCash, IconCircleCheck, IconProgress, IconMail, IconPhone } from '@tabler/icons-react';
 import { formatPrice } from '../lib/formatUtils';
+import api from '../lib/supabaseClient';
+import { useState } from 'react';
 
 interface RentDueTenantCardProps {
     rentDue: MyRentDues;
 }
 
 function RentDueTenantCard({ rentDue }: RentDueTenantCardProps) {
+    const [paying, setPaying] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const {
         due_date,
         period_start_date,
@@ -39,6 +43,7 @@ function RentDueTenantCard({ rentDue }: RentDueTenantCardProps) {
     };
 
     const statusInfo = getStatusInfo(status);
+    const payRent = async (event?: React.MouseEvent<HTMLButtonElement>) => { event?.preventDefault(); event?.stopPropagation(); setPaying(true); setError(null); const { data, error: e } = await api.supabase.functions.invoke('create-rent-payment', { body: { rent_record_id: rentDue.rent_record_id } }); if (e || !data) { setError(e?.message || 'Payment could not be started.'); setPaying(false); return; } if (data.razorpay_mode === 'test' && !String(data.key_id || '').startsWith('rzp_test_')) { setError('Razorpay environment mismatch.'); setPaying(false); return; } try { await api.openRazorpayCheckout({ key: data.key_id, amount: data.amount, currency: data.currency || 'INR', name: 'Winoli', description: 'Rent payment', order_id: data.razorpay_order_id, handler: async (resp: any) => { const result = await api.supabase.functions.invoke('verify-rent-payment', { body: { razorpay_order_id: resp.razorpay_order_id, razorpay_payment_id: resp.razorpay_payment_id, razorpay_signature: resp.razorpay_signature } }); if (result.error) setError('Payment received. We are confirming the payment status.'); else window.location.reload(); } }); } catch { setError('Unable to open payment checkout. Please try again.'); } finally { setPaying(false); } };
 
     return (
         <div className={`border-l-4 border-${statusInfo.color}-500 bg-${statusInfo.color}-50 p-3 rounded-r-md shadow-sm my-2`}>
@@ -87,6 +92,8 @@ function RentDueTenantCard({ rentDue }: RentDueTenantCardProps) {
                     </div>
                 )}
             </div>
+            {(status === 'DUE' || status === 'OVERDUE') && <button type="button" onClick={(event) => void payRent(event)} disabled={paying} className="mt-3 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">{paying ? 'Starting…' : 'Pay Rent'}</button>}
+            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </div>
     );
 }

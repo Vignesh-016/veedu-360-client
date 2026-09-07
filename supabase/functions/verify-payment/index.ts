@@ -2,8 +2,10 @@
 import crypto from 'node:crypto';
 import supabaseAdmin from "../_shared/supabaseAdmin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { getRazorpayCredentials } from "../_shared/razorpayCredentials.ts";
 
-const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+const { keySecret: razorpayKeySecret, mode: razorpayMode } = getRazorpayCredentials();
+console.log(`Razorpay mode: ${razorpayMode === 'test' ? 'TEST' : 'LIVE'}`);
 
 if (!razorpayKeySecret) {
   console.error("Razorpay Key Secret is not configured.");

@@ -3,9 +3,10 @@ import Razorpay from "npm:razorpay@2.9.6";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import supabaseAdmin from "../_shared/supabaseAdmin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { getRazorpayCredentials } from "../_shared/razorpayCredentials.ts";
 
-const razorpayKeyId = Deno.env.get('RAZORPAY_KEY_ID');
-const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+const { keyId: razorpayKeyId, keySecret: razorpayKeySecret, mode: razorpayMode } = getRazorpayCredentials();
+console.log(`Razorpay mode: ${razorpayMode === 'test' ? 'TEST' : 'LIVE'}`);
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) => new Response(
   JSON.stringify(body),

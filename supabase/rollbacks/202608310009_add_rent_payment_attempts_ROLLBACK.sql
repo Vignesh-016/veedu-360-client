@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.complete_rent_payment(TEXT,TEXT); DROP POLICY IF EXISTS rent_payment_attempts_select_own ON public.rent_payment_attempts; DROP TABLE IF EXISTS public.rent_payment_attempts;

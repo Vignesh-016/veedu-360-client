@@ -1,0 +1,2 @@
+-- Rollback requires restoring the previously deployed create_rent_record_admin definition.
+-- Apply the prior migration definition if rollback is required.

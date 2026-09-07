@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.create_rent_record_admin(UUID,DATE,DATE,DATE,DECIMAL,TEXT);

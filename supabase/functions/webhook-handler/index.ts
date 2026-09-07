@@ -88,6 +88,29 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    if (event.event === 'transfer.processed' || event.event === 'transfer.failed') {
+      const transfer = event.payload?.transfer?.entity;
+      if (transfer?.id) {
+        await (supabaseAdmin as any).from('route_transfers').update({ status: event.event === 'transfer.processed' ? 'PROCESSED' : 'FAILED', failure_reason: event.event === 'transfer.failed' ? 'Razorpay reported transfer failure.' : null, updated_at: new Date().toISOString() }).eq('razorpay_transfer_id', transfer.id);
+      }
+      return response({ received: true });
+    }
+    const rentAttempt = await (supabaseAdmin as any).from('rent_payment_attempts').select('payment_attempt_id,rent_record_id,status').eq('razorpay_order_id', event.payload?.order?.entity?.id || event.payload?.payment?.entity?.order_id).maybeSingle();
+    if (rentAttempt.data) {
+      const orderId = event.payload?.order?.entity?.id || event.payload?.payment?.entity?.order_id;
+      if (event.event === 'order.paid' || event.event === 'payment.captured') {
+        await (supabaseAdmin as any).rpc('complete_rent_payment', { p_order_id: orderId, p_payment_id: event.payload?.payment?.entity?.id });
+        try {
+          const url = `${Deno.env.get('SUPABASE_URL')}/functions/v1/process-rent-route-transfer`;
+          await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ rent_record_id: rentAttempt.data.rent_record_id }) });
+        } catch { /* payment remains successful if payout processing is unavailable */ }
+        return response({ received: true });
+      }
+      if (event.event === 'payment.failed') {
+        await (supabaseAdmin as any).from('rent_payment_attempts').update({ status: 'FAILED', failure_reason: 'Payment failed at Razorpay.', updated_at: new Date().toISOString() }).eq('payment_attempt_id', rentAttempt.data.payment_attempt_id).eq('status','CREATED');
+        return response({ received: true });
+      }
+    }
     if (event.event === 'order.paid') {
       const order = event.payload?.order?.entity;
       const payment = event.payload?.payment?.entity;

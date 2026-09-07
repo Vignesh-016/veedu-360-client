@@ -64,111 +64,111 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-      <Router>
-        <AuthProvider>
-          <ScrollToTop />
-          <GoogleAnalytics />
-          <ErrorBoundary>
-            <Suspense fallback={<div className="flex justify-center items-center h-screen"><LoadingSpinner /></div>}>
-              <AppLayout>
-                <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
+    <Router>
+      <AuthProvider>
+        <ScrollToTop />
+        <GoogleAnalytics />
+        <ErrorBoundary>
+          <Suspense fallback={<div className="flex justify-center items-center h-screen"><LoadingSpinner /></div>}>
+            <AppLayout>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
 
-                  <Route path="/verifyphone" element={<VerifyPhone />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/refund-policy" element={<RefundPolicy />} />
-                  <Route path="/delivery-policy" element={<DeliveryPolicy />} />
-                  <Route path="/about" element={<AboutUs />} />
-                  <Route path="/apartments-for-sale-in-tirunelveli" element={<ApartmentsForSaleTirunelveli />} />
-                  <Route path="/commercial-properties-for-sale-in-tirunelveli" element={<CommercialPropertiesForSaleTirunelveli />} />
-                  <Route path="/houses-for-sale-in-tirunelveli" element={<HousesForSaleTirunelveli />} />
-                  <Route path="/plots-for-sale-in-tirunelveli" element={<PlotsForSaleTirunelveli />} />
-                  <Route path="/villas-for-sale-in-tirunelveli" element={<VillasForSaleTirunelveli />} />
+                <Route path="/verifyphone" element={<VerifyPhone />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/refund-policy" element={<RefundPolicy />} />
+                <Route path="/delivery-policy" element={<DeliveryPolicy />} />
+                <Route path="/about" element={<AboutUs />} />
+                <Route path="/apartments-for-sale-in-tirunelveli" element={<ApartmentsForSaleTirunelveli />} />
+                <Route path="/commercial-properties-for-sale-in-tirunelveli" element={<CommercialPropertiesForSaleTirunelveli />} />
+                <Route path="/houses-for-sale-in-tirunelveli" element={<HousesForSaleTirunelveli />} />
+                <Route path="/plots-for-sale-in-tirunelveli" element={<PlotsForSaleTirunelveli />} />
+                <Route path="/villas-for-sale-in-tirunelveli" element={<VillasForSaleTirunelveli />} />
 
-                  {/* Routes requiring login AND phone */}
-                  <Route
-                    path="/"
-                    element={<RequirePhone><Home /></RequirePhone>}
-                  />
-                  <Route
-                    path="/catalogue"
-                    element={<RequirePhone><Catalogue /></RequirePhone>}
-                  />
-                  <Route
-                    path="/property/:propertyId"
-                    element={<RequirePhone><PropertyDetailsPage /></RequirePhone>}
-                  />
-                  <Route
-                    path="/wishlist"
-                    element={<RequirePhone><Wishlist /></RequirePhone>}
-                  />
-                  <Route
-                    path="/plans"
-                    element={<RequirePhone><Plans /></RequirePhone>}
-                  />
-                  <Route
-                    path="/buy-contact-plans"
-                    element={<RequirePhone><BuyContactPlans /></RequirePhone>}
-                  />
-                  <Route
-                    path="/submit-property"
-                    element={<RequirePhone><PropertySubmission /></RequirePhone>}
-                  />
-                  <Route
-                    path="/profile"
-                    element={<RequirePhone><Profile /></RequirePhone>}
-                  />
-                  <Route
-                    path="/transactions"
-                    element={<RequirePhone><Transactions /></RequirePhone>}
-                  />
-                  <Route
-                    path="/my-properties"
-                    element={<RequirePhone><MyListedProperties /></RequirePhone>}
-                  />
-                  <Route
-                    path="/my-properties/:propertyId"
-                    element={<RequirePhone><MyPropertyDetailsPage /></RequirePhone>}
-                  />
-                  <Route
-                    path="/my-properties/edit/:propertyId"
-                    element={<RequirePhone><EditPropertyPage /></RequirePhone>}
-                  />
-                  <Route
-                    path="/my-rentals"
-                    element={<RequirePhone><MyOccupiedProperties /></RequirePhone>}
-                  />
-                  <Route
-                    path="/my-tickets"
-                    element={<RequirePhone><MyTicketsPage /></RequirePhone>}
-                  />
-                  <Route
-                    path="/create-ticket"
-                    element={<RequirePhone><CreateTicket /></RequirePhone>}
-                  />
-                  <Route
-                    path="/ticket/:ticketId"
-                    element={<RequirePhone><TicketDetailsPage /></RequirePhone>}
-                  />
-                  <Route
-                    path="/my-applications"
-                    element={<RequirePhone><MyRentalApplicationsPage /></RequirePhone>}
-                  />
-                  <Route
-                    path="/my-applications/:applicationId"
-                    element={<RequirePhone><MyRentalApplicationDetailsPage /></RequirePhone>}
-                  />
+                {/* Routes requiring login AND phone */}
+                <Route
+                  path="/"
+                  element={<RequirePhone><Home /></RequirePhone>}
+                />
+                <Route
+                  path="/catalogue"
+                  element={<RequirePhone><Catalogue /></RequirePhone>}
+                />
+                <Route
+                  path="/property/:propertyId"
+                  element={<RequirePhone><PropertyDetailsPage /></RequirePhone>}
+                />
+                <Route
+                  path="/wishlist"
+                  element={<RequirePhone><Wishlist /></RequirePhone>}
+                />
+                <Route
+                  path="/plans"
+                  element={<RequirePhone><Plans /></RequirePhone>}
+                />
+                <Route
+                  path="/buy-contact-plans"
+                  element={<RequirePhone><BuyContactPlans /></RequirePhone>}
+                />
+                <Route
+                  path="/submit-property"
+                  element={<RequirePhone><PropertySubmission /></RequirePhone>}
+                />
+                <Route
+                  path="/profile"
+                  element={<RequirePhone><Profile /></RequirePhone>}
+                />
+                <Route
+                  path="/transactions"
+                  element={<RequirePhone><Transactions /></RequirePhone>}
+                />
+                <Route
+                  path="/my-properties"
+                  element={<RequirePhone><MyListedProperties /></RequirePhone>}
+                />
+                <Route
+                  path="/my-properties/:propertyId"
+                  element={<RequirePhone><MyPropertyDetailsPage /></RequirePhone>}
+                />
+                <Route
+                  path="/my-properties/edit/:propertyId"
+                  element={<RequirePhone><EditPropertyPage /></RequirePhone>}
+                />
+                <Route
+                  path="/my-rentals"
+                  element={<RequirePhone><MyOccupiedProperties /></RequirePhone>}
+                />
+                <Route
+                  path="/my-tickets"
+                  element={<RequirePhone><MyTicketsPage /></RequirePhone>}
+                />
+                <Route
+                  path="/create-ticket"
+                  element={<RequirePhone><CreateTicket /></RequirePhone>}
+                />
+                <Route
+                  path="/ticket/:ticketId"
+                  element={<RequirePhone><TicketDetailsPage /></RequirePhone>}
+                />
+                <Route
+                  path="/my-applications"
+                  element={<RequirePhone><MyRentalApplicationsPage /></RequirePhone>}
+                />
+                <Route
+                  path="/my-applications/:applicationId"
+                  element={<RequirePhone><MyRentalApplicationDetailsPage /></RequirePhone>}
+                />
 
-                  {/* Catch-all Not Found route */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AppLayout>
-            </Suspense>
-          </ErrorBoundary>
-        </AuthProvider>
-      </Router>
+                {/* Catch-all Not Found route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AppLayout>
+          </Suspense>
+        </ErrorBoundary>
+      </AuthProvider>
+    </Router>
   )
 }
 

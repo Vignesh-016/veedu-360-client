@@ -14,7 +14,7 @@ import {
     IconInfoCircle, IconMap, IconPhoto, IconUser,
     IconCoins, IconDimensions, IconBuildingWarehouse, IconListCheck,
     IconHome2, IconMapPin2, IconBuildingCommunity, IconFileDescription,
-    IconChevronRight, IconChevronLeft, IconCheck
+    IconChevronRight, IconChevronLeft, IconCheck, IconBuildingBank
 } from '@tabler/icons-react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useNotification } from '../components/NotificationProvider';
@@ -37,6 +37,7 @@ import NearbyAmenitiesSection from '../components/property_form_parts/NearbyAmen
 import PricingAvailabilitySection from '../components/property_form_parts/PricingAvailabilitySection';
 import PropertyImagesUploadSection, { ImageFileForUpload } from '../components/property_form_parts/PropertyImagesUploadSection';
 import ManagementPlanSelectorSection from '../components/property_form_parts/ManagementPlanSelectorSection';
+import OwnerBankAccountSection from '../components/property_form_parts/OwnerBankAccountSection';
 import TermsAndPreferencesSection from '../components/property_form_parts/TermsAndPreferencesSection';
 
 const initialFormData = {
@@ -904,6 +905,9 @@ function PropertySubmission() {
                                             formErrors={formErrors}
                                             disabled={loading}
                                         />
+                                    </SectionWrapper>}
+                                    {isRentalListing && <SectionWrapper title="Owner Bank Account" icon={IconBuildingBank} gridCols="1" defaultOpen={true}>
+                                        <OwnerBankAccountSection />
                                     </SectionWrapper>}
                                 </div>
                             )}
