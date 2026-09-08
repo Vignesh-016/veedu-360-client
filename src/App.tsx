@@ -43,6 +43,8 @@ const VillasForSaleTirunelveli = lazy(() => import('./pages/VillasForSaleTirunel
 const MyRentalApplicationsPage = lazy(() => import('./pages/MyRentalApplicationsPage'));
 const MyRentalApplicationDetailsPage = lazy(() => import('./pages/MyRentalApplicationDetailsPage'));
 
+import { IconBrandWhatsapp } from '@tabler/icons-react';
+
 // Layout component that conditionally renders Navbar and Footer
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -57,6 +59,19 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       {!hideNavFooter && <Footer />}
+      <a
+        href="https://wa.me/919566034213"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center group"
+        aria-label="Contact us on WhatsApp"
+        title="Chat with us on WhatsApp"
+      >
+        <IconBrandWhatsapp size={28} />
+        <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 ease-in-out font-medium text-sm pl-0 group-hover:pl-2">
+          Chat with Us
+        </span>
+      </a>
     </>
   );
 }

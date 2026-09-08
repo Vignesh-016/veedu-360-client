@@ -85,18 +85,27 @@ function Profile() {
                     <div className={`${getBaseCardClasses()} p-6 md:p-8`}>
                         {/* User Info Section */}
                         <div className="flex items-center gap-4 pb-6 mb-6 border-b border-gray-200">
-                            <div className="w-16 h-16 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-2xl font-semibold border border-gray-300 flex-shrink-0">
-                                {user.email ? user.email.charAt(0).toUpperCase() : <IconUserCircle size={32} />}
+                            <div className="w-16 h-16 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-2xl font-semibold border border-gray-300 flex-shrink-0 overflow-hidden">
+                                {user.user_metadata?.avatar_url ? (
+                                    <img src={user.user_metadata.avatar_url} alt="Profile" className="w-16 h-16 object-cover" />
+                                ) : (user.user_metadata?.full_name || user.user_metadata?.name || user.email) ? (
+                                    (user.user_metadata?.full_name || user.user_metadata?.name || user.email).charAt(0).toUpperCase()
+                                ) : (
+                                    <IconUserCircle size={32} />
+                                )}
                             </div>
                             <div className="min-w-0">
-                                <p className="text-lg font-semibold text-gray-800 truncate" title={user.email ?? ''}>
-                                    {user.email}
-                                </p>
-                                <p className="text-sm text-gray-500">
+                                <h2 className="text-lg font-bold text-gray-900 truncate">
+                                    {user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'User'}
+                                </h2>
+                                {user.email && (
+                                    <p className="text-sm text-gray-600 truncate" title={user.email}>
+                                        {user.email}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 mt-0.5">
                                     {user.phone || 'Phone number not verified'}
                                 </p>
-                                {/* Add Edit Profile Button (Future) */}
-                                {/* <button className={getTertiaryButtonClasses() + " mt-1 !px-2 !py-1 !text-xs"}>Edit Profile</button> */}
                             </div>
                         </div>
 

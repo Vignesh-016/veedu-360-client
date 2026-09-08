@@ -2,8 +2,7 @@ import { Link } from "react-router-dom";
 import {
   IconBrandFacebook,
   IconBrandInstagram,
-  IconBrandLinkedin,
-  IconBrandX,
+  IconBrandWhatsapp,
   IconMail,
   IconMapPin,
   IconPhone,
@@ -48,11 +47,33 @@ const Footer = () => {
             </div>
 
             <div className="flex gap-4 pt-2">
-              {[IconBrandFacebook, IconBrandX, IconBrandInstagram, IconBrandLinkedin].map((Icon, idx) => (
-                <a key={idx} href="#" className="bg-slate-800 p-2 rounded-full text-slate-400 hover:text-white hover:bg-[#2C4964] transition-all duration-300">
-                  <Icon size={18} />
-                </a>
-              ))}
+              <a
+                href="https://www.facebook.com/Veedu360"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="bg-slate-800 p-2 rounded-full text-slate-400 hover:text-white hover:bg-[#1877F2] transition-all duration-300"
+              >
+                <IconBrandFacebook size={18} />
+              </a>
+              <a
+                href="https://www.instagram.com/veedu360_official/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="bg-slate-800 p-2 rounded-full text-slate-400 hover:text-white hover:bg-[#E4405F] transition-all duration-300"
+              >
+                <IconBrandInstagram size={18} />
+              </a>
+              <a
+                href="https://wa.me/919566034213"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="WhatsApp"
+                className="bg-slate-800 p-2 rounded-full text-slate-400 hover:text-white hover:bg-[#25D366] transition-all duration-300"
+              >
+                <IconBrandWhatsapp size={18} />
+              </a>
             </div>
           </div>
 
