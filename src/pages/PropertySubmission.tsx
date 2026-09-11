@@ -14,7 +14,7 @@ import {
     IconInfoCircle, IconMap, IconPhoto, IconUser,
     IconCoins, IconDimensions, IconBuildingWarehouse, IconListCheck,
     IconHome2, IconMapPin2, IconBuildingCommunity, IconFileDescription,
-    IconChevronRight, IconChevronLeft, IconCheck, IconBuildingBank
+    IconChevronRight, IconChevronLeft, IconCheck
 } from '@tabler/icons-react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useNotification } from '../components/NotificationProvider';
@@ -37,8 +37,8 @@ import NearbyAmenitiesSection from '../components/property_form_parts/NearbyAmen
 import PricingAvailabilitySection from '../components/property_form_parts/PricingAvailabilitySection';
 import PropertyImagesUploadSection, { ImageFileForUpload } from '../components/property_form_parts/PropertyImagesUploadSection';
 import ManagementPlanSelectorSection from '../components/property_form_parts/ManagementPlanSelectorSection';
-import OwnerBankAccountSection from '../components/property_form_parts/OwnerBankAccountSection';
 import TermsAndPreferencesSection from '../components/property_form_parts/TermsAndPreferencesSection';
+import OwnerBankAccountSection from '../components/property_form_parts/OwnerBankAccountSection';
 
 const initialFormData = {
     submitter_type: 'OWNER' as SubmitterType,
@@ -145,6 +145,7 @@ function PropertySubmission() {
     const selectedManagementPlan = isRentalListing
         ? managementPlans.find(plan => plan.plan_id === formData.management_plan_id)
         : undefined;
+    const requiresPayoutAccount = Boolean((selectedManagementPlan as any)?.requires_payout_account);
     const managementPlanFee = selectedManagementPlan?.document_processing_fee_enabled
         ? Math.max(0, Number(selectedManagementPlan.post_price) || 0)
         : 0;
@@ -230,7 +231,12 @@ function PropertySubmission() {
             }
         } catch (err: any) {
             console.error("Failed to fetch management plans:", err);
-            showErrorNotification("Load Error", err.message || "Could not load management plans.");
+            const message = String(err?.message || '').toLowerCase();
+            showErrorNotification(message.includes('jwt') || message.includes('unauthorized')
+                ? 'Session Expired'
+                : 'Unable to Load Plans', message.includes('jwt') || message.includes('unauthorized')
+                    ? 'Please log in again to continue.'
+                    : 'Please try again.');
         } finally {
             setManagementPlansLoading(false);
         }
@@ -239,6 +245,14 @@ function PropertySubmission() {
     useEffect(() => {
         fetchManagementPlans();
     }, [fetchManagementPlans]);
+
+    // Terms errors are submit-attempt state only; never carry them into a later
+    // render/navigation event.
+    useEffect(() => {
+        if (currentStep !== 6 && formErrors.agree_terms) {
+            setFormErrors(prev => ({ ...prev, agree_terms: undefined }));
+        }
+    }, [currentStep, formErrors.agree_terms]);
 
     useEffect(() => {
         if (!geolocationLoading) {
@@ -335,6 +349,9 @@ function PropertySubmission() {
             if (!formData.submitter_type) errors.submitter_type = 'Your role is required.';
             if (!formData.listing_type) errors.listing_type = 'Listing type is required.';
             if (!formData.property_type) errors.property_type = 'Property type is required.';
+            if (formData.property_type === 'HOUSE' && !formData.house_type) errors.house_type = 'Please select the type of house.';
+            if (formData.property_type === 'LAND' && !formData.land_type) errors.land_type = 'Please select the type of land.';
+            if (formData.property_type === 'BUILDING' && !formData.building_type) errors.building_type = 'Please select the type of building.';
             // Validate Post Title based on type
             if (formData.property_type === 'HOUSE' && !formData.house_name.trim()) errors.house_name = 'Post Title is required.';
             if (formData.property_type === 'LAND' && !formData.land_name.trim()) errors.land_name = 'Post Title is required.';
@@ -364,14 +381,11 @@ function PropertySubmission() {
             }
 
             if (formData.property_type === 'HOUSE') {
-                if (!formData.house_type) errors.house_type = 'Type of House is required.';
                 if (formData.num_bedrooms === null || formData.num_bedrooms <= 0) errors.num_bedrooms = 'Bedrooms (>0) required.';
                 if (formData.num_bathrooms === null || formData.num_bathrooms <= 0) errors.num_bathrooms = 'Bathrooms (>0) required.';
             } else if (formData.property_type === 'LAND') {
-                if (!formData.land_type) errors.land_type = 'Type of Land is required.';
             } else if (formData.property_type === 'BUILDING') {
-                if (!formData.building_type) errors.building_type = 'Type of Building is required.';
-                if (formData.total_floors_building === null || formData.total_floors_building <= 0) errors.total_floors_building = 'Total floors (>0) required.';
+                if (formData.building_type !== 'WAREHOUSE' && (formData.total_floors_building === null || formData.total_floors_building <= 0)) errors.total_floors_building = 'Total floors (>0) required.';
             }
         }
 
@@ -387,14 +401,16 @@ function PropertySubmission() {
             }
         }
 
-        if (step === 6) { // Finalize
-            if (!formData.agree_terms) errors.agree_terms = 'You must agree to the terms and conditions.';
-        }
-
         setFormErrors(errors);
 
         // Show notification for errors
         if (Object.keys(errors).length > 0) {
+            const firstInvalid = Object.keys(errors)[0];
+            window.setTimeout(() => {
+                const field = document.querySelector(`[name="${firstInvalid}"]`) as HTMLElement | null;
+                field?.focus();
+                field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 0);
             const missingFieldList = Object.values(errors).join(', ');
             showErrorNotification('Incomplete Details', `Please fix the following: ${missingFieldList}`);
         }
@@ -535,22 +551,21 @@ function PropertySubmission() {
         return newPropertyId;
     };
 
-    const validateAllSteps = (): boolean => {
-        for (let s = 1; s <= MAX_STEPS; s++) {
-            if (!validateStep(s)) {
-                setCurrentStep(s);
-                return false;
-            }
-        }
-        return true;
-    };
-
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
         setPageError(null);
         setFormErrors({});
 
-        if (!validateAllSteps()) {
+        // Validate navigation steps first; Terms is intentionally validated only here.
+        for (let step = 1; step <= 5; step += 1) {
+            if (!validateStep(step)) {
+                setCurrentStep(step);
+                return;
+            }
+        }
+        if (!formData.agree_terms) {
+            setCurrentStep(6);
+            setFormErrors({ agree_terms: 'Please accept the Terms & Conditions to continue.' });
             return;
         }
 
@@ -906,9 +921,12 @@ function PropertySubmission() {
                                             disabled={loading}
                                         />
                                     </SectionWrapper>}
-                                    {isRentalListing && <SectionWrapper title="Owner Bank Account" icon={IconBuildingBank} gridCols="1" defaultOpen={true}>
-                                        <OwnerBankAccountSection />
-                                    </SectionWrapper>}
+                                    {isRentalListing && requiresPayoutAccount && (
+                                        <SectionWrapper title="Owner Payout Details" icon={IconListCheck} gridCols="1" defaultOpen={true}>
+                                            <p className="mb-3 text-sm text-slate-600">These details are required to enable rent payouts for this management plan.</p>
+                                            <OwnerBankAccountSection />
+                                        </SectionWrapper>
+                                    )}
                                 </div>
                             )}
 

@@ -1,7 +1,8 @@
 import { ManagementPlan } from '../lib/types';
 import { IconUserCheck, IconFileCheck, IconTools, IconHelpCircle, IconTag } from '@tabler/icons-react';
-
+const hasSpecialOffer = false;
 const REGULAR_MANAGEMENT_PLAN_PRICE = 1000;
+
 const formatRupees = (amount: number) => `₹${amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
 interface ServicePlanCardProps {
@@ -57,11 +58,8 @@ const getPlanContent = (description: string | null) => {
 };
 
 function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = false, className = '', onSelect }: ServicePlanCardProps) {
-    const { subtitle, features: rawFeatures, buttonText } = getPlanContent(plan.description);
+    const { subtitle, features: rawFeatures } = getPlanContent(plan.description);
     const postPrice = Number(plan.post_price) || 0;
-    const hasSpecialOffer = plan.document_processing_fee_enabled
-        && postPrice > 0
-        && postPrice < REGULAR_MANAGEMENT_PLAN_PRICE;
 
     return (
         <div
@@ -90,7 +88,7 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
                             </span>
                         )}
                         {plan.document_processing_fee_enabled && postPrice > 0 && (
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <div className="hidden mt-3 flex flex-wrap items-center gap-2">
                                 <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${selected ? 'border-white/30 bg-white/15 text-white' : 'border-[#2C4964]/20 bg-white text-[#2C4964]'}`}>
                                     <IconFileCheck size={13} /> Platform fees · {formatRupees(postPrice)}
                                 </span>
@@ -180,7 +178,9 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
                     disabled={disabled}
                     className={`w-full rounded-xl py-3 text-xs font-semibold tracking-wider uppercase shadow-sm transition-all duration-300 active:scale-[0.99] ${selected ? 'bg-white text-[#2C4964] ring-2 ring-white/20 hover:bg-white/90' : 'bg-[#2C4964] text-white hover:bg-[#1e3347] hover:shadow-md'}`}
                 >
-                    {buttonText}
+                    {plan.document_processing_fee_enabled && postPrice > 0 ? (
+                        <>Processing fee: {formatRupees(postPrice)}{Number((plan as any).strike_price) > 0 && <span className="ml-2 font-normal line-through opacity-70">{formatRupees(Number((plan as any).strike_price))}</span>}</>
+                    ) : 'Select Plan'}
                 </button>
             </div>
         </div>

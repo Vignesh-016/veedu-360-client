@@ -1,9 +1,11 @@
 import React, { ChangeEvent } from 'react';
 import FormFieldWrapper from './FormFieldWrapper';
 import { getBaseInputClasses } from '../../lib/twUtils';
+import { BuildingType } from '../../lib/types';
 
 interface Props {
     formData: {
+        building_type: BuildingType | null | undefined;
         total_floors_building: number | null | undefined;
         num_units: number | null | undefined;
         available_units: number | null | undefined;
@@ -15,6 +17,7 @@ interface Props {
 }
 
 const BuildingFeaturesSection: React.FC<Props> = ({ formData, onFormDataChange, formErrors, disabledFields = {} }) => {
+    const floorsRequired = formData.building_type !== 'WAREHOUSE';
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         if (['total_floors_building', 'num_units', 'available_units'].includes(name)) {
@@ -26,7 +29,7 @@ const BuildingFeaturesSection: React.FC<Props> = ({ formData, onFormDataChange, 
 
     return (
         <>
-            <FormFieldWrapper label="Total Floors" htmlFor="total_floors_building" required errorMessage={formErrors.total_floors_building} disabled={disabledFields.total_floors_building}>
+            <FormFieldWrapper label={floorsRequired ? 'Total Floors' : 'Total Floors (Optional)'} htmlFor="total_floors_building" required={floorsRequired} errorMessage={formErrors.total_floors_building} disabled={disabledFields.total_floors_building}>
                 <input type="number" name="total_floors_building" id="total_floors_building" value={formData.total_floors_building ?? ''} onChange={handleInputChange}
                     className={getBaseInputClasses(!!formErrors.total_floors_building)} placeholder="e.g., 5" min="1" step="1" disabled={disabledFields.total_floors_building} />
             </FormFieldWrapper>

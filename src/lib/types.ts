@@ -256,6 +256,8 @@ export type ManagementPlan = Database['public']['Functions']['list_management_pl
     post_price: number;
     document_processing_fee_enabled: boolean;
     display_order?: number;
+    requires_payout_account?: boolean;
+    strike_price?: number;
 }
 
 export type HomepageEnquiryType = 'TENANT' | 'OWNER' | 'SELLER' | 'BUYER';

@@ -6,7 +6,7 @@ interface OwnerPayoutAccountSummary {
     account_holder_name: string;
     masked_account_number: string;
     ifsc_code: string;
-    status: 'PENDING_VERIFICATION';
+    status: string;
     updated_at: string;
 }
 interface OwnerProfile { address_line1: string; address_line2: string | null; city: string; state: string; pincode: string; pan_masked: string | null; updated_at: string; }
@@ -38,7 +38,10 @@ function OwnerBankAccountSection() {
             .rpc('get_my_owner_payout_account');
 
         if (readError) {
-            setError(readError.message || 'Could not load saved bank details.');
+            const raw = String(readError.message || '').toLowerCase();
+            setError(raw.includes('jwt') || raw.includes('unauthorized') || raw.includes('authentication')
+                ? 'Please log in again to manage your payout details.'
+                : 'Unable to load payout details. Please try again.');
         } else {
             const account = Array.isArray(data) ? data[0] : null;
             setSavedAccount(account || null);
@@ -120,7 +123,7 @@ function OwnerBankAccountSection() {
         if (!onboardingError) setPayoutStatus('Verification in Progress');
 
         setAccountNumber('');
-        setMessage(onboardingError ? (onboardingError.message || 'Payout onboarding failed.') : 'Bank details saved. Verification is pending.');
+        setMessage(onboardingError ? 'Bank details saved. Verification is pending.' : 'Bank details saved. Verification is pending.');
         setSaving(false);
         await loadAccount();
     };
@@ -152,7 +155,7 @@ function OwnerBankAccountSection() {
                     <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Account Holder</p><p className="mt-1 font-medium text-slate-900">{savedAccount.account_holder_name}</p></div>
                     <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Account</p><p className="mt-1 font-mono font-medium text-slate-900">{savedAccount.masked_account_number}</p></div>
                     <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">IFSC Code</p><p className="mt-1 font-mono font-medium text-slate-900">{savedAccount.ifsc_code}</p></div>
-                    <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Current Status</p><p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700"><IconCheck size={15} /> Verification Pending</p></div>
+                    <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Current Status</p><p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700"><IconCheck size={15} /> {savedAccount.status === 'VERIFIED' ? 'Verified' : savedAccount.status === 'ACTION_REQUIRED' ? 'Action Required' : 'Verification Pending'}</p></div>
                 </div>
                 <div className="mt-4">{consentBlock}</div>
                 {message && <p className="text-sm text-emerald-700">{message}</p>}

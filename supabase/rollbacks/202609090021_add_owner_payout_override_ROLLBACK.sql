@@ -1,0 +1,1 @@
+ALTER TABLE public.rent_records DROP COLUMN IF EXISTS split_override_applied, DROP COLUMN IF EXISTS owner_share_override_paise, DROP COLUMN IF EXISTS split_override_reason, DROP COLUMN IF EXISTS split_override_by, DROP COLUMN IF EXISTS split_override_at;

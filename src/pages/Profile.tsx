@@ -7,6 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { format } from 'date-fns';
 import api from '../lib/supabaseClient';
 import { useEffect, useState } from 'react';
+import OwnerBankAccountSection from '../components/property_form_parts/OwnerBankAccountSection';
 
 // Helper to format expiry date
 const formatExpiry = (dateString: string | null | undefined): string => {
@@ -44,6 +45,9 @@ function ProfileLinkItem({ to, icon: Icon, text, className = "" }: ProfileLinkIt
 function Profile() {
     const { user, balance, balanceLoading, signOut, loading: authLoading } = useAuth();
     const navigate = useNavigate();
+    const [payout, setPayout] = useState<any>(null);
+    const [editingPayout, setEditingPayout] = useState(false);
+    useEffect(() => { if (!user) return; (async () => { await api.supabase.functions.invoke('setup-owner-route-account', { body: { refresh_only: true } }); const { data } = await (api.supabase as any).rpc('get_my_owner_payout_account'); setPayout(Array.isArray(data) ? data[0] : data); })(); }, [user]);
 
     const handleSignOut = async () => {
         await signOut();
@@ -70,8 +74,6 @@ function Profile() {
     const visits = balance?.visit_balance ?? 0;
     const expiryDateFormatted = formatExpiry(balance?.expiry_date);
     const companyName = import.meta.env.VITE_COMPANY_NAME;
-    const [payout, setPayout] = useState<any>(null);
-    useEffect(() => { (async () => { await api.supabase.functions.invoke('setup-owner-route-account', { body: { refresh_only: true } }); const { data } = await (api.supabase as any).rpc('get_my_owner_payout_account'); setPayout(Array.isArray(data) ? data[0] : data); })(); }, []);
 
     return (
         <>
@@ -154,10 +156,11 @@ function Profile() {
                             <h2 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2"><IconWallet size={20} stroke={1.5} /> Payout Account</h2>
                             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm space-y-1">
                                 <p className="font-medium">{payout?.account_holder_name || 'Not configured'}</p>
-                                {payout?.account_number && <p>Bank Account: XXXX{String(payout.account_number).slice(-4)}</p>}
+                                {(payout?.masked_account_number || payout?.account_number) && <p>Bank Account: {payout.masked_account_number || `XXXX${String(payout.account_number).slice(-4)}`}</p>}
                                 {payout?.ifsc_code && <p>IFSC: {payout.ifsc_code}</p>}
                                 <p>Status: {payout?.payment_eligible ? 'Payout Account Verified' : payout?.status === 'FAILED' ? 'Payout Verification Failed' : 'Payout Verification In Progress'}</p>
-                                <Link to="/property-submission" className="inline-block mt-2 text-[#2C4964] font-medium hover:underline">Update / Manage Payout Details</Link>
+                                <button type="button" onClick={() => setEditingPayout(value => !value)} className="mt-2 text-left text-[#2C4964] font-medium hover:underline">{editingPayout ? 'Close Payout Details' : 'Update / Manage Payout Details'}</button>
+                                {editingPayout && <div className="mt-4 border-t border-gray-200 pt-4"><OwnerBankAccountSection /></div>}
                             </div>
                         </div>
 

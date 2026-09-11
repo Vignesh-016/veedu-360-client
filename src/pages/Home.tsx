@@ -105,14 +105,17 @@ function Home() {
                 }
             } catch (err: any) {
                 console.error("Failed to fetch management plans:", err);
-                showErrorNotification('Load Failed', 'Could not load our services.');
+                const message = String(err?.message || err || '').toLowerCase();
+                const authError = !user || err?.status === 401 || err?.status === 403 || message.includes('jwt') || message.includes('unauthorized') || message.includes('not authenticated') || message.includes('authentication');
+                if (authError) showErrorNotification('Login Required', 'Please log in to view available management plans.');
+                else showErrorNotification('Unable to Load Plans', 'Please try again.');
             } finally {
                 setLoadingPlans(false);
             }
         };
 
         fetchManagementPlans();
-    }, [showErrorNotification]);
+    }, [showErrorNotification, user]);
 
     const displayCityName = geolocationLoading && currentCity === DEFAULT_CITY ? "your area" : currentCity;
 
