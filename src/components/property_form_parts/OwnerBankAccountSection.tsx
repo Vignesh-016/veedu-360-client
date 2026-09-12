@@ -7,6 +7,7 @@ interface OwnerPayoutAccountSummary {
     masked_account_number: string;
     ifsc_code: string;
     status: string;
+    payment_eligible: boolean;
     updated_at: string;
 }
 interface OwnerProfile { address_line1: string; address_line2: string | null; city: string; state: string; pincode: string; pan_masked: string | null; updated_at: string; }
@@ -155,7 +156,7 @@ function OwnerBankAccountSection() {
                     <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Account Holder</p><p className="mt-1 font-medium text-slate-900">{savedAccount.account_holder_name}</p></div>
                     <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Account</p><p className="mt-1 font-mono font-medium text-slate-900">{savedAccount.masked_account_number}</p></div>
                     <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">IFSC Code</p><p className="mt-1 font-mono font-medium text-slate-900">{savedAccount.ifsc_code}</p></div>
-                    <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Current Status</p><p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700"><IconCheck size={15} /> {savedAccount.status === 'VERIFIED' ? 'Verified' : savedAccount.status === 'ACTION_REQUIRED' ? 'Action Required' : 'Verification Pending'}</p></div>
+                    <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Current Status</p><p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700"><IconCheck size={15} /> {savedAccount.payment_eligible === true ? 'Verified' : savedAccount.status === 'ACTION_REQUIRED' ? 'Action Required' : 'Verification Pending'}</p></div>
                 </div>
                 <div className="mt-4">{consentBlock}</div>
                 {message && <p className="text-sm text-emerald-700">{message}</p>}
