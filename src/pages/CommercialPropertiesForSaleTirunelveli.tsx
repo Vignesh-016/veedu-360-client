@@ -26,7 +26,8 @@ const faqs = [
 function CommercialPropertiesForSaleTirunelveli() {
     return (
         <div className="min-h-screen bg-gray-50">
-            <title>Commercial Properties for Sale in Tirunelveli | Veedu 360</title>
+            <title>Commercial Properties for Sale in Tirunelveli | Veedu360</title>
+            <meta name="description" content="Find commercial properties for sale in Tirunelveli with VEEDU 360. Explore shops, offices, commercial buildings, land and investment properties in prime locations." />
 
             <section className="relative h-[410px] bg-cover bg-center sm:h-[450px] md:h-[500px]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1920&q=85')" }}>
                 <div className="absolute inset-0 bg-[#1E3347]/75" />

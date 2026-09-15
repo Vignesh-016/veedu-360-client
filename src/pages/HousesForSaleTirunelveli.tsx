@@ -25,7 +25,8 @@ const faqs = [
 function HousesForSaleTirunelveli() {
     return (
         <div className="min-h-screen bg-gray-50">
-            <title>Houses for Sale in Tirunelveli | Veedu 360</title>
+            <title>Houses for Sale in Tirunelveli | Veedu360</title>
+            <meta name="description" content="Find houses for sale in Tirunelveli with VEEDU 360. Explore verified property listings, suitable locations, prices and details to find your ideal home." />
 
             <section className="relative h-[410px] bg-cover bg-center sm:h-[450px] md:h-[500px]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1920&q=85')" }}>
                 <div className="absolute inset-0 bg-[#1E3347]/70" />

@@ -24,7 +24,8 @@ const faqs = [
 function VillasForSaleTirunelveli() {
     return (
         <div className="min-h-screen bg-gray-50">
-            <title>Villas for Sale in Tirunelveli | Veedu 360</title>
+            <title>Villas for Sale in Tirunelveli | Buy Your Dream Villa - Veedu360</title>
+            <meta name="description" content="Explore villas for sale in Tirunelveli on VEEDU 360. Find verified villa properties in prime locations, compare options, and discover your dream home today." />
 
             <section className="relative h-[410px] bg-cover bg-center sm:h-[450px] md:h-[500px]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=85')" }}>
                 <div className="absolute inset-0 bg-[#1E3347]/70" />

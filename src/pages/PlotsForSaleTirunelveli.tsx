@@ -24,7 +24,8 @@ const faqs = [
 function PlotsForSaleTirunelveli() {
     return (
         <div className="min-h-screen bg-gray-50">
-            <title>Plots for Sale in Tirunelveli | Veedu 360</title>
+            <title>Plots for Sale in Tirunelveli | Residential Land for Sale - Veedu360</title>
+            <meta name="description" content="Find plots for sale in Tirunelveli with VEEDU 360. Explore residential land and property options in prime locations, with details to help you find the right plot." />
 
             <section className="relative h-[410px] bg-cover bg-center sm:h-[450px] md:h-[500px]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=85')" }}>
                 <div className="absolute inset-0 bg-[#1E3347]/70" />

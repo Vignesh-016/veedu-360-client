@@ -24,7 +24,8 @@ const faqs = [
 function ApartmentsForSaleTirunelveli() {
     return (
         <div className="min-h-screen bg-gray-50">
-            <title>Apartments for Sale in Tirunelveli | Veedu 360</title>
+            <title>Apartments for Sale in Tirunelveli | Veedu360</title>
+            <meta name="description" content="Find apartments for sale in Tirunelveli on Veedu360. Explore residential apartments in prime locations, compare properties and find your ideal home." />
 
             <section className="relative h-[410px] bg-cover bg-center sm:h-[450px] md:h-[500px]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1920&q=85')" }}>
                 <div className="absolute inset-0 bg-[#1E3347]/70" />
