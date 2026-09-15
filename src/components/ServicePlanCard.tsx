@@ -90,7 +90,7 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
                         {plan.document_processing_fee_enabled && postPrice > 0 && (
                             <div className="hidden mt-3 flex flex-wrap items-center gap-2">
                                 <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${selected ? 'border-white/30 bg-white/15 text-white' : 'border-[#2C4964]/20 bg-white text-[#2C4964]'}`}>
-                                    <IconFileCheck size={13} /> Platform fees · {formatRupees(postPrice)}
+                                    <IconFileCheck size={13} /> Processing fee · {formatRupees(postPrice)}
                                 </span>
                                 {hasSpecialOffer && (
                                     <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${selected ? 'text-white' : 'text-[#2C4964]'}`}>

@@ -277,7 +277,7 @@ function EditPropertyPage() {
             if (!formData.land_type) errors.land_type = 'Type of Land is required.';
         } else if (formData.property_type === 'BUILDING') {
             if (!formData.building_type) errors.building_type = 'Type of Building is required.';
-            if (formData.total_floors_building === null || formData.total_floors_building <= 0) errors.total_floors_building = 'Total floors (>0) required.';
+            if (formData.building_type !== 'WAREHOUSE' && (formData.total_floors_building === null || formData.total_floors_building <= 0)) errors.total_floors_building = 'Total floors (>0) required.';
         }
 
         if (formData.latitude !== undefined && (isNaN(formData.latitude) || formData.latitude < -90 || formData.latitude > 90)) {

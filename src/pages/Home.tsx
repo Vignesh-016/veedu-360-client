@@ -95,6 +95,12 @@ function Home() {
     }, [currentCity, geolocationLoading, showErrorNotification]);
 
     useEffect(() => {
+        if (!user) {
+            setManagementPlans([]);
+            setLoadingPlans(false);
+            return;
+        }
+
         const fetchManagementPlans = async () => {
             setLoadingPlans(true);
             try {
