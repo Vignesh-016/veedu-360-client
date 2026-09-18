@@ -496,8 +496,8 @@ function Navbar() {
                         leaveFrom="opacity-100 scale-100"
                         leaveTo="opacity-0 scale-95"
                     >
-                        <PopoverPanel focus className="absolute inset-x-0 top-0 origin-top-right transform p-2 transition md:hidden z-50">
-                            <div className="rounded-lg bg-white shadow-md ring-1 ring-black ring-opacity-5 border border-gray-100">
+                        <PopoverPanel focus className="fixed inset-0 origin-top-right transform overflow-y-auto overscroll-contain p-2 transition md:hidden z-[60]">
+                            <div className="min-h-full rounded-lg bg-white shadow-md ring-1 ring-black ring-opacity-5 border border-gray-100">
                                 <div className="px-5 pt-4 pb-3 flex items-center justify-between">
                                     <Link to="/" className="flex items-center gap-2 group" onClick={closePopover}>
                                         <img src="/veedu360-logo.png" alt="Company Logo" className="h-20 w-auto" />

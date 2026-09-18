@@ -11,10 +11,13 @@ interface Props {
     loading: boolean;
     formErrors: Partial<Record<'management_plan_id', string>>;
     disabled?: boolean;
+    unavailableRestrictedPlans?: ManagementPlan[];
+    onRequestPaidPlan?: () => void;
+    requestSubmitted?: boolean;
 }
 
 const ManagementPlanSelectorSection: React.FC<Props> = ({
-    managementPlans, selectedPlanId, onPlanSelect, loading, formErrors, disabled = false
+    managementPlans, selectedPlanId, onPlanSelect, loading, formErrors, disabled = false, unavailableRestrictedPlans = [], onRequestPaidPlan, requestSubmitted = false
 }) => {
     return (
         <div className="md:col-span-2">
@@ -38,6 +41,15 @@ const ManagementPlanSelectorSection: React.FC<Props> = ({
                                     />
                                 </div>
                             ))}
+                        </div>
+                    )}
+                    {!loading && unavailableRestrictedPlans.length > 0 && (
+                        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                            <p className="font-semibold">Paid plans are not currently available for this pincode.</p>
+                            <p className="mt-1">You can continue with the Free Plan, or request admin approval for: {unavailableRestrictedPlans.map(plan => plan.name).join(', ')}.</p>
+                            <button type="button" onClick={onRequestPaidPlan} disabled={requestSubmitted || disabled} className="mt-3 rounded-md bg-[#2C4964] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+                                {requestSubmitted ? 'Request Sent — Continue with Free Plan' : 'Request Admin for Paid Plan'}
+                            </button>
                         </div>
                     )}
                 </>

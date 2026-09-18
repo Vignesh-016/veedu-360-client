@@ -13,6 +13,7 @@ import PaginationControls from '../components/PaginationControls';
 import { Dialog, Transition, TransitionChild, DialogPanel } from '@headlessui/react';
 import { useNotification } from '../components/NotificationProvider';
 import { getTertiaryButtonClasses } from '../lib/twUtils';
+import { distanceInKilometres, geocodeLocation } from '../lib/geoUtils';
 const PropertiesMapView = lazy(() => import('../components/PropertiesMapView'));
 
 const ITEMS_PER_PAGE = 12;
@@ -101,6 +102,7 @@ function Catalogue() {
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
     const [showMap, setShowMap] = useState(false);
+    const [nearbyFallback, setNearbyFallback] = useState(false);
     const { showErrorNotification } = useNotification();
 
     const itemsPerPage = ITEMS_PER_PAGE;
@@ -120,6 +122,36 @@ function Catalogue() {
             if (fetchError) throw fetchError;
 
             const fetchedProperties = data || [];
+
+            if (fetchedProperties.length === 0 && currentOffset === 0 && debouncedFiltersFromUrl.p_location_search) {
+                const location = await geocodeLocation(debouncedFiltersFromUrl.p_location_search);
+                if (location) {
+                    const nearbyResponse = await api.getProperties({
+                        ...debouncedFiltersFromUrl,
+                        p_location_search: undefined,
+                        p_city: location.city || debouncedFiltersFromUrl.p_city,
+                        p_offset: 0,
+                        p_limit: 100,
+                    });
+                    if (!nearbyResponse.error && nearbyResponse.data?.length) {
+                        const nearbyProperties = nearbyResponse.data
+                            .map(property => ({
+                                property,
+                                distance: property.latitude != null && property.longitude != null
+                                    ? distanceInKilometres(property.latitude, property.longitude, location.latitude, location.longitude)
+                                    : Number.MAX_SAFE_INTEGER,
+                            }))
+                            .sort((a, b) => a.distance - b.distance)
+                            .map(({ property }) => property);
+                        setProperties(nearbyProperties.slice(0, itemsPerPage));
+                        setTotalProperties(nearbyResponse.data[0].total_count ?? nearbyProperties.length);
+                        setNearbyFallback(true);
+                        return;
+                    }
+                }
+            }
+
+            setNearbyFallback(false);
             setProperties(fetchedProperties);
 
             if (fetchedProperties.length > 0 && fetchedProperties[0].total_count !== undefined) {
@@ -241,6 +273,11 @@ function Catalogue() {
         // Show property list/grid
         return (
             <div className="relative">
+                {nearbyFallback && (
+                    <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                        No properties were found exactly in <span className="font-semibold">{currentFilters.p_location_search}</span>. Showing nearby properties instead.
+                    </div>
+                )}
                 {/* Map View */}
                 {showMap && properties.length > 0 && (
                     <div className="mb-6">

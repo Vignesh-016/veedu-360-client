@@ -125,6 +125,8 @@ function PropertySubmission() {
     const { showSuccessNotification, showErrorNotification, showInfoNotification } = useNotification();
 
     const [managementPlans, setManagementPlans] = useState<ManagementPlan[]>([]);
+    const [unavailableRestrictedPlans, setUnavailableRestrictedPlans] = useState<ManagementPlan[]>([]);
+    const [accessRequestSubmitted, setAccessRequestSubmitted] = useState(false);
     const [managementPlansLoading, setManagementPlansLoading] = useState(true);
     const [initialMapCenter, setInitialMapCenter] = useState<LatLngTuple>([8.7139, 77.7567]); // Default to Tirunelveli
 
@@ -223,6 +225,19 @@ function PropertySubmission() {
             if (error) throw error;
             if (data) {
                 const activePlans = data.sort((a, b) => a.percentage - b.percentage);
+                const numericPincode = Number(formData.pincode);
+                const planChecks = await Promise.all(activePlans.map(async plan => {
+                    const isPaidProcessingPlan = Boolean((plan as any).document_processing_fee_enabled) && Number((plan as any).post_price) > 0;
+                    if (!isPaidProcessingPlan || !(plan as any).requires_pincode) return { plan, allowed: true, restricted: false };
+                    if (!Number.isInteger(numericPincode) || numericPincode < 100000 || numericPincode > 999999) return { plan, allowed: false, restricted: true };
+                    const { data: allowed, error: eligibilityError } = await (api.supabase as any).rpc('management_plan_pincode_allowed', {
+                        p_plan_id: plan.plan_id,
+                        p_pincode: numericPincode,
+                    });
+                    if (eligibilityError) throw eligibilityError;
+                    return { plan, allowed: Boolean(allowed), restricted: true };
+                }));
+                setUnavailableRestrictedPlans(planChecks.filter(item => item.restricted && !item.allowed).map(item => item.plan));
                 setManagementPlans(activePlans);
                 const requestedPlanId = searchParams.get('management_plan_id');
                 if (requestedPlanId && activePlans.some(plan => plan.plan_id === requestedPlanId)) {
@@ -240,7 +255,48 @@ function PropertySubmission() {
         } finally {
             setManagementPlansLoading(false);
         }
-    }, [showErrorNotification, searchParams]);
+    }, [showErrorNotification, searchParams, formData.pincode]);
+
+    const requestPaidPlanAccess = useCallback(async () => {
+        const pincode = Number(formData.pincode);
+        if (!Number.isInteger(pincode) || pincode < 100000 || pincode > 999999 || unavailableRestrictedPlans.length === 0) return;
+        try {
+            const { error } = await (api.supabase as any).rpc('request_management_plan_access_customer', {
+                p_pincode: pincode,
+                p_plan_ids: unavailableRestrictedPlans.map(plan => plan.plan_id),
+                p_property_details: {
+                    property_name: formData.property_name,
+                    property_type: formData.property_type,
+                    listing_type: formData.listing_type,
+                    city: formData.city,
+                    locality: formData.locality,
+                    address: formData.address,
+                    pincode: formData.pincode,
+                    price: formData.price,
+                    area: formData.area,
+                },
+            });
+            if (error) throw error;
+            setAccessRequestSubmitted(true);
+            const freePlan = managementPlans.find(plan => !plan.document_processing_fee_enabled || Number(plan.post_price) <= 0);
+            if (freePlan) handleFormDataChange('management_plan_id', freePlan.plan_id);
+            showInfoNotification('Request Sent', 'Your request was sent to admin. You can continue with the Free Plan.');
+        } catch (err: any) {
+            showErrorNotification('Request Failed', err?.message || 'Could not send the admin request.');
+        }
+    }, [formData.pincode, unavailableRestrictedPlans, managementPlans, showInfoNotification, showErrorNotification]);
+
+    const handleManagementPlanSelect = useCallback((planId: string | undefined) => {
+        if (!planId) { handleFormDataChange('management_plan_id', undefined); return; }
+        const unavailablePlan = unavailableRestrictedPlans.find(plan => plan.plan_id === planId);
+        if (unavailablePlan) {
+            const freePlan = managementPlans.find(plan => !plan.document_processing_fee_enabled || Number(plan.post_price) <= 0);
+            if (freePlan) handleFormDataChange('management_plan_id', freePlan.plan_id);
+            showInfoNotification('Plan Not Available', `${unavailablePlan.name} is not available in your area. You can continue with the Free Property Listing plan or request this plan from admin.`);
+            return;
+        }
+        handleFormDataChange('management_plan_id', selectedManagementPlan?.plan_id === planId ? undefined : planId);
+    }, [unavailableRestrictedPlans, managementPlans, showInfoNotification, selectedManagementPlan?.plan_id]);
 
     useEffect(() => {
         fetchManagementPlans();
@@ -914,8 +970,11 @@ function PropertySubmission() {
                                     {isRentalListing && <SectionWrapper title="Management Plan" icon={IconListCheck} gridCols="1" defaultOpen={true}>
                                         <ManagementPlanSelectorSection
                                             managementPlans={managementPlans}
+                                            unavailableRestrictedPlans={unavailableRestrictedPlans}
+                                            onRequestPaidPlan={requestPaidPlanAccess}
+                                            requestSubmitted={accessRequestSubmitted}
                                             selectedPlanId={formData.management_plan_id}
-                                            onPlanSelect={(planId) => handleFormDataChange('management_plan_id', planId)}
+                                            onPlanSelect={handleManagementPlanSelect}
                                             loading={managementPlansLoading}
                                             formErrors={formErrors}
                                             disabled={loading}
