@@ -9,7 +9,7 @@ import HomeSearch from '../components/HomeSearch';
 import { IconBrandWhatsapp, IconPhone, IconMail, IconStar, IconClipboardCheck, IconArmchair, IconBuildingCommunity, IconHome2 } from '@tabler/icons-react';
 import { useAuth } from '../lib/AuthContext';
 import { useNotification } from '../components/NotificationProvider';
-import { DEFAULT_CITY } from '../lib/geoUtils';
+import { DEFAULT_CITY, distanceInKilometres, geocodeLocation } from '../lib/geoUtils';
 import ServicePlanCard from '../components/ServicePlanCard';
 import HomeEnquiryModal from '../components/HomeEnquiryModal';
 
@@ -22,6 +22,7 @@ function Home() {
     const [managementPlans, setManagementPlans] = useState<ManagementPlan[]>([]);
     const [loadingPlans, setLoadingPlans] = useState(true);
     const [homepageSettings, setHomepageSettings] = useState<any>(null);
+    const [recommendationsFallbackLocation, setRecommendationsFallbackLocation] = useState<string | null>(null);
 
     const { currentCity, geolocationLoading, user } = useAuth();
     const { showErrorNotification, showSuccessNotification } = useNotification();
@@ -60,7 +61,45 @@ function Home() {
                     p_location_search: searchLocationForApi,
                 });
                 if (error) throw error;
-                setRecommendations(data || []);
+
+                if (data?.length) {
+                    setRecommendations(data);
+                    setRecommendationsFallbackLocation(null);
+                } else if (searchLocationForApi) {
+                    const location = await geocodeLocation(searchLocationForApi);
+                    if (location) {
+                        const nearbyResponse = await api.getProperties({
+                            p_limit: 100,
+                            p_sort_by: 'updated_at',
+                            p_sort_direction: 'DESC',
+                            p_location_search: undefined,
+                            p_city: location.city || undefined,
+                        });
+                        if (!nearbyResponse.error && nearbyResponse.data?.length) {
+                            const nearbyProperties = nearbyResponse.data
+                                .map(property => ({
+                                    property,
+                                    distance: property.latitude != null && property.longitude != null
+                                        ? distanceInKilometres(property.latitude, property.longitude, location.latitude, location.longitude)
+                                        : Number.MAX_SAFE_INTEGER,
+                                }))
+                                .sort((a, b) => a.distance - b.distance)
+                                .slice(0, 4)
+                                .map(({ property }) => property);
+                            setRecommendations(nearbyProperties);
+                            setRecommendationsFallbackLocation(searchLocationForApi);
+                        } else {
+                            setRecommendations([]);
+                            setRecommendationsFallbackLocation(null);
+                        }
+                    } else {
+                        setRecommendations([]);
+                        setRecommendationsFallbackLocation(null);
+                    }
+                } else {
+                    setRecommendations([]);
+                    setRecommendationsFallbackLocation(null);
+                }
             } catch (err: any) {
                 console.error("Failed to fetch recommendations:", err);
                 showErrorNotification('Load Failed', 'Could not load recommended properties.');
@@ -178,6 +217,11 @@ function Home() {
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">
                         Featured Properties {geolocationLoading && currentCity === DEFAULT_CITY ? `in ${DEFAULT_CITY}` : `in ${currentCity}`}
                     </h2>
+                    {recommendationsFallbackLocation && recommendations.length > 0 && (
+                        <div className="mb-5 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                            No properties were found exactly in <span className="font-semibold">{recommendationsFallbackLocation}</span>. Showing the closest available properties nearby.
+                        </div>
+                    )}
                     {loadingRecs ? (
                         <div className="flex justify-center py-8">
                             <LoadingSpinner />
