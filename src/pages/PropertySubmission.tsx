@@ -261,11 +261,16 @@ function PropertySubmission() {
         const pincode = Number(formData.pincode);
         if (!Number.isInteger(pincode) || pincode < 100000 || pincode > 999999 || unavailableRestrictedPlans.length === 0) return;
         try {
+            const propertyName = formData.property_type === 'HOUSE'
+                ? formData.house_name
+                : formData.property_type === 'LAND'
+                    ? formData.land_name
+                    : formData.building_name;
             const { error } = await (api.supabase as any).rpc('request_management_plan_access_customer', {
                 p_pincode: pincode,
                 p_plan_ids: unavailableRestrictedPlans.map(plan => plan.plan_id),
                 p_property_details: {
-                    property_name: formData.property_name,
+                    property_name: propertyName,
                     property_type: formData.property_type,
                     listing_type: formData.listing_type,
                     city: formData.city,
@@ -284,7 +289,7 @@ function PropertySubmission() {
         } catch (err: any) {
             showErrorNotification('Request Failed', err?.message || 'Could not send the admin request.');
         }
-    }, [formData.pincode, unavailableRestrictedPlans, managementPlans, showInfoNotification, showErrorNotification]);
+    }, [formData, unavailableRestrictedPlans, managementPlans, showInfoNotification, showErrorNotification]);
 
     const handleManagementPlanSelect = useCallback((planId: string | undefined) => {
         if (!planId) { handleFormDataChange('management_plan_id', undefined); return; }
