@@ -13,7 +13,7 @@ import PaginationControls from '../components/PaginationControls';
 import { Dialog, Transition, TransitionChild, DialogPanel } from '@headlessui/react';
 import { useNotification } from '../components/NotificationProvider';
 import { getTertiaryButtonClasses } from '../lib/twUtils';
-import { distanceInKilometres, geocodeLocation } from '../lib/geoUtils';
+import { DEFAULT_CITY, distanceInKilometres, geocodeLocation } from '../lib/geoUtils';
 const PropertiesMapView = lazy(() => import('../components/PropertiesMapView'));
 
 const ITEMS_PER_PAGE = 12;
@@ -111,25 +111,29 @@ function Catalogue() {
         setError(null);
         setLoading(true);
         const currentOffset = (currentPage - 1) * itemsPerPage;
+        const hasLocationSearch = Boolean(debouncedFiltersFromUrl.p_location_search);
 
         try {
             const { data, error: fetchError } = await api.getProperties({
                 ...debouncedFiltersFromUrl,
-                p_offset: currentOffset,
-                p_limit: itemsPerPage,
+                // Location searches are combined with nearby results and paginated locally.
+                p_offset: hasLocationSearch ? 0 : currentOffset,
+                p_limit: hasLocationSearch ? 1000 : itemsPerPage,
             });
 
             if (fetchError) throw fetchError;
 
             const fetchedProperties = data || [];
 
-            if (fetchedProperties.length === 0 && currentOffset === 0 && debouncedFiltersFromUrl.p_location_search) {
-                const location = await geocodeLocation(debouncedFiltersFromUrl.p_location_search);
-                if (location) {
+            if (hasLocationSearch) {
+                const locationQuery = debouncedFiltersFromUrl.p_location_search as string;
+                const location = await geocodeLocation(locationQuery);
+                const nearbyCity = location?.city || debouncedFiltersFromUrl.p_city || DEFAULT_CITY;
+                if (location || nearbyCity) {
                     const nearbyResponse = await api.getProperties({
                         ...debouncedFiltersFromUrl,
                         p_location_search: undefined,
-                        p_city: location.city || debouncedFiltersFromUrl.p_city,
+                        p_city: nearbyCity,
                         p_offset: 0,
                         p_limit: 100,
                     });
@@ -137,14 +141,17 @@ function Catalogue() {
                         const nearbyProperties = nearbyResponse.data
                             .map(property => ({
                                 property,
-                                distance: property.latitude != null && property.longitude != null
+                                distance: location && property.latitude != null && property.longitude != null
                                     ? distanceInKilometres(property.latitude, property.longitude, location.latitude, location.longitude)
                                     : Number.MAX_SAFE_INTEGER,
                             }))
                             .sort((a, b) => a.distance - b.distance)
                             .map(({ property }) => property);
-                        setProperties(nearbyProperties.slice(0, itemsPerPage));
-                        setTotalProperties(nearbyResponse.data[0].total_count ?? nearbyProperties.length);
+                        const exactPropertyIds = new Set(fetchedProperties.map(property => property.property_id));
+                        const additionalNearbyProperties = nearbyProperties.filter(property => !exactPropertyIds.has(property.property_id));
+                        const combinedProperties = [...fetchedProperties, ...additionalNearbyProperties];
+                        setProperties(combinedProperties.slice(currentOffset, currentOffset + itemsPerPage));
+                        setTotalProperties(combinedProperties.length);
                         setNearbyFallback(true);
                         return;
                     }
@@ -152,7 +159,9 @@ function Catalogue() {
             }
 
             setNearbyFallback(false);
-            setProperties(fetchedProperties);
+            setProperties(hasLocationSearch
+                ? fetchedProperties.slice(currentOffset, currentOffset + itemsPerPage)
+                : fetchedProperties);
 
             if (fetchedProperties.length > 0 && fetchedProperties[0].total_count !== undefined) {
                 setTotalProperties(fetchedProperties[0].total_count);
@@ -275,7 +284,7 @@ function Catalogue() {
             <div className="relative">
                 {nearbyFallback && (
                     <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-                        No properties were found exactly in <span className="font-semibold">{currentFilters.p_location_search}</span>. Showing nearby properties instead.
+                        Showing properties in and around <span className="font-semibold">{currentFilters.p_location_search}</span>.
                     </div>
                 )}
                 {/* Map View */}
