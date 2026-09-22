@@ -6,6 +6,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 const FASTSMS_API_KEY = Deno.env.get("FASTSMS_API_KEY");
 const FASTSMS_SENDER_ID = "VDU360";
 const CRON_SECRET = Deno.env.get("CRON_SECRET");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 // --- DLT Template ID Mapping ---
 const TEMPLATE_ID_MAP: { [key: string]: string } = {
@@ -34,9 +35,27 @@ Deno.serve(async (req) => {
 
   // --- Security Check ---
   const authHeader = req.headers.get('Authorization');
-  if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
+  const cronHeader = req.headers.get('x-cron-secret');
+  const bearerToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : null;
+  const isCronSecretValid = Boolean(CRON_SECRET) && (
+    cronHeader === CRON_SECRET || bearerToken === CRON_SECRET
+  );
+  const isServiceRoleValid = Boolean(SUPABASE_SERVICE_ROLE_KEY) &&
+    bearerToken === SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!isCronSecretValid && !isServiceRoleValid) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (!FASTSMS_API_KEY) {
+    console.error('FASTSMS_API_KEY is not configured. SMS queue cannot be processed.');
+    return new Response(JSON.stringify({ error: 'SMS gateway is not configured.' }), {
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
