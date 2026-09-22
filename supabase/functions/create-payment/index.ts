@@ -107,22 +107,39 @@ Deno.serve(async (req: Request) => {
       }
 
       // The listing-fee decision is intentionally made here, never in the browser.
-      const { data: customer } = await (supabaseAdmin as any).from('customers').select('listing_quota').eq('user_id', userId).maybeSingle();
-      const { data: paidTransactions } = await (supabaseAdmin as any)
-        .from('transactions').select('payment_type, amount')
-        .eq('user_id', userId).eq('status', 'paid').in('payment_type', ['property_listing', 'property_management']);
-      const paidListingCredits = (paidTransactions ?? []).filter((payment: { payment_type: string; amount: number }) =>
-        payment.payment_type === 'property_listing' || Number(payment.amount) >= 1099
-      ).length;
       const { count: existingPropertyCount } = await (supabaseAdmin as any)
         .from('properties').select('property_id', { count: 'exact', head: true })
         .eq('submitter', userId).neq('property_id', property_id).neq('admin_status', 'PAYMENT_PENDING');
-      const allowedQuota = (customer?.listing_quota ?? 1) + paidListingCredits;
-      const listingFee = (existingPropertyCount ?? 0) >= allowedQuota ? 99 : 0;
-      // A plan price is collectible only when the admin explicitly enables the
-      // document-processing charge for that plan.
+      const { data: firstProperty } = await (supabaseAdmin as any)
+        .from('properties').select('submitted_at').eq('submitter', userId)
+        .neq('admin_status', 'PAYMENT_PENDING').order('submitted_at', { ascending: true }).limit(1).maybeSingle();
+      const { count: paidListingCredits } = await (supabaseAdmin as any)
+        .from('transactions').select('transaction_id', { count: 'exact', head: true })
+        .eq('user_id', userId).eq('status', 'paid')
+        .in('payment_type', ['property_listing', 'property_management']);
+      const firstPostDate = firstProperty?.submitted_at ? new Date(firstProperty.submitted_at) : null;
+      const elapsedDays = firstPostDate
+        ? Math.max(0, Math.floor((Date.now() - firstPostDate.getTime()) / 86400000))
+        : 0;
+      const { data: customerQuota } = await (supabaseAdmin as any)
+        .from('customers').select('listing_quota').eq('user_id', userId).maybeSingle();
+      const baseFreeQuota = Number(customerQuota?.listing_quota ?? 10);
+      const freeListingEntitlement = firstPostDate
+        ? baseFreeQuota + Math.floor(elapsedDays / 60)
+        : baseFreeQuota;
+      const allowedQuota = freeListingEntitlement + (paidListingCredits ?? 0);
+      const { data: listingFeeConfig } = await (supabaseAdmin as any)
+        .from('property_listing_fees')
+        .select('fee')
+        .eq('listing_type', property.listing_type)
+        .eq('is_active', true)
+        .maybeSingle();
+      const listingFee = (existingPropertyCount ?? 0) >= allowedQuota
+        ? Number(listingFeeConfig?.fee ?? 99)
+        : 0;
+      // Management processing is separate from the property posting fee.
       const documentProcessingFee = managementPlan.document_processing_fee_enabled
-        ? Number(managementPlan.post_price)
+        ? Math.max(0, Number(managementPlan.post_price) || 0)
         : 0;
       const amount = documentProcessingFee + listingFee;
 

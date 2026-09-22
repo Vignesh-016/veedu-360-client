@@ -33,7 +33,17 @@ const NearbyAmenitiesSection: React.FC<Props> = ({ formData, onFormDataChange, f
         'nearest_hospital', 'nearest_busstop', 'nearest_school', 'nearest_park', 'nearest_gym', 'nearest_swimmingpool'
     ];
 
-    const getLabel = (key: string) => key.replace('nearest_', '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const getLabel = (key: string) => {
+        const labels: Record<string, string> = {
+            nearest_hospital: 'Hospital',
+            nearest_busstop: 'Bus Stop',
+            nearest_school: 'School',
+            nearest_park: 'Park',
+            nearest_gym: 'Gym',
+            nearest_swimmingpool: 'Swimming Pool',
+        };
+        return labels[key] ?? key.replace('nearest_', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    };
 
     return (
         <>

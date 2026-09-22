@@ -39,7 +39,7 @@ const AdditionalPropertyInfoSection: React.FC<Props> = ({ formData, propertyType
                 </FormFieldWrapper>
             </div>
             <div className="md:col-span-2">
-                <FormFieldWrapper label="Internal Notes for Your Reference (Optional)" htmlFor="notes" errorMessage={formErrors.notes} disabled={disabledFields.notes}>
+                <FormFieldWrapper label="Internal Notes for Veedu 360 (Optional)" htmlFor="notes" errorMessage={formErrors.notes} disabled={disabledFields.notes}>
                     <textarea name="notes" id="notes" value={formData.notes} onChange={handleInputChange}
                         className={`${getBaseInputClasses()} min-h-[80px]`} placeholder="Any other details for your team or yourself..." maxLength={500} disabled={disabledFields.notes} />
                     <p className="mt-1 text-xs text-gray-500">{(formData.notes || '').length}/500 characters</p>

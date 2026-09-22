@@ -5,7 +5,7 @@ import {
     AvailabilityStatus, HouseType, BuildingType, LandType,
     ManagementPlan, InsertPropertyPayload,
     ProximityUnit, FurnishedStatus, Direction,
-    WaterSource, PowerBackup, VisitPlan,
+    WaterSource, PowerBackup,
 } from '../lib/types';
 import { LatLngTuple } from 'leaflet';
 import api from '../lib/supabaseClient';
@@ -137,8 +137,9 @@ function PropertySubmission() {
     // Listing Quota & Payment States
     const [propertyCount, setPropertyCount] = useState(0);
     const [paidListingCount, setPaidListingCount] = useState(0);
-    const [userListingQuota, setUserListingQuota] = useState(1);
-    const [listingPlan, setListingPlan] = useState<VisitPlan | null>(null);
+    const [userListingQuota, setUserListingQuota] = useState(10);
+    const [nextFreePostAt, setNextFreePostAt] = useState<string | null>(null);
+    const [propertyListingFeeAmount, setPropertyListingFeeAmount] = useState(99);
     const [loadingPricingCheck, setLoadingPricingCheck] = useState(true);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [pendingPropertyId, setPendingPropertyId] = useState<string | null>(null);
@@ -151,66 +152,42 @@ function PropertySubmission() {
     const managementPlanFee = selectedManagementPlan?.document_processing_fee_enabled
         ? Math.max(0, Number(selectedManagementPlan.post_price) || 0)
         : 0;
-    const needsPayment = managementPlanFee > 0;
     const effectiveAllowedQuota = userListingQuota + paidListingCount;
     const remainingCredits = Math.max(0, effectiveAllowedQuota - propertyCount);
+    const propertyListingFee = remainingCredits === 0 ? propertyListingFeeAmount : 0;
+    const totalPropertyPayment = managementPlanFee + propertyListingFee;
+    const needsPayment = totalPropertyPayment > 0;
 
     const checkListingQuota = useCallback(async () => {
         if (!user) return;
         setLoadingPricingCheck(true);
         try {
-            // 0. Fetch user's custom or default listing quota
-            const quotaRes = await api.getCustomerListingQuota(user.id);
-            const quota = quotaRes.data ?? 1;
-            setUserListingQuota(quota);
+            // Quota is calculated server-side from posting history, paid
+            // credits, and the 60-day recurring free-post schedule.
+            const { data: quotaData, error: quotaError } = await (api.supabase as any)
+                .rpc('get_property_posting_quota_customer');
+            if (quotaError) throw quotaError;
+            const quota = quotaData?.[0];
+            setUserListingQuota(Number(quota?.free_listing_entitlement ?? 10));
+            setPropertyCount(Number(quota?.property_count ?? 0));
+            setPaidListingCount(Number(quota?.paid_listing_credits ?? 0));
+            setNextFreePostAt(quota?.next_free_post_at ?? null);
 
-            // 1. Fetch properties count
-            const { data: propertiesData } = await api.getMyProperties(0, 1);
-            const propCount = propertiesData && propertiesData.length > 0 ? Number(propertiesData[0].total_count) : 0;
-            setPropertyCount(propCount);
+            const { data: feeRow, error: feeError } = await (api.supabase as any)
+                .from('property_listing_fees')
+                .select('fee')
+                .eq('listing_type', formData.listing_type)
+                .eq('is_active', true)
+                .maybeSingle();
+            if (feeError) throw feeError;
+            setPropertyListingFeeAmount(Number(feeRow?.fee ?? 99));
 
-            // 2. Fetch transactions to find paid listing plans
-            const { data: transactionsData } = await api.getMyTransactions(0, 100);
-            const paidListings = transactionsData
-                ? transactionsData.filter(t => 
-                    t.status === 'paid' && 
-                    (t.plan_name?.toLowerCase().includes('listing') || t.plan_name?.toLowerCase().includes('property'))
-                  ).length
-                : 0;
-            setPaidListingCount(paidListings);
-
-            // 3. Fetch active plans to find the listing fee plan
-            const { data: plansData } = await api.getVisitPlans();
-            const activePlans = plansData || [];
-            const plan = activePlans.find(p => p.name.toLowerCase().includes('listing')) ||
-                         activePlans.find(p => p.name.toLowerCase().includes('property') || p.name.toLowerCase().includes('post'));
-
-            if (plan) {
-                setListingPlan({ ...plan, price: Number(plan.price) || 0, visits: 1 });
-            } else {
-                setListingPlan({
-                    plan_id: '00000000-0000-0000-0000-000000000000',
-                    name: 'Property Listing Fee',
-                    description: 'Listing fee for additional properties',
-                    visits: 1,
-                    price: 0,
-                    is_active: true
-                } as any);
-            }
         } catch (err) {
             console.error("Error checking listing quota:", err);
-            setListingPlan({
-                plan_id: '00000000-0000-0000-0000-000000000000',
-                name: 'Property Listing Fee',
-                description: 'Listing fee for additional properties',
-                visits: 1,
-                price: 0,
-                is_active: true
-            } as any);
         } finally {
             setLoadingPricingCheck(false);
         }
-    }, [user]);
+    }, [user, formData.listing_type]);
 
     useEffect(() => {
         if (user) {
@@ -250,8 +227,8 @@ function PropertySubmission() {
             showErrorNotification(message.includes('jwt') || message.includes('unauthorized')
                 ? 'Session Expired'
                 : 'Unable to Load Plans', message.includes('jwt') || message.includes('unauthorized')
-                    ? 'Please log in again to continue.'
-                    : 'Please try again.');
+                ? 'Please log in again to continue.'
+                : 'Please try again.');
         } finally {
             setManagementPlansLoading(false);
         }
@@ -451,7 +428,12 @@ function PropertySubmission() {
         }
 
         if (step === 4) { // Pricing & Status
-            if (formData.price === null || formData.price <= 0) errors.price = 'Expected Price (>0) is required.';
+            const minimumPrice = isRentalListing ? 1000 : 10000;
+            if (formData.price === null || formData.price < minimumPrice) {
+                errors.price = isRentalListing
+                    ? 'Monthly rent must be at least ₹1,000.'
+                    : 'Sale price must be at least ₹10,000.';
+            }
             if (isRentalListing && !formData.management_plan_id) errors.management_plan_id = 'Please select a management plan.';
         }
 
@@ -641,98 +623,98 @@ function PropertySubmission() {
         setLoading(true);
         let paymentPropertyId: string | null = pendingPropertyId;
         try {
-                const propertyId = pendingPropertyId || await proceedToSubmitProperty(undefined, false);
-                if (!propertyId) throw new Error('Could not create the pending property.');
+            const propertyId = pendingPropertyId || await proceedToSubmitProperty(undefined, false);
+            if (!propertyId) throw new Error('Could not create the pending property.');
             paymentPropertyId = propertyId;
-                setPendingPropertyId(propertyId);
-                showInfoNotification('Processing Payment', 'Creating payment order...');
-                const { data: orderData, error: orderError } = await api.createPaymentOrder({
-                    plan_id: formData.management_plan_id!,
-                    property_id: propertyId,
-                    plan_type: 'property_management',
-                });
+            setPendingPropertyId(propertyId);
+            showInfoNotification('Processing Payment', 'Creating payment order...');
+            const { data: orderData, error: orderError } = await api.createPaymentOrder({
+                plan_id: formData.management_plan_id!,
+                property_id: propertyId,
+                plan_type: 'property_management',
+            });
 
-                if (orderError || !orderData) {
-                    throw new Error(orderError as string || 'Failed to create payment order.');
-                }
+            if (orderError || !orderData) {
+                throw new Error(orderError as string || 'Failed to create payment order.');
+            }
 
-                const { orderId, amount, keyId } = orderData;
-                // Razorpay can close its modal while the success handler is still
-                // verifying the payment. Do not let that close event delete the
-                // pending property after the customer has already paid.
-                let paymentVerificationStarted = false;
+            const { orderId, amount, keyId } = orderData;
+            // Razorpay can close its modal while the success handler is still
+            // verifying the payment. Do not let that close event delete the
+            // pending property after the customer has already paid.
+            let paymentVerificationStarted = false;
 
-                const options = {
-                    key: keyId,
-                    amount: amount,
-                    currency: "INR",
-                    name: companyName + " Management Plan",
-                    description: "Property management plan payment",
-                    order_id: orderId,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    handler: async (response: any) => {
-                        paymentVerificationStarted = true;
-                        setLoading(true);
-                        showInfoNotification('Processing Payment', 'Verifying payment details...');
-                        try {
-                            const payload = {
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                            };
-                            const { data: verifyData, error: verifyError } = await api.verifyPayment(payload);
-                            if (verifyError || !verifyData?.success) {
-                                throw new Error(verifyError as string || 'Payment verification failed.');
-                            }
-
-                            showSuccessNotification('Payment Verified!', 'Publishing your property and uploading images...');
-                            await proceedToSubmitProperty(propertyId, true);
-                        } catch (verificationError: any) {
-                            const message = verificationError.message || 'Payment verification could not be completed.';
-                            // The payment may already be captured even if this browser
-                            // did not receive the verification response. Keep the draft
-                            // intact; the signed webhook can complete it safely.
-                            showErrorNotification('Payment Received — Verification Pending', `${message} Do not pay again. Your post has been kept for reconciliation.`);
-                            setPageError(`${message} Do not pay again. Your post has been kept for reconciliation.`);
-                            setLoading(false);
+            const options = {
+                key: keyId,
+                amount: amount,
+                currency: "INR",
+                name: companyName + " Management Plan",
+                description: "Property management plan payment",
+                order_id: orderId,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                handler: async (response: any) => {
+                    paymentVerificationStarted = true;
+                    setLoading(true);
+                    showInfoNotification('Processing Payment', 'Verifying payment details...');
+                    try {
+                        const payload = {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                        };
+                        const { data: verifyData, error: verifyError } = await api.verifyPayment(payload);
+                        if (verifyError || !verifyData?.success) {
+                            throw new Error(verifyError as string || 'Payment verification failed.');
                         }
-                    },
-                    modal: {
-                        ondismiss: async () => {
-                            if (paymentVerificationStarted) {
-                                return;
-                            }
-                            await api.discardPendingProperty(propertyId);
-                            setPendingPropertyId(null);
-                            setLoading(false);
-                            showInfoNotification('Payment Cancelled', 'Your property post was discarded because payment was not completed.');
-                        }
-                    },
-                    prefill: {
-                        name: user?.user_metadata?.full_name || user?.email,
-                        email: user?.email,
-                        contact: user?.phone || user?.user_metadata?.phone,
-                    },
-                    notes: {
-                        plan_id: formData.management_plan_id,
-                        property_id: propertyId,
-                        user_id: user?.id,
-                    },
-                    theme: {
-                        color: "#2C4964"
+
+                        showSuccessNotification('Payment Verified!', 'Publishing your property and uploading images...');
+                        await proceedToSubmitProperty(propertyId, true);
+                    } catch (verificationError: any) {
+                        const message = verificationError.message || 'Payment verification could not be completed.';
+                        // The payment may already be captured even if this browser
+                        // did not receive the verification response. Keep the draft
+                        // intact; the signed webhook can complete it safely.
+                        showErrorNotification('Payment Received — Verification Pending', `${message} Do not pay again. Your post has been kept for reconciliation.`);
+                        setPageError(`${message} Do not pay again. Your post has been kept for reconciliation.`);
+                        setLoading(false);
                     }
-                };
-
-                await api.openRazorpayCheckout(options);
-        } catch (err: any) {
-                console.error("Payment initiation error:", err);
-                if (paymentPropertyId) {
-                    await api.discardPendingProperty(paymentPropertyId);
-                    setPendingPropertyId(null);
+                },
+                modal: {
+                    ondismiss: async () => {
+                        if (paymentVerificationStarted) {
+                            return;
+                        }
+                        await api.discardPendingProperty(propertyId);
+                        setPendingPropertyId(null);
+                        setLoading(false);
+                        showInfoNotification('Payment Cancelled', 'Your property post was discarded because payment was not completed.');
+                    }
+                },
+                prefill: {
+                    name: user?.user_metadata?.full_name || user?.email,
+                    email: user?.email,
+                    contact: user?.phone || user?.user_metadata?.phone,
+                },
+                notes: {
+                    plan_id: formData.management_plan_id,
+                    property_id: propertyId,
+                    user_id: user?.id,
+                },
+                theme: {
+                    color: "#2C4964"
                 }
-                showErrorNotification('Payment Error', err.message || 'Could not initiate payment.');
-                setPageError(err.message || 'Failed to start payment.');
-                setLoading(false);
+            };
+
+            await api.openRazorpayCheckout(options);
+        } catch (err: any) {
+            console.error("Payment initiation error:", err);
+            if (paymentPropertyId) {
+                await api.discardPendingProperty(paymentPropertyId);
+                setPendingPropertyId(null);
+            }
+            showErrorNotification('Payment Error', err.message || 'Could not initiate payment.');
+            setPageError(err.message || 'Failed to start payment.');
+            setLoading(false);
         }
     };
 
@@ -747,18 +729,18 @@ function PropertySubmission() {
                             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4 text-emerald-600">
                                 <IconCheck size={32} stroke={3} />
                             </div>
-                            
+
                             {/* Title */}
                             <h3 className="text-xl font-bold text-slate-900 mb-2">
                                 Property Listed Successfully!
                             </h3>
-                            
+
                             {/* Message */}
                             <p className="text-sm text-gray-500 mb-6">
-                                Your property listing has been created and published. 
+                                Your property listing has been created and published.
                                 {needsPayment && ` Your payment of ₹${managementPlanFee.toFixed(2)} has been processed and verified successfully.`}
                             </p>
-                            
+
                             {/* Buttons */}
                             <div className="flex flex-col sm:flex-row gap-3 w-full">
                                 <button
@@ -1039,88 +1021,88 @@ function PropertySubmission() {
                                                         <IconCoins className="text-indigo-600" size={20} />
                                                         Property Payment Summary
                                                     </h3>
-                                                    
+
                                                     <div className="space-y-3">
+                                                        {propertyListingFee > 0 && (
+                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                 <span className="text-gray-600">Property Posting Fee</span>
+                                                                 <span className="font-semibold text-slate-800">₹{propertyListingFee.toFixed(2)}</span>
+                                                             </div>
+                                                         )}
+                                                         {selectedManagementPlan && (
+                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                 <span className="text-gray-600">Selected Management Plan</span>
+                                                                 <span className="font-semibold text-slate-800">{selectedManagementPlan.name}</span>
+                                                             </div>
+                                                         )}
                                                          {managementPlanFee > 0 && (
                                                              <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                 <span className="text-gray-600">Document Processing</span>
+                                                                 <span className="text-gray-600">Management Processing Fee</span>
                                                                  <span className="font-semibold text-slate-800">₹{managementPlanFee.toFixed(2)}</span>
                                                              </div>
                                                          )}
-                                                         <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                             <span className="text-gray-600">Base Free Listing Quota</span>
-                                                             <span className="font-semibold text-slate-800">{userListingQuota} {userListingQuota === 1 ? 'property' : 'properties'}</span>
-                                                         </div>
+                                                        <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                            <span className="text-gray-600">Base Free Listing Quota</span>
+                                                            <span className="font-semibold text-slate-800">{userListingQuota} {userListingQuota === 1 ? 'property' : 'properties'}</span>
+                                                        </div>
 
-                                                         {paidListingCount > 0 && (
-                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                 <span className="text-gray-600">Purchased Extra Listing Credits</span>
-                                                                 <span className="font-semibold text-slate-800">+{paidListingCount}</span>
-                                                             </div>
-                                                         )}
+                                                        {paidListingCount > 0 && (
+                                                            <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                <span className="text-gray-600">Purchased Extra Listing Credits</span>
+                                                                <span className="font-semibold text-slate-800">+{paidListingCount}</span>
+                                                            </div>
+                                                        )}
 
-                                                         {paidListingCount > 0 && (
-                                                             <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                 <span className="text-gray-600">Total Allowed Quota</span>
-                                                                 <span className="font-bold text-indigo-700">{effectiveAllowedQuota} properties</span>
-                                                             </div>
-                                                         )}
+                                                        {paidListingCount > 0 && (
+                                                            <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                <span className="text-gray-600">Total Allowed Quota</span>
+                                                                <span className="font-bold text-indigo-700">{effectiveAllowedQuota} properties</span>
+                                                            </div>
+                                                        )}
 
-                                                         <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                             <span className="text-gray-600">Properties Already Listed</span>
-                                                             <span className="font-semibold text-slate-800">{propertyCount}</span>
-                                                         </div>
+                                                        <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                            <span className="text-gray-600">Properties Already Listed</span>
+                                                            <span className="font-semibold text-slate-800">{propertyCount}</span>
+                                                        </div>
 
-                                                         <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                             <span className="text-gray-600">Remaining Available Credits</span>
-                                                             <span className={`font-bold ${remainingCredits > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                                                 {remainingCredits} {remainingCredits === 1 ? 'credit' : 'credits'}
-                                                             </span>
-                                                         </div>
-                                                         
-                                                         {needsPayment ? (
-                                                             <>
-                                                                 <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                     <span className="text-gray-600">Quota Status</span>
-                                                                     <span className="font-semibold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md text-xs">Expired (0 remaining)</span>
-                                                                 </div>
-                                                                 <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                     <span className="text-gray-600">Management Plan Amount</span>
-                                                                     <span className="font-semibold text-slate-800">₹{managementPlanFee.toFixed(2)}</span>
-                                                                 </div>
-                                                                 <div className="flex justify-between items-center pt-2">
-                                                                     <span className="font-bold text-slate-900">Final Amount Due</span>
-                                                                     <span className="text-lg font-bold text-indigo-600">₹{managementPlanFee.toFixed(2)}</span>
-                                                                 </div>
+                                                        <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                            <span className="text-gray-600">Remaining Available Credits</span>
+                                                            <span className={`font-bold ${remainingCredits > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                                {remainingCredits} {remainingCredits === 1 ? 'credit' : 'credits'}
+                                                            </span>
+                                                        </div>
+
+                                                        {needsPayment ? (
+                                                            <>
+                                                                <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                    <span className="text-gray-600">Quota Status</span>
+                                                                    <span className="font-semibold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md text-xs">No free posts remaining</span>
+                                                                </div>
                                                                  <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 leading-relaxed">
-                                                                     <strong>Note:</strong> The amount above is the exact charge configured for the selected management plan.
+                                                                     <strong>Note:</strong> No free posts remain for this property. The separate property posting fee is ₹99. One additional free post is added every 60 days from your first property post.
                                                                  </div>
-                                                             </>
-                                                         ) : (
-                                                             <>
-                                                                 <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
-                                                                     <span className="text-gray-600">Quota Status</span>
-                                                                     <span className="font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md text-xs">Active ({remainingCredits} left)</span>
-                                                                 </div>
-                                                                 <div className="flex justify-between items-center pt-2">
-                                                                     <span className="font-bold text-slate-900">Management Plan Amount</span>
-                                                                     <span className="text-lg font-bold text-emerald-600">₹0.00 (Free)</span>
-                                                                 </div>
-                                                                 <div className="mt-4 bg-emerald-50/50 border border-emerald-100 rounded-lg p-3 text-xs text-emerald-800 leading-relaxed">
-                                                                     <strong>Note:</strong> This management plan is free, so no payment is required.
-                                                                 </div>
-                                                             </>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <div className="flex justify-between items-center text-sm pb-2 border-b border-gray-100">
+                                                                    <span className="text-gray-600">Quota Status</span>
+                                                                    <span className="font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md text-xs">Active ({remainingCredits} free posts remaining)</span>
+                                                                </div>
+                                                                <div className="mt-4 bg-emerald-50/50 border border-emerald-100 rounded-lg p-3 text-xs text-emerald-800 leading-relaxed">
+                                                                    <strong>Note:</strong> You have {remainingCredits} free property posts remaining. After they are used, one free post is added every 60 days from your first property post; additional posts cost ₹99.
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                         {nextFreePostAt && remainingCredits === 0 && (
+                                                             <div className="text-xs text-amber-700 bg-amber-50 rounded-md p-2">
+                                                                 Next free property post available on {new Date(`${nextFreePostAt}T00:00:00`).toLocaleDateString()}.
+                                                             </div>
                                                          )}
                                                          <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-200">
                                                              <span className="font-bold text-slate-900">Final Amount Due</span>
-                                                             <span className="text-lg font-bold text-indigo-600">₹{managementPlanFee.toFixed(2)}</span>
+                                                             <span className="text-lg font-bold text-indigo-600">₹{totalPropertyPayment.toFixed(2)}</span>
                                                          </div>
-                                                        
-                                                        {needsPayment && (!listingPlan || listingPlan.plan_id === '00000000-0000-0000-0000-000000000000') && (
-                                                            <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-800 font-medium">
-                                                                Warning: The property listing fee plan was not found in the database. Please verify with the administrator.
-                                                            </div>
-                                                        )}
+
                                                     </div>
                                                 </div>
                                             )}
@@ -1167,7 +1149,7 @@ function PropertySubmission() {
                             ) : (
                                 <button
                                     type="submit"
-                                    disabled={loading || loadingPricingCheck || (needsPayment && !listingPlan)}
+                                    disabled={loading || loadingPricingCheck}
                                     className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-8 py-3 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? (
@@ -1178,7 +1160,7 @@ function PropertySubmission() {
                                     ) : (
                                         <>
                                             <IconCheck size={20} />
-                                            <span>{needsPayment ? `Pay & Post Property (₹${managementPlanFee.toFixed(2)})` : "Post Property"}</span>
+                                            <span>{needsPayment ? `Pay & Post Property (₹${totalPropertyPayment.toFixed(2)})` : "Post Property"}</span>
                                         </>
                                     )}
                                 </button>
