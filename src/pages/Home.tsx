@@ -375,11 +375,11 @@ function Home() {
                             {/* Center Column - Image */}
                             <div className="h-[450px] rounded-[2rem] overflow-hidden shadow-xl w-full relative group">
                                 <img
-                                    src="../public/images/house.png"
+                                    src="/images/house.png"
                                     alt="Why Choose Us - Support"
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-
                                 />
+                          
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                             </div>
 
