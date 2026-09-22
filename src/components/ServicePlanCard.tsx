@@ -58,8 +58,10 @@ const getPlanContent = (description: string | null) => {
 };
 
 function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = false, className = '', onSelect }: ServicePlanCardProps) {
-    const { subtitle, features: rawFeatures } = getPlanContent(plan.description);
+    const { subtitle, features: rawFeatures, buttonText } = getPlanContent(plan.description);
     const postPrice = Number(plan.post_price) || 0;
+    const configuredFreeButton = /^processing\s*fee\s*[-:–—:·]\s*free$/i.test(buttonText);
+    const hasStrikePrice = Number((plan as any).strike_price) > 0;
 
     return (
         <div
@@ -178,9 +180,18 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
                     disabled={disabled}
                     className={`w-full rounded-xl py-3 text-xs font-semibold tracking-wider uppercase shadow-sm transition-all duration-300 active:scale-[0.99] ${selected ? 'bg-white text-[#2C4964] ring-2 ring-white/20 hover:bg-white/90' : 'bg-[#2C4964] text-white hover:bg-[#1e3347] hover:shadow-md'}`}
                 >
-                    {plan.document_processing_fee_enabled && postPrice > 0 ? (
-                        <>Processing fee: {formatRupees(postPrice)}{Number((plan as any).strike_price) > 0 && <span className="ml-2 font-normal line-through opacity-70">{formatRupees(Number((plan as any).strike_price))}</span>}</>
-                    ) : 'Select Plan'}
+                    {configuredFreeButton ? (
+                        <span className="flex items-baseline justify-center gap-2 normal-case tracking-normal">
+                            <span className="text-[11px] font-medium uppercase tracking-wide opacity-80">Processing fee</span>
+                            <span className="text-lg font-bold">Free</span>
+                        </span>
+                    ) : plan.document_processing_fee_enabled && postPrice > 0 ? (
+                        <span className="flex items-baseline justify-center gap-2 normal-case tracking-normal">
+                            <span className="text-[11px] font-medium uppercase tracking-wide opacity-80">Processing fee</span>
+                            <span className="text-lg font-bold">{formatRupees(postPrice)}</span>
+                            {hasStrikePrice && <span className="text-xs font-normal line-through opacity-70">{formatRupees(Number((plan as any).strike_price))}</span>}
+                        </span>
+                    ) : buttonText !== 'Learn More & Select' ? buttonText : 'Select Plan'}
                 </button>
             </div>
         </div>
