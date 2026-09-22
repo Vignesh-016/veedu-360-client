@@ -375,7 +375,7 @@ function Home() {
                             {/* Center Column - Image */}
                             <div className="h-[450px] rounded-[2rem] overflow-hidden shadow-xl w-full relative group">
                                 <img
-                                    src="https://images.unsplash.com/photo-1590650046871-92c887180603?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                                    src="../public/images/house.png"
                                     alt="Why Choose Us - Support"
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
 

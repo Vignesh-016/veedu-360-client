@@ -22,6 +22,6 @@ export function formatPrice(price: number): string {
         return `₹ ${value.endsWith('.00') ? value.slice(0, -3) : value} L`;
     } else {
         // Standard formatting for smaller amounts
-        return `₹ ${price.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+        return `₹ ${price.toLocaleString('en-IN', { minimumFractionDigits: price % 1 ? 2 : 0, maximumFractionDigits: 2 })}`;
     }
 }

@@ -1,0 +1,4 @@
+import supabaseAdmin from '../_shared/supabaseAdmin.ts';
+function businessDate(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
+function authorized(req:Request){const value=req.headers.get('Authorization')?.replace('Bearer ',''); return value===Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || value===Deno.env.get('CRON_SECRET');}
+Deno.serve(async req => { if (req.method !== 'POST') return new Response('Method not allowed',{status:405}); if(!authorized(req)) return Response.json({error:'Unauthorized'},{status:401}); const { data, error } = await (supabaseAdmin as any).rpc('generate_due_recurring_rents',{p_run_date:businessDate()}); if(error) return Response.json({error:error.message},{status:500}); return Response.json({...data,date:businessDate()}); });

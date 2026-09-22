@@ -54,3 +54,15 @@ verify_jwt = false
 import_map = "./functions/import_map.json"
 entrypoint = "./functions/process-sms-queue/index.ts"
 
+[functions.process-recurring-rents]
+enabled = true
+verify_jwt = false
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/process-recurring-rents/index.ts"
+
+[functions.process-rent-notifications]
+enabled = true
+verify_jwt = false
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/process-rent-notifications/index.ts"
+

@@ -112,13 +112,15 @@ function Catalogue() {
         setLoading(true);
         const currentOffset = (currentPage - 1) * itemsPerPage;
         const hasLocationSearch = Boolean(debouncedFiltersFromUrl.p_location_search);
+        const hasBudgetFilter = debouncedFiltersFromUrl.p_price_min !== undefined
+            || debouncedFiltersFromUrl.p_price_max !== undefined;
 
         try {
             const { data, error: fetchError } = await api.getProperties({
                 ...debouncedFiltersFromUrl,
-                // Location searches are combined with nearby results and paginated locally.
-                p_offset: hasLocationSearch ? 0 : currentOffset,
-                p_limit: hasLocationSearch ? 1000 : itemsPerPage,
+                // Location and budget searches are ordered and paginated locally.
+                p_offset: hasLocationSearch || hasBudgetFilter ? 0 : currentOffset,
+                p_limit: hasLocationSearch || hasBudgetFilter ? 1000 : itemsPerPage,
             });
 
             if (fetchError) throw fetchError;
@@ -150,6 +152,9 @@ function Catalogue() {
                         const exactPropertyIds = new Set(fetchedProperties.map(property => property.property_id));
                         const additionalNearbyProperties = nearbyProperties.filter(property => !exactPropertyIds.has(property.property_id));
                         const combinedProperties = [...fetchedProperties, ...additionalNearbyProperties];
+                        if (hasBudgetFilter) {
+                            combinedProperties.sort((a, b) => Number(a.price) - Number(b.price));
+                        }
                         setProperties(combinedProperties.slice(currentOffset, currentOffset + itemsPerPage));
                         setTotalProperties(combinedProperties.length);
                         setNearbyFallback(true);
@@ -159,9 +164,12 @@ function Catalogue() {
             }
 
             setNearbyFallback(false);
-            setProperties(hasLocationSearch
-                ? fetchedProperties.slice(currentOffset, currentOffset + itemsPerPage)
-                : fetchedProperties);
+            const orderedProperties = hasBudgetFilter
+                ? [...fetchedProperties].sort((a, b) => Number(a.price) - Number(b.price))
+                : fetchedProperties;
+            setProperties(hasLocationSearch || hasBudgetFilter
+                ? orderedProperties.slice(currentOffset, currentOffset + itemsPerPage)
+                : orderedProperties);
 
             if (fetchedProperties.length > 0 && fetchedProperties[0].total_count !== undefined) {
                 setTotalProperties(fetchedProperties[0].total_count);

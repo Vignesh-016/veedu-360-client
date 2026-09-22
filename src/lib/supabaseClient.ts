@@ -429,6 +429,14 @@ class RealEstateApi {
         return this.handleRpc<MyOccupiedProperties[]>('get_my_occupied_properties_customer', { p_offset: p_offset, p_limit: p_limit });
     }
 
+    async getMyActiveLeaseEnds(): Promise<ApiResponse<{ property_id: string; move_in_date: string; lease_end_date: string }[]>> {
+        return (this as any).handleRpc('get_my_active_lease_ends_customer', {});
+    }
+
+    async getMyRentPaymentHistory(): Promise<ApiResponse<any[]>> {
+        return (this as any).handleRpc('get_my_rent_payment_history_customer', {});
+    }
+
     async createTicket(payload: CreateTicketPayload): Promise<ApiResponse<number>> {
         return this.handleRpc<number>('create_ticket_customer', payload);
     }

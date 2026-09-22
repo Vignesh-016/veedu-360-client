@@ -18,9 +18,11 @@ import { Json } from '../database.types';
 interface OccupiedPropertyCardProps {
     property: MyOccupiedProperties;
     rentDues: MyRentDues[];
+    leaseEndDate?: string;
+    paymentHistory?: any[];
 }
 
-function OccupiedPropertyCard({ property, rentDues }: OccupiedPropertyCardProps) {
+function OccupiedPropertyCard({ property, rentDues, leaseEndDate, paymentHistory = [] }: OccupiedPropertyCardProps) {
     const navigate = useNavigate();
     const { showErrorNotification } = useNotification();
 
@@ -138,6 +140,7 @@ function OccupiedPropertyCard({ property, rentDues }: OccupiedPropertyCardProps)
                         <p className="text-xs text-gray-500 mb-3">
                             {locality}, {city}
                         </p>
+                        {leaseEndDate && <p className="text-sm text-gray-700 mb-3">Lease Ends: {new Date(`${leaseEndDate}T00:00:00`).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}</p>}
 
 
                         {/* Landlord Info */}
@@ -160,6 +163,11 @@ function OccupiedPropertyCard({ property, rentDues }: OccupiedPropertyCardProps)
                                 {rentDues.map(due => <RentDueTenantCard key={due.rent_record_id} rentDue={due} />)}
                             </div>
                         )}
+                        <div className="mb-3 rounded border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">
+                            <div className="font-medium">Rent Payment History</div>
+                            <div className="mt-1">Payments Made: {paymentHistory.filter(item => item.status === 'PAID').length} · Total Paid: ₹{paymentHistory.reduce((sum, item) => sum + Number(item.amount_paid || 0), 0).toFixed(2)}</div>
+                            {paymentHistory.slice(0, 5).map(item => <div key={item.rent_record_id} className="mt-2 border-t border-gray-200 pt-2"><div>{item.period_start_date} – {item.period_end_date}</div><div>Due: ₹{Number(item.amount_due).toFixed(2)} · Paid: ₹{Number(item.amount_paid || 0).toFixed(2)} · {item.status}{item.paid_at ? ` · Paid ${new Date(item.paid_at).toLocaleDateString()}` : ''}</div>{item.payment_reference && <div>Ref: {item.payment_reference}</div>}</div>)}
+                        </div>
                     </div>
 
                     {/* Actions */}

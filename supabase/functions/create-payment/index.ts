@@ -181,8 +181,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const isPropertyListingPlan = plan_type === 'property_listing' || (plansData && plansData.name.toLowerCase().includes('listing'));
-    const selectedPlanPrice = isPropertyListingPlan 
-      ? (typeof custom_amount === 'number' && custom_amount > 0 ? custom_amount : (plansData.price || 99)) 
+    const selectedPlanPrice = isPropertyListingPlan
+      ? (typeof custom_amount === 'number' && custom_amount > 0 ? custom_amount : (plansData.price || 99))
       : plansData.price;
 
     const timestamp = Date.now().toString().slice(-8);
@@ -249,13 +249,17 @@ Deno.serve(async (req: Request) => {
     if (error.error) {
       console.error('Razorpay error details:', error.error);
     }
-    const isRazorpayAuthenticationFailure = error?.error?.description === 'Authentication failed';
+    const isRazorpayAuthenticationFailure = error?.error?.description === 'Authentication failed'
+      || error?.statusCode === 401
+      || error?.status === 401;
     const errorMessage = isRazorpayAuthenticationFailure
       ? 'Payment gateway authentication failed. Please contact support.'
       : error.message || (error.error?.description) || 'Failed to create payment';
     console.error(`Returning error response: ${errorMessage}`);
     return new Response(JSON.stringify({ error: errorMessage }), {
-      status: error.statusCode || 500,
+      // A Razorpay 401 is an upstream credential/configuration failure, not
+      // an authentication failure for the signed-in Winoli user.
+      status: isRazorpayAuthenticationFailure ? 502 : (error.statusCode || 500),
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

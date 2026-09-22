@@ -21,10 +21,11 @@ Deno.serve(async (req) => {
     const {keyId,keySecret} = getRazorpayCredentials();
     if (!keyId || !keySecret) return json({error:'Payment gateway is not configured.'}, 500);
     const amount = Number(r.total_amount_paise);
-    if (!Number.isSafeInteger(amount) || amount < 100) return json({error:'Invalid rent amount.'}, 400);
+    if (!Number.isSafeInteger(amount) || amount <= 0) return json({error:'Invalid rent amount.'}, 400);
+    if (amount < 100) return json({error:'This rent amount is below the minimum amount supported for online payment. The rent record amount has not been changed.'}, 400);
     const razorpay = new Razorpay({key_id:keyId,key_secret:keySecret});
     const order = await razorpay.orders.create({amount,currency:'INR',receipt:`RENT_${rent_record_id.slice(0,8)}_${Date.now()}`});
-    const confirmed = await razorpay.orders.fetch(order.id);
+    const confirmed = await (razorpay.orders as any).fetch(order.id);
     if (confirmed.id !== order.id || confirmed.status !== 'created' || Number(confirmed.amount) !== amount || confirmed.currency !== 'INR') throw new Error('Razorpay order validation failed.');
     const {data:a,error} = await (supabaseAdmin as any).from('rent_payment_attempts').insert({rent_record_id,tenant_user_id:user.id,razorpay_order_id:order.id,amount_paise:r.total_amount_paise}).select('payment_attempt_id').single();
     if (error) throw error;

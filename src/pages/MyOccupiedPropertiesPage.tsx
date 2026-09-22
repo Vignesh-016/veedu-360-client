@@ -12,6 +12,8 @@ import { getPrimaryButtonClasses, getTertiaryButtonClasses } from '../lib/twUtil
 function MyOccupiedPropertiesPage() {
     const [properties, setProperties] = useState<MyOccupiedProperties[]>([]);
     const [rentDues, setRentDues] = useState<MyRentDues[]>([]);
+    const [leaseEnds, setLeaseEnds] = useState<Record<string, string>>({});
+    const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
     const [loadingProps, setLoadingProps] = useState(true);
     const [loadingDues, setLoadingDues] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -25,9 +27,11 @@ function MyOccupiedPropertiesPage() {
 
         try {
             // Fetch properties and dues concurrently
-            const [propsResult, duesResult] = await Promise.all([
+            const [propsResult, duesResult, leasesResult, historyResult] = await Promise.all([
                 api.viewMyOccupiedProperties(),
-                api.getMyRentDues()
+                api.getMyRentDues(),
+                api.getMyActiveLeaseEnds(),
+                api.getMyRentPaymentHistory()
             ]);
 
             if (propsResult.error) {
@@ -45,6 +49,8 @@ function MyOccupiedPropertiesPage() {
             } else {
                 setRentDues(duesResult.data || []);
             }
+            if (!leasesResult.error) setLeaseEnds(Object.fromEntries((leasesResult.data || []).map(lease => [lease.property_id, lease.lease_end_date])));
+            if (!historyResult.error) setPaymentHistory(historyResult.data || []);
 
             if (fetchError) {
                 throw new Error(fetchError);
@@ -109,7 +115,7 @@ function MyOccupiedPropertiesPage() {
                     // Filter rent dues for this specific property
                     const associatedDues = rentDues.filter(due => due.property_id === prop.property_id);
                     return (
-                        <OccupiedPropertyCard key={prop.property_id} property={prop} rentDues={associatedDues} />
+                        <OccupiedPropertyCard key={prop.property_id} property={prop} rentDues={associatedDues} leaseEndDate={leaseEnds[prop.property_id]} paymentHistory={paymentHistory.filter(item => item.property_id === prop.property_id)} />
                     );
                 })}
             </div>
