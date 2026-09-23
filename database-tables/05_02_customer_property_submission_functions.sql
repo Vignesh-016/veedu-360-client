@@ -417,7 +417,8 @@ BEGIN
     FROM public.properties p
     LEFT JOIN public.management_service_plans msp ON p.management_plan_id = msp.plan_id
     LEFT JOIN auth.users tenant_user ON p.tenant = tenant_user.id
-    WHERE p.property_id = p_property_id_input AND p.submitter = v_current_user_id;
+    WHERE p.property_id = p_property_id_input
+      AND (p.submitter = v_current_user_id OR p.tenant = v_current_user_id);
 
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;

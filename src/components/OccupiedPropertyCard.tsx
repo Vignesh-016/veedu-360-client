@@ -140,7 +140,8 @@ function OccupiedPropertyCard({ property, rentDues, leaseEndDate, paymentHistory
                         <p className="text-xs text-gray-500 mb-3">
                             {locality}, {city}
                         </p>
-                        {leaseEndDate && <p className="text-sm text-gray-700 mb-3">Lease Ends: {new Date(`${leaseEndDate}T00:00:00`).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}</p>}
+        {leaseEndDate && <p className="text-sm text-gray-700 mb-3">Lease Ends: {new Date(`${leaseEndDate}T00:00:00`).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}</p>}
+                        {property.advance_amount !== null && property.advance_amount !== undefined && <p className="text-sm text-gray-700 mb-3">Paid Before / Advance: ₹{Number(property.advance_amount).toLocaleString('en-IN')}</p>}
 
 
                         {/* Landlord Info */}
