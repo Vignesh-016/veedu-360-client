@@ -474,7 +474,7 @@ function PropertySubmission() {
         window.scrollTo(0, 0);
     };
 
-    const companyName = import.meta.env.VITE_COMPANY_NAME;
+    const companyName = import.meta.env.VITE_COMPANY_NAME || 'Veedu360';
 
     const proceedToSubmitProperty = async (existingPropertyId?: string, uploadImages = true): Promise<string | null> => {
         const detailsJson: Record<string, Json | undefined | null> = {};
