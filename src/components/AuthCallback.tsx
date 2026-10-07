@@ -11,7 +11,9 @@ function AuthCallback() {
         // Only navigate when auth is no longer loading
         if (!authLoading) {
             if (user) {
-                navigate('/', { replace: true });
+                const destination = sessionStorage.getItem('postLoginDestination') || '/';
+                sessionStorage.removeItem('postLoginDestination');
+                navigate(destination, { replace: true });
             } else {
                 console.warn('Auth finished, but no user found. Redirecting to /login.');
                 navigate('/login', { replace: true });

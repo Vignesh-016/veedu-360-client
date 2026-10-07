@@ -121,16 +121,19 @@ function VerifyPhone() {
             <title>Verify Phone Number | {companyName}</title>
             <div className="flex min-h-screen bg-white">
                 {/* Left Column - Form */}
-                <div className="flex flex-col items-center justify-center w-full lg:w-1/2 p-8 md:p-12 relative">
+                <div className="flex flex-col items-center justify-center w-full lg:w-1/2 p-6 md:p-12 relative bg-gradient-to-br from-slate-50 via-white to-blue-50">
                     {loading && (
                         <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
                             <LoadingSpinner />
                         </div>
                     )}
-                    <div className="w-full max-w-sm mx-auto">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+                    <div className="w-full max-w-md mx-auto rounded-3xl border border-slate-200 bg-white p-7 shadow-xl shadow-slate-200/60 md:p-9">
+                        <div className="mb-7 flex items-center gap-2" aria-label="Verification progress"><div className="flex flex-1 items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#2C4964] text-xs font-bold text-white">1</span><span className="text-xs font-semibold text-[#2C4964]">Phone</span></div><div className="h-px flex-1 bg-slate-200"><div className={`h-px bg-[#2C4964] transition-all ${otpSent ? 'w-full' : 'w-0'}`}></div></div><div className="flex flex-1 items-center justify-end gap-2"><span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${otpSent ? 'bg-[#2C4964] text-white' : 'bg-slate-100 text-slate-400'}`}>2</span><span className={`text-xs font-semibold ${otpSent ? 'text-[#2C4964]' : 'text-slate-400'}`}>Verify</span></div></div>
+                        <div className="mb-7 flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#2C4964] text-white"><IconDeviceMobileMessage size={23} /></div><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2C4964]">Secure your account</p><p className="text-sm text-slate-500">Takes less than a minute</p></div></div>
+                        <h2 className="text-3xl font-bold text-[#102a43] mb-3">
                             Verify Your Phone Number
                         </h2>
+                        <p className="mb-7 text-sm leading-6 text-slate-600">Use your mobile number to receive login alerts, visit updates, and important property notifications from Veedu360.</p>
 
                         {error && (
                             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm flex items-center gap-2" role="alert">
@@ -173,7 +176,7 @@ function VerifyPhone() {
                                 <button
                                     onClick={() => handleSendOtp(false)}
                                     disabled={loading || !validatePhoneNumber(phoneNumber)}
-                                    className={`${getPrimaryButtonClasses()} w-full py-2.5 disabled:opacity-50`}
+                                    className={`${getPrimaryButtonClasses()} w-full py-3.5 disabled:opacity-50`}
                                 >
                                     Send OTP
                                 </button>
@@ -211,7 +214,7 @@ function VerifyPhone() {
                                 <button
                                     onClick={handleVerifyOtp}
                                     disabled={loading || otp.length !== 6}
-                                    className={`${getPrimaryButtonClasses()} w-full py-2.5 disabled:opacity-50`}
+                                    className={`${getPrimaryButtonClasses()} w-full py-3.5 disabled:opacity-50`}
                                 >
                                     Verify OTP
                                 </button>
@@ -239,18 +242,8 @@ function VerifyPhone() {
                 </div>
 
                 {/* Right Column - Illustration */}
-                <div className="hidden lg:flex flex-col items-center justify-center w-1/2 p-12 text-center relative overflow-hidden">
-                    {/* Curved background shape */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 rounded-l-[280px]"></div>
-                    <div className="relative z-10">
-                        <IconDeviceMobileMessage size={80} className="mx-auto mb-6 text-gray-500" stroke={1} />
-                        <h1 className="text-3xl font-bold text-gray-700 mb-3">
-                            One Last Step
-                        </h1>
-                        <p className="text-gray-600 text-lg">
-                            Verify your phone number to secure your account and receive important updates.
-                        </p>
-                    </div>
+                <div className="hidden lg:block w-1/2 overflow-hidden bg-slate-100">
+                    <img src="/images/Website_Home_Page.jpg.jpeg" alt="Veedu360 properties" className="h-full w-full object-cover" />
                 </div>
             </div>
         </>

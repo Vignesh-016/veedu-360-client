@@ -1,0 +1,2 @@
+-- Restore the immediately previous split RPC; this rollback intentionally removes only the plan-based payout gate.
+-- Re-apply 202609100023_unify_create_rent_record_admin.sql after rollback to restore its exact body.

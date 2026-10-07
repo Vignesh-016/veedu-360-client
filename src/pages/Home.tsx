@@ -134,12 +134,6 @@ function Home() {
     }, [currentCity, geolocationLoading, showErrorNotification]);
 
     useEffect(() => {
-        if (!user) {
-            setManagementPlans([]);
-            setLoadingPlans(false);
-            return;
-        }
-
         const fetchManagementPlans = async () => {
             setLoadingPlans(true);
             try {
@@ -151,7 +145,7 @@ function Home() {
             } catch (err: any) {
                 console.error("Failed to fetch management plans:", err);
                 const message = String(err?.message || err || '').toLowerCase();
-                const authError = !user || err?.status === 401 || err?.status === 403 || message.includes('jwt') || message.includes('unauthorized') || message.includes('not authenticated') || message.includes('authentication');
+                const authError = err?.status === 401 || err?.status === 403 || message.includes('jwt') || message.includes('unauthorized') || message.includes('not authenticated') || message.includes('authentication');
                 if (authError) showErrorNotification('Login Required', 'Please log in to view available management plans.');
                 else showErrorNotification('Unable to Load Plans', 'Please try again.');
             } finally {
@@ -160,7 +154,7 @@ function Home() {
         };
 
         fetchManagementPlans();
-    }, [showErrorNotification, user]);
+    }, [showErrorNotification]);
 
     const displayCityName = geolocationLoading && currentCity === DEFAULT_CITY ? "your area" : currentCity;
 
@@ -428,7 +422,7 @@ function Home() {
                                     <ServicePlanCard
                                         key={plan.plan_id}
                                         plan={plan}
-                                        onSelect={() => navigate(`/submit-property?management_plan_id=${encodeURIComponent(plan.plan_id)}`)}
+                                        onSelect={() => { const destination = `/submit-property?management_plan_id=${encodeURIComponent(plan.plan_id)}`; if (user) navigate(destination); else { sessionStorage.setItem('postLoginDestination', destination); navigate('/login', { state: { from: destination, loginRequired: true } }); } }}
                                     />
                                 ))}
                             </div>

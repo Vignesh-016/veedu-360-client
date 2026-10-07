@@ -18,7 +18,14 @@ function RequirePhone({ children }: { children: React.ReactNode }) {
         // - User is already on a page that doesn't require a phone (login, auth callback, verify phone)
         const isExcludedPath = ['/login', '/auth/callback', '/verifyphone'].includes(location.pathname);
 
-        if (authLoading || !user || isExcludedPath) {
+        if (authLoading || isExcludedPath) {
+            return;
+        }
+
+        if (!user) {
+            if (location.pathname === '/submit-property') {
+                navigate('/login', { replace: true, state: { from: `${location.pathname}${location.search}`, loginRequired: true } });
+            }
             return;
         }
 
