@@ -8,6 +8,7 @@ interface OwnerPayoutAccountSummary {
     ifsc_code: string;
     status: string;
     payment_eligible: boolean;
+    route_onboarding_error?: string | null;
     updated_at: string;
 }
 interface OwnerProfile { address_line1: string; address_line2: string | null; city: string; state: string; pincode: string; pan_masked: string | null; updated_at: string; }
@@ -35,6 +36,11 @@ function OwnerBankAccountSection() {
     const loadAccount = useCallback(async () => {
         setLoading(true);
         setError(null);
+        // Synchronize the displayed state with Razorpay before reading the
+        // owner-scoped summary. The RPC is intentionally read-only from the
+        // client; the Edge Function performs the authenticated server-side
+        // status lookup and persistence.
+        await api.supabase.functions.invoke('setup-owner-route-account', { body: { refresh_only: true } });
         const { data, error: readError } = await (api.supabase as any)
             .rpc('get_my_owner_payout_account');
 
@@ -152,6 +158,7 @@ function OwnerBankAccountSection() {
             <div className="space-y-4">
                 <h3 className="text-base font-semibold text-slate-800">Residential / KYC Address</h3>{addressBlock}
                 {payoutStatus && <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">{payoutStatus === 'Payout Account Active' ? 'Bank Account Verified ✓' : payoutStatus === 'Action Required' ? 'Payout Verification Needs Attention' : payoutStatus === 'Payout Account Suspended' ? 'Bank Verification Failed' : 'Bank Verification In Progress'}<br /><button type="button" onClick={() => void refreshPayoutStatus()} disabled={refreshing} className="mt-1 underline">{refreshing ? 'Checking…' : 'Check Verification Status'}</button></div>}
+                {savedAccount.route_onboarding_error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"><strong>Verification could not be completed.</strong><br />{savedAccount.route_onboarding_error}</div>}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Account Holder</p><p className="mt-1 font-medium text-slate-900">{savedAccount.account_holder_name}</p></div>
                     <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Account</p><p className="mt-1 font-mono font-medium text-slate-900">{savedAccount.masked_account_number}</p></div>

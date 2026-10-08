@@ -66,6 +66,8 @@ Deno.serve(async (req) => {
       await new Promise((resolve) => setTimeout(resolve, 150 * (attempt + 1)));
     }
     if (!customerExists) { console.error('Customer trigger did not create profile', { admin_user_id: user.id, customer_user_id: created.user.id, step: 'customer_trigger_check' }); return respond({ success: false, code: 'CUSTOMER_PROFILE_NOT_CREATED', message: 'Customer account was created, but the customer profile could not be completed.' }, 500); }
+    const { error: sourceError } = await (supabaseAdmin as any).from('customers').update({ created_by_admin: true, mobile_verification_required: true, mobile_verified: false, mobile_verified_at: null, updated_at: new Date().toISOString() }).eq('user_id', created.user.id);
+    if (sourceError) { console.error('Admin customer verification policy could not be saved', { admin_user_id: user.id, customer_user_id: created.user.id, code: sourceError.code }); return respond({ success: false, code: 'CUSTOMER_POLICY_NOT_SAVED', message: 'Customer account was created, but its verification policy could not be saved.' }, 500); }
     console.log('Admin customer create completed', { admin_user_id: user.id, customer_user_id: created.user.id, existing: false });
     return respond({ success: true, existing: false, user: { user_id: created.user.id, full_name: fullName, email, phone }, message: 'Customer created.' });
   } catch (error) {

@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
         razorpay_account_status: accountStatus,
         razorpay_product_status: productStatus,
         payment_eligible: eligible,
-        status: 'PENDING_VERIFICATION',
+        status: eligible ? 'VERIFIED' : productStatus === 'needs_clarification' ? 'ACTION_REQUIRED' : productStatus === 'verification_failed' ? 'VERIFICATION_FAILED' : productStatus === 'suspended' ? 'SUSPENDED' : 'PENDING_VERIFICATION',
         last_status_checked_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
