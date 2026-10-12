@@ -1,4 +1,4 @@
-import { IconBrandGoogle, IconHome2, IconKey } from '@tabler/icons-react';
+import { IconBrandGoogle } from '@tabler/icons-react';
 import { useAuth } from '../lib/AuthContext';
 
 import { Navigate, Link } from 'react-router-dom';
@@ -18,43 +18,13 @@ function Login() {
             <title>Sign In | {companyName}</title>
 
             <div className="min-h-screen flex">
-                {/* Left Side - Gradient Illustration */}
-                <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#2C4964] via-[#1E3347] to-[#111F2D] relative overflow-hidden">
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 opacity-10">
-                        <div className="absolute top-20 left-20 w-32 h-32 border-4 border-white rounded-2xl rotate-12"></div>
-                        <div className="absolute bottom-32 right-20 w-24 h-24 border-4 border-white rounded-full"></div>
-                        <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-white rounded-lg rotate-45"></div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="relative z-10 flex flex-col justify-center items-center w-full px-12 text-center">
-                        <div className="mb-8">
-
-                            <h1 className="text-4xl font-bold text-white mb-4">
-                                Find Your Dream Home
-                            </h1>
-                            <p className="text-white/80 text-lg max-w-md">
-                                Discover thousands of properties for rent and sale. Your perfect home is just a click away.
-                            </p>
-                        </div>
-
-                        {/* Feature List */}
-                        <div className="space-y-4 text-left max-w-sm">
-                            <div className="flex items-center gap-3 text-white/90">
-                                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                                    <IconHome2 size={18} />
-                                </div>
-                                <span>Browse verified property listings</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-white/90">
-                                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                                    <IconKey size={18} />
-                                </div>
-                                <span>Schedule visits with one tap</span>
-                            </div>
-                        </div>
-                    </div>
+                {/* Left Side - Home image */}
+                <div className="hidden lg:block lg:w-1/2 overflow-hidden bg-[#2C4964]">
+                    <img
+                        src="/images/Website_Home_Page.jpg.jpeg"
+                        alt="Veedu 360 property management"
+                        className="h-full w-full object-cover"
+                    />
                 </div>
 
                 {/* Right Side - Login Form */}
@@ -63,7 +33,7 @@ function Login() {
                         {/* Logo */}
                         <div className="text-center mb-10">
                             <Link to="/">
-                                <img src="/veedu360-logo.png" alt={companyName} className="h-12 w-auto mx-auto mb-2" />
+                                <img src="/veedu360-logo.png" alt={companyName} className="h-32 w-auto mx-auto mb-2" />
                             </Link>
                         </div>
 
