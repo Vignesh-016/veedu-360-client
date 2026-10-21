@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { IconArrowRight, IconBuildingSkyscraper, IconCheck, IconMapPin, IconRulerMeasure, IconShieldCheck, IconBuildingStore, IconBriefcase, IconRoad } from '@tabler/icons-react';
+import TirunelveliPropertyLinks from '../components/TirunelveliPropertyLinks';
 
 const catalogueUrl = '/catalogue?p_listing_types=SALE&p_property_types=BUILDING&p_location_search=Tirunelveli';
 
@@ -28,6 +29,7 @@ function CommercialPropertiesForSaleTirunelveli() {
         <div className="min-h-screen bg-gray-50">
             <title>Commercial Properties for Sale in Tirunelveli | Veedu360</title>
             <meta name="description" content="Find commercial properties for sale in Tirunelveli with VEEDU 360. Explore shops, offices, commercial buildings, land and investment properties in prime locations." />
+            <link rel="canonical" href="https://www.veedu360.com/commercial-properties-for-sale-in-tirunelveli" />
 
             <section className="relative h-[410px] bg-cover bg-center sm:h-[450px] md:h-[500px]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1920&q=85')" }}>
                 <div className="absolute inset-0 bg-[#1E3347]/75" />
@@ -35,7 +37,9 @@ function CommercialPropertiesForSaleTirunelveli() {
                     <div className="max-w-3xl">
                         <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm"><IconMapPin size={15} className="text-[#f4ca42]" /> Tirunelveli, Tamil Nadu</div>
                         <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl md:text-5xl">Commercial Properties for Sale in Tirunelveli</h1>
-                        <p className="mt-4 max-w-2xl text-sm font-semibold leading-7 text-gray-100 sm:text-base">Find Commercial Properties for Sale in Tirunelveli with Veedu 360</p>
+                        <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-100 sm:text-base">
+                            Find <Link to="/commercial-properties-for-sale-in-tirunelveli" className="font-semibold text-[#f4ca42] underline decoration-2 underline-offset-2 hover:text-white transition-colors">commercial properties for sale in Tirunelveli</Link> with VEEDU 360. Explore shops, offices, commercial buildings, land and investment properties in prime locations.
+                        </p>
                         <Link to={catalogueUrl} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#D9A619] px-5 py-2.5 text-sm font-bold text-[#2C4964] no-underline shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#f0c13d]">Browse commercial properties today <IconArrowRight size={17} /></Link>
                     </div>
                 </div>
@@ -46,7 +50,9 @@ function CommercialPropertiesForSaleTirunelveli() {
                     <div>
                         <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Explore Commercial Property in Tirunelveli</span>
                         <h2 className="mt-3 text-3xl font-bold leading-tight text-[#2C4964]">Find Commercial Properties for Sale in Tirunelveli with Veedu 360</h2>
-                        <p className="mt-4 text-sm leading-7 text-gray-600 sm:text-base">Looking for commercial properties for sale in Tirunelveli? Veedu 360 helps you discover commercial spaces that suit your business requirements and investment goals. Whether you are planning to start a new business, expand an existing operation, or invest in a property with long-term potential, explore a range of commercial property options across Tirunelveli.</p>
+                        <p className="mt-4 text-sm leading-7 text-gray-600 sm:text-base">
+                            Find <Link to="/commercial-properties-for-sale-in-tirunelveli" className="font-semibold text-[#2C4964] underline decoration-[#D9A619] decoration-2 underline-offset-2 hover:text-[#D9A619] transition-colors">commercial properties for sale in Tirunelveli</Link> with VEEDU 360. Explore shops, offices, commercial buildings, land and investment properties in prime locations. Whether you are planning to start a new business, expand an existing operation, or invest in a property with long-term potential, explore a range of commercial property options across Tirunelveli.
+                        </p>
                         <p className="mt-4 text-sm leading-7 text-gray-600">From commercial shops and office spaces to showrooms, commercial buildings and commercial plots, Veedu 360 makes it easier to find the right property in a location that works for your business.</p>
                         <Link to={catalogueUrl} className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-[#2C4964] px-6 py-2.5 text-sm font-bold text-white no-underline shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#1E3347] hover:shadow-lg">Explore Listings <IconArrowRight size={17} /></Link>
                     </div>
@@ -91,6 +97,7 @@ function CommercialPropertiesForSaleTirunelveli() {
             <section className="bg-white py-14 md:py-20"><div className="mx-auto max-w-5xl px-4 sm:px-6"><div className="text-center"><span className="text-xs font-bold uppercase tracking-widest text-gray-500">Frequently Asked Questions</span><h2 className="mt-3 text-3xl font-bold text-[#2C4964]">Frequently Asked Questions</h2></div><div className="mt-8 divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white px-5">{faqs.map(([question, answer], index) => <details key={question} className="group py-4"><summary className="cursor-pointer list-none pr-6 text-sm font-bold text-gray-800">{index + 1}. {question}<span className="float-right text-xl font-normal text-[#2C4964] transition-transform group-open:rotate-45">+</span></summary><p className="pt-3 pr-4 text-sm leading-6 text-gray-600">{answer}</p></details>)}</div></div></section>
 
             <section className="px-4 py-14 sm:px-6 md:py-20"><div className="mx-auto max-w-7xl rounded-2xl bg-[#2C4964] px-6 py-10 text-center shadow-lg sm:px-10"><h2 className="text-3xl font-bold text-white">Find Your Commercial Property in Tirunelveli</h2><p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-200">Your next business opportunity could start with the right location. Explore commercial properties for sale in Tirunelveli with Veedu 360 and find a property that matches your business plans and investment goals.</p><p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-200">Browse commercial properties today and take the next step towards owning commercial real estate in Tirunelveli.</p><Link to={catalogueUrl} className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-[#D9A619] px-6 py-2.5 text-sm font-bold text-[#2C4964] no-underline shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#f0c13d]">Browse commercial properties today <IconArrowRight size={17} /></Link></div></section>
+            <TirunelveliPropertyLinks currentPath="/commercial-properties-for-sale-in-tirunelveli" />
         </div>
     );
 }

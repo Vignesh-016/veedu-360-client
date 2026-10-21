@@ -91,13 +91,13 @@ const Footer = () => {
 
           {/* Column 3: Property Types */}
           <div>
-            <h3 className="text-white font-bold mb-6 text-sm uppercase tracking-wider">Property Types</h3>
+            <h3 className="text-white font-bold mb-6 text-sm uppercase tracking-wider">Properties in Tirunelveli</h3>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/apartments-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Apartments for Sale</Link></li>
-              <li><Link to="/houses-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Houses for Sale</Link></li>
-              <li><Link to="/villas-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Villas for Sale</Link></li>
-              <li><Link to="/commercial-properties-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Commercial for Sale</Link></li>
-              <li><Link to="/plots-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Plots for Sale</Link></li>
+              <li><Link to="/apartments-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Apartments for Sale in Tirunelveli</Link></li>
+              <li><Link to="/houses-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Houses for Sale in Tirunelveli</Link></li>
+              <li><Link to="/villas-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Villas for Sale in Tirunelveli</Link></li>
+              <li><Link to="/commercial-properties-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Commercial Properties for Sale in Tirunelveli</Link></li>
+              <li><Link to="/plots-for-sale-in-tirunelveli" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Plots for Sale in Tirunelveli</Link></li>
             </ul>
           </div>
 
@@ -138,6 +138,7 @@ const Footer = () => {
               <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link to="/refund-policy" className="hover:text-white transition-colors">Refund Policy</Link>
               <Link to="/delivery-policy" className="hover:text-white transition-colors">Delivery Policy</Link>
+              <a href="/sitemap.xml" className="hover:text-white transition-colors">Sitemap</a>
             </div>
           </div>
         </div>

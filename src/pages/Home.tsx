@@ -12,6 +12,7 @@ import { useNotification } from '../components/NotificationProvider';
 import { DEFAULT_CITY, distanceInKilometres, geocodeLocation } from '../lib/geoUtils';
 import ServicePlanCard from '../components/ServicePlanCard';
 import HomeEnquiryModal from '../components/HomeEnquiryModal';
+import TirunelveliPropertyLinks from '../components/TirunelveliPropertyLinks';
 
 function Home() {
     const navigate = useNavigate();
@@ -505,6 +506,9 @@ function Home() {
                         </div>
                     </div>
                 </div>
+
+                {/* Properties for Sale in Tirunelveli */}
+                <TirunelveliPropertyLinks className="bg-white border-t border-b border-gray-100" />
 
                 {/* Need Help Section */}
                 <div className="bg-gray-50 py-12">

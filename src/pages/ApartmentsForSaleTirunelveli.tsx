@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { IconArrowRight, IconBuildingCommunity, IconCheck, IconHome2, IconMapPin, IconRulerMeasure, IconShieldCheck } from '@tabler/icons-react';
+import TirunelveliPropertyLinks from '../components/TirunelveliPropertyLinks';
 
 const catalogueUrl = '/catalogue?p_listing_types=SALE&p_property_types=HOUSE&p_house_types=APARTMENT_FLAT&p_location_search=Tirunelveli';
 
@@ -26,6 +27,7 @@ function ApartmentsForSaleTirunelveli() {
         <div className="min-h-screen bg-gray-50">
             <title>Apartments for Sale in Tirunelveli | Veedu360</title>
             <meta name="description" content="Find apartments for sale in Tirunelveli on Veedu360. Explore residential apartments in prime locations, compare properties and find your ideal home." />
+            <link rel="canonical" href="https://www.veedu360.com/apartments-for-sale-in-tirunelveli" />
 
             <section className="relative h-[410px] bg-cover bg-center sm:h-[450px] md:h-[500px]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1920&q=85')" }}>
                 <div className="absolute inset-0 bg-[#1E3347]/70" />
@@ -33,7 +35,9 @@ function ApartmentsForSaleTirunelveli() {
                     <div className="max-w-3xl">
                         <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm"><IconMapPin size={15} className="text-[#f4ca42]" /> Tirunelveli, Tamil Nadu</div>
                         <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl md:text-5xl">Apartments for Sale in Tirunelveli</h1>
-                        <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-100 sm:text-base">Find the right flat for your family, lifestyle and budget. Explore apartments across Palayamkottai, KTC Nagar, NGO Colony, Tirunelveli Junction, Maharaja Nagar, Perumalpuram and nearby localities.</p>
+                        <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-100 sm:text-base">
+                            Find <Link to="/apartments-for-sale-in-tirunelveli" className="font-semibold text-[#f4ca42] underline decoration-2 underline-offset-2 hover:text-white transition-colors">apartments for sale in Tirunelveli</Link> on Veedu360. Explore residential apartments in prime locations, compare properties and find your ideal home.
+                        </p>
                         <Link to={catalogueUrl} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#D9A619] px-5 py-2.5 text-sm font-bold text-[#2C4964] no-underline shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#f0c13d]">Browse Apartments <IconArrowRight size={17} /></Link>
                     </div>
                 </div>
@@ -41,7 +45,14 @@ function ApartmentsForSaleTirunelveli() {
 
             <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20">
                 <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12">
-                    <div><span className="text-xs font-bold uppercase tracking-widest text-gray-500">Find the right flat</span><h2 className="mt-3 text-3xl font-bold leading-tight text-[#2C4964]">A better way to explore apartments in Tirunelveli.</h2><p className="mt-4 text-sm leading-7 text-gray-600 sm:text-base">Buying an apartment is an important decision. Veedu 360 helps you discover properties based on location, BHK configuration, budget and property type—so it is easier to compare choices and shortlist the homes that fit.</p><Link to={catalogueUrl} className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-[#2C4964] px-6 py-2.5 text-sm font-bold text-white no-underline shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#1E3347] hover:shadow-lg">Browse Apartments <IconArrowRight size={17} /></Link></div>
+                    <div>
+                        <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Find the right flat</span>
+                        <h2 className="mt-3 text-3xl font-bold leading-tight text-[#2C4964]">A better way to explore apartments in Tirunelveli.</h2>
+                        <p className="mt-4 text-sm leading-7 text-gray-600 sm:text-base">
+                            Find <Link to="/apartments-for-sale-in-tirunelveli" className="font-semibold text-[#2C4964] underline decoration-[#D9A619] decoration-2 underline-offset-2 hover:text-[#D9A619] transition-colors">apartments for sale in Tirunelveli</Link> on Veedu360. Explore residential apartments in prime locations, compare properties and find your ideal home. Buying an apartment is an important decision. Veedu 360 helps you discover properties based on location, BHK configuration, budget and property type—so it is easier to compare choices and shortlist the homes that fit.
+                        </p>
+                        <Link to={catalogueUrl} className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-[#2C4964] px-6 py-2.5 text-sm font-bold text-white no-underline shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#1E3347] hover:shadow-lg">Browse Apartments <IconArrowRight size={17} /></Link>
+                    </div>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{apartmentTypes.map((item) => <div key={item} className="flex items-start gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#2C4964] text-white"><IconCheck size={17} /></span><p className="pt-1 text-sm font-medium leading-5 text-gray-700">{item}</p></div>)}</div>
                 </div>
             </section>
@@ -58,6 +69,8 @@ function ApartmentsForSaleTirunelveli() {
             <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20"><div className="grid gap-8 md:grid-cols-2"><div className="rounded-2xl bg-[#2C4964] p-7 text-white sm:p-8"><IconShieldCheck className="text-[#D9A619]" size={32} /><h2 className="mt-5 text-2xl font-bold">New apartments and resale flats</h2><p className="mt-3 text-sm leading-7 text-slate-200">New apartments may appeal if you prefer newer construction, modern layouts and contemporary amenities. Resale flats can be useful for buyers looking for established properties and ready-to-move homes.</p></div><div className="rounded-2xl border border-gray-200 bg-white p-7 shadow-sm sm:p-8"><IconRulerMeasure className="text-[#2C4964]" size={32} /><h2 className="mt-5 text-2xl font-bold text-gray-800">Why buy in Tirunelveli?</h2><p className="mt-3 text-sm leading-7 text-gray-600">Buyers can find apartments across different budgets, sizes and locations, with access to schools, hospitals, shopping areas and everyday amenities depending on the locality.</p></div></div></section>
 
             <section className="bg-white py-14 md:py-20"><div className="mx-auto max-w-5xl px-4 sm:px-6"><div className="text-center"><span className="text-xs font-bold uppercase tracking-widest text-gray-500">Frequently asked questions</span><h2 className="mt-3 text-3xl font-bold text-[#2C4964]">Helpful answers for apartment buyers</h2></div><div className="mt-8 divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white px-5">{faqs.map(([question, answer]) => <details key={question} className="group py-4"><summary className="cursor-pointer list-none pr-6 text-sm font-bold text-gray-800">{question}<span className="float-right text-xl font-normal text-[#2C4964] transition-transform group-open:rotate-45">+</span></summary><p className="pt-3 pr-4 text-sm leading-6 text-gray-600">{answer}</p></details>)}</div></div></section>
+
+            <TirunelveliPropertyLinks currentPath="/apartments-for-sale-in-tirunelveli" />
 
             <section className="px-4 py-14 sm:px-6 md:py-20"><div className="mx-auto max-w-7xl rounded-2xl bg-[#2C4964] px-6 py-10 text-center shadow-lg sm:px-10"><h2 className="text-3xl font-bold text-white">Ready to find your apartment?</h2><p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-200">Browse available listings, compare properties and shortlist apartments that match your requirements.</p><Link to={catalogueUrl} className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-[#D9A619] px-6 py-2.5 text-sm font-bold text-[#2C4964] no-underline shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#f0c13d]">Explore Apartments in Tirunelveli <IconArrowRight size={17} /></Link></div></section>
         </div>
