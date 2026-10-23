@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import { useState } from 'react';
+import api from '../lib/supabaseClient';
+import { useNotification } from './NotificationProvider';
 import {
   IconBrandFacebook,
   IconBrandInstagram,
@@ -10,11 +13,34 @@ import {
 } from "@tabler/icons-react";
 
 const Footer = () => {
+  const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { showSuccessNotification, showErrorNotification } = useNotification();
   const companyName = import.meta.env.VITE_COMPANY_NAME || 'Veedu360';
   const contactAddress = import.meta.env.VITE_CONTACT_ADDRESS || '233 Pothigai Nagar, Perumalpuram, Tirunelveli - 627007';
   const contactPhone = import.meta.env.VITE_CONTACT_PHONE || '+91 74186 99622';
   const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'admin@veedu360.com';
   const copyrightYear = new Date().getFullYear();
+
+  const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(normalizedEmail)) {
+      showErrorNotification('Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { error } = await api.subscribeToNewsletter(normalizedEmail);
+      if (error) throw new Error(typeof error === 'string' ? error : error.message);
+      setEmail('');
+      showSuccessNotification('Subscribed', 'Thank you for subscribing to our newsletter.');
+    } catch (error) {
+      showErrorNotification('Subscription Failed', error instanceof Error ? error.message : 'Unable to subscribe right now. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <footer className="bg-slate-900 text-slate-300 font-sans border-t border-slate-800">
@@ -31,19 +57,22 @@ const Footer = () => {
               </p>
             </div>
 
-            {/* Newsletter (Visual Only) */}
+            {/* Newsletter */}
             <div className="pt-2">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">Newsletter</h4>
-              <div className="flex">
+              <form onSubmit={handleNewsletterSubmit} className="flex">
                 <input
                   type="email"
                   placeholder="Enter your email"
+                  value={email}
+                  onChange={event => setEmail(event.target.value)}
+                  disabled={submitting}
                   className="bg-slate-800 text-white text-sm px-4 py-2.5 rounded-l-md focus:outline-none focus:ring-1 focus:ring-[#2C4964] w-full border border-slate-700 placeholder-slate-500"
                 />
-                <button className="bg-[#2C4964] hover:bg-[#1E3347] text-white px-3 rounded-r-md transition-colors">
+                <button type="submit" disabled={submitting} className="bg-[#2C4964] hover:bg-[#1E3347] text-white px-3 rounded-r-md transition-colors disabled:opacity-50">
                   <IconArrowRight size={18} />
                 </button>
-              </div>
+              </form>
             </div>
 
             <div className="flex gap-4 pt-2">

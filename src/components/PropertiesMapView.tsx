@@ -6,6 +6,7 @@ import { IconBuildingCommunity, IconHome2, IconMapPin, IconMapPin2, IconArrowRig
 import { getDisplayValue, propertyTypeMap } from '../lib/displayUtils';
 import { getPrimaryButtonClasses } from '../lib/twUtils';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Json } from '../database.types';
 
 interface PropertiesMapViewProps {
@@ -33,9 +34,7 @@ const createPriceMarkerIcon = (priceFormatted: string, isRental: boolean) => {
 // --- FitBounds Component ---
 const ChangeView = ({ bounds }: { bounds: LatLngBounds | null }) => {
     const map = useMap();
-    if (bounds) {
-        map.fitBounds(bounds, { padding: [30, 30] });
-    }
+    useEffect(() => { if (bounds) map.fitBounds(bounds, { padding: [30, 30] }); }, [bounds, map]);
     return null;
 };
 
@@ -44,7 +43,7 @@ function PropertiesMapView({ properties, className = 'h-[500px] w-full rounded-l
     const navigate = useNavigate();
 
     // Filter properties with valid coordinates and calculate bounds
-    const validProperties = properties.filter(p => p.latitude != null && p.longitude != null);
+    const validProperties = properties.filter(p => Number.isFinite(Number(p.latitude)) && Number.isFinite(Number(p.longitude)) && Number(p.latitude) >= -90 && Number(p.latitude) <= 90 && Number(p.longitude) >= -180 && Number(p.longitude) <= 180);
     let mapBounds: LatLngBounds | null = null;
     if (validProperties.length > 0) {
         const corner1 = L.latLng(

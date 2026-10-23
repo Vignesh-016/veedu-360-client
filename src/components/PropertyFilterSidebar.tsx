@@ -241,7 +241,7 @@ function PropertyFilterSidebar({ filters, onFilterChange, isMobile = false }: Pr
         return filters.p_property_types?.includes(type);
     }
 
-    const selectedAreaUnitLabel = filters.p_area_unit ? getDisplayValue(areaUnitMap, filters.p_area_unit, 'unit') : 'unit';
+    const selectedAreaUnitLabel = filters.p_area_unit ? getDisplayValue(areaUnitMap, filters.p_area_unit, 'Any Unit') : 'Any Unit';
 
     return (
         <div className={`bg-white ${isMobile ? '' : 'rounded-lg shadow-sm border border-gray-200 p-4'}`}>
@@ -431,7 +431,10 @@ function PropertyFilterSidebar({ filters, onFilterChange, isMobile = false }: Pr
                         id="area_unit"
                         name="p_area_unit"
                         value={filters.p_area_unit || ''}
-                        onChange={(e) => handleSingleSelectChange('p_area_unit', e.target.value || undefined as AreaUnit | undefined)}
+                        onChange={(e) => {
+                            const value = e.target.value as AreaUnit | '';
+                            handleSingleSelectChange('p_area_unit', value || undefined);
+                        }}
                         className={`${getBaseInputClasses()} mb-3`}
                     >
                         <option value="">Any Unit</option>

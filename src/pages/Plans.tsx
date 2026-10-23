@@ -63,10 +63,6 @@ function Plans() {
 
                 setVisitPlans(vPlans);
 
-                if (vPlans.length > 0) {
-                    const middleIndex = Math.floor(vPlans.length / 2);
-                    setSelectedVisitPlan(vPlans[middleIndex]);
-                }
             } catch (err: any) {
                 showErrorNotification('Load Failed', err.message || 'Failed to fetch plans.');
                 setVisitError(err.message || 'Failed to fetch plans.');
@@ -87,10 +83,6 @@ function Plans() {
                 if (fetchErr) throw fetchErr;
                 const activePlans = data || [];
                 setContactPlans(activePlans);
-                if (activePlans.length > 0) {
-                    const defaultPlan = activePlans.find(p => p.price > 0) || activePlans[0];
-                    setSelectedContactPlan(defaultPlan);
-                }
             } catch (err: any) {
                 showErrorNotification('Load Failed', err.message || 'Failed to fetch contact plans.');
                 setContactError(err.message || 'Failed to fetch contact plans.');
@@ -492,7 +484,6 @@ function Plans() {
 
                                     let CurrentIcon = IconPhoneCall;
                                     let currentGradient = 'from-[#3A5D7C] to-[#2C4964]';
-                                    let currentHighlight = 'text-[#2C4964]';
                                     let currentShadow = 'shadow-[#2C4964]/20';
                                     let currentRing = 'ring-[#2C4964]/10';
                                     let currentBorder = 'border-[#2C4964]';
@@ -500,14 +491,12 @@ function Plans() {
                                     if (isFree) {
                                         CurrentIcon = IconGift;
                                         currentGradient = 'from-emerald-600 to-teal-800';
-                                        currentHighlight = 'text-teal-700';
                                         currentShadow = 'shadow-teal-600/20';
                                         currentRing = 'ring-teal-600/10';
                                         currentBorder = 'border-teal-600';
                                     } else if (plan.price >= 1400) {
                                         CurrentIcon = IconCrown;
                                         currentGradient = 'from-[#E5B83B] to-[#D9A619]';
-                                        currentHighlight = 'text-[#D9A619]';
                                         currentShadow = 'shadow-[#D9A619]/25';
                                         currentRing = 'ring-[#D9A619]/10';
                                         currentBorder = 'border-[#D9A619]';
@@ -571,10 +560,11 @@ function Plans() {
                                             </button>
 
                                             {isSelected && (
-                                                <div className={`mt-4 text-xs font-bold ${currentHighlight} animate-pulse`}>
+                                                <div className="mt-4 text-xs font-bold text-[#2C4964] animate-pulse">
                                                     Currently Selected
                                                 </div>
                                             )}
+
                                         </div>
                                     );
                                 })}

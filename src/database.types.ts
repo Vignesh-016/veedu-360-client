@@ -2168,6 +2168,7 @@ export type Database = {
           interaction_id: string
           interaction_status: Database["public"]["Enums"]["interaction_status_enum"]
           is_featured: boolean
+          is_exclusive: boolean
           is_in_wishlist: boolean
           latitude: number
           listing_type: Database["public"]["Enums"]["listing_type_enum"]

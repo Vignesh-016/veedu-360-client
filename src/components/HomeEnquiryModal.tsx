@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { IconBuildingEstate, IconHomeHeart, IconX, IconTag, IconSearch, IconInfoCircle } from '@tabler/icons-react';
 import { User } from '@supabase/supabase-js';
 import api from '../lib/supabaseClient';
-import { HomepageEnquiryType } from '../lib/types';
+import { HomepageEnquiryType, VisitPlan } from '../lib/types';
 import LoadingSpinner from './LoadingSpinner';
 import ServicePlanCard from './ServicePlanCard';
 
@@ -17,6 +17,7 @@ export default function HomeEnquiryModal({ user, onSuccess }: Props) {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [managementPlans, setManagementPlans] = useState<any[]>([]);
+    const [visitPlans, setVisitPlans] = useState<VisitPlan[]>([]);
     
     const [form, setForm] = useState({
         customerName: '',
@@ -54,6 +55,12 @@ export default function HomeEnquiryModal({ user, onSuccess }: Props) {
             }
         };
         fetchPlans();
+    }, []);
+
+    useEffect(() => {
+        api.getVisitPlans().then(({ data }) => {
+            setVisitPlans((data || []).filter(plan => !plan.name.toLowerCase().includes('listing')));
+        }).catch(error => console.error('Error fetching visit plans:', error));
     }, []);
 
     const close = () => {
@@ -171,11 +178,13 @@ export default function HomeEnquiryModal({ user, onSuccess }: Props) {
                                             <div>
                                                 <span className="font-semibold text-slate-700 block mb-0.5">Property Visit Credits:</span>
                                                 <ul className="list-disc pl-4 space-y-0.5 text-slate-500">
+                                                    {visitPlans.map(plan => <li key={plan.plan_id}>{plan.name}: ₹{plan.price.toLocaleString('en-IN')} for {plan.visits} visits</li>)}
+                                                {/*
                                                     <li>Starter: ₹10 for 5 visits</li>
                                                     <li>Bronze: ₹18 for 10 visits</li>
                                                     <li>Silver: ₹32 for 20 visits</li>
                                                     <li>Gold: ₹50 for 50 visits</li>
-                                                </ul>
+                                                */}</ul>
                                             </div>
                                         </div>
                                     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, Fragment, useMemo, lazy, Suspense } from 'react';
+import { useEffect, useState, useCallback, Fragment, useMemo, lazy, Suspense, useRef } from 'react';
 
 import { useSearchParams } from 'react-router-dom';
 import { IconFilter, IconX, IconLayoutGrid, IconLayoutList, IconAlertCircle, IconMap, IconMapOff } from '@tabler/icons-react';
@@ -46,11 +46,38 @@ const defaultFilters: Omit<PropertiesFilterParams, 'p_offset' | 'p_limit'> = {
     p_sort_direction: 'DESC',
 };
 
+const sanitizeFiltersByPropertyType = (filters: Omit<PropertiesFilterParams, 'p_offset' | 'p_limit'>) => {
+    const propertyType = filters.p_property_types?.[0];
+    const sanitized = { ...filters };
+    if (propertyType !== 'HOUSE') {
+        sanitized.p_house_types = undefined;
+        sanitized.p_num_bedrooms_min = undefined;
+        sanitized.p_num_bedrooms_max = undefined;
+        sanitized.p_furnished_statuses = undefined;
+        sanitized.p_facing_directions = undefined;
+    }
+    if (propertyType !== 'LAND') sanitized.p_land_types = undefined;
+    if (propertyType !== 'BUILDING') sanitized.p_building_types = undefined;
+    return sanitized;
+};
+
+const propertyTypeSpecificFilterKeys: Record<string, (keyof typeof defaultFilters)[]> = {
+    HOUSE: ['p_land_types', 'p_building_types'],
+    LAND: ['p_house_types', 'p_num_bedrooms_min', 'p_num_bedrooms_max', 'p_furnished_statuses', 'p_facing_directions', 'p_building_types'],
+    BUILDING: ['p_house_types', 'p_num_bedrooms_min', 'p_num_bedrooms_max', 'p_furnished_statuses', 'p_facing_directions', 'p_land_types'],
+};
+
+const getInvalidFilterKeys = (propertyType: string | undefined) =>
+    propertyTypeSpecificFilterKeys[propertyType || ''] || [
+        'p_house_types', 'p_num_bedrooms_min', 'p_num_bedrooms_max', 'p_furnished_statuses',
+        'p_facing_directions', 'p_land_types', 'p_building_types',
+    ];
+
 const parseFiltersFromParams = (params: URLSearchParams): Omit<PropertiesFilterParams, 'offset' | 'limit'> => {
     const newFilters = { ...defaultFilters };
     const arrayKeys: (keyof typeof newFilters)[] = ['p_listing_types', 'p_property_types', 'p_house_types', 'p_furnished_statuses', 'p_facing_directions', 'p_land_types', 'p_building_types'];
     const numberKeys: (keyof typeof newFilters)[] = ['p_price_min', 'p_price_max', 'p_area_min', 'p_area_max', 'p_num_bedrooms_min', 'p_num_bedrooms_max'];
-    const stringKeys: (keyof typeof newFilters)[] = ['p_location_search', 'p_city', 'p_sort_by', 'p_sort_direction'];
+    const stringKeys: (keyof typeof newFilters)[] = ['p_area_unit', 'p_location_search', 'p_city', 'p_sort_by', 'p_sort_direction'];
 
     // Initialize arrays
     arrayKeys.forEach(key => { (newFilters as any)[key] = []; });
@@ -90,7 +117,7 @@ function Catalogue() {
     const companyName = import.meta.env.VITE_COMPANY_NAME;
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const currentFilters = useMemo(() => parseFiltersFromParams(searchParams), [searchParams]);
+    const currentFilters = useMemo(() => sanitizeFiltersByPropertyType(parseFiltersFromParams(searchParams)), [searchParams]);
     const currentPage = useMemo(() => safeParseInt(searchParams.get('page')) || 1, [searchParams]);
     const debouncedFiltersFromUrl = useDebounce(currentFilters, 1000);
 
@@ -104,23 +131,29 @@ function Catalogue() {
     const [showMap, setShowMap] = useState(false);
     const [nearbyFallback, setNearbyFallback] = useState(false);
     const { showErrorNotification } = useNotification();
+    const requestVersion = useRef(0);
 
     const itemsPerPage = ITEMS_PER_PAGE;
 
     const fetchProperties = useCallback(async () => {
+        const requestId = ++requestVersion.current;
         setError(null);
         setLoading(true);
         const currentOffset = (currentPage - 1) * itemsPerPage;
         const hasLocationSearch = Boolean(debouncedFiltersFromUrl.p_location_search);
         const hasBudgetFilter = debouncedFiltersFromUrl.p_price_min !== undefined
             || debouncedFiltersFromUrl.p_price_max !== undefined;
+        const hasAreaSort = debouncedFiltersFromUrl.p_sort_by === 'area';
+        const shouldPaginateLocally = hasLocationSearch || hasBudgetFilter || hasAreaSort;
 
         try {
             const { data, error: fetchError } = await api.getProperties({
                 ...debouncedFiltersFromUrl,
-                // Location and budget searches are ordered and paginated locally.
-                p_offset: hasLocationSearch || hasBudgetFilter ? 0 : currentOffset,
-                p_limit: hasLocationSearch || hasBudgetFilter ? 1000 : itemsPerPage,
+                // Fetch the complete ordered set before local deduplication for
+                // location, budget, and area-sort views. This prevents a
+                // property from appearing on two pages after deduplication.
+                p_offset: shouldPaginateLocally ? 0 : currentOffset,
+                p_limit: shouldPaginateLocally ? 1000 : itemsPerPage,
             });
 
             if (fetchError) throw fetchError;
@@ -151,10 +184,8 @@ function Catalogue() {
                             .map(({ property }) => property);
                         const exactPropertyIds = new Set(fetchedProperties.map(property => property.property_id));
                         const additionalNearbyProperties = nearbyProperties.filter(property => !exactPropertyIds.has(property.property_id));
-                        const combinedProperties = [...fetchedProperties, ...additionalNearbyProperties];
-                        if (hasBudgetFilter) {
-                            combinedProperties.sort((a, b) => Number(a.price) - Number(b.price));
-                        }
+                        const combinedProperties = Array.from(new Map([...fetchedProperties, ...additionalNearbyProperties].map(property => [property.property_id, property])).values());
+                        if (requestId !== requestVersion.current) return;
                         setProperties(combinedProperties.slice(currentOffset, currentOffset + itemsPerPage));
                         setTotalProperties(combinedProperties.length);
                         setNearbyFallback(true);
@@ -163,13 +194,14 @@ function Catalogue() {
                 }
             }
 
+            if (requestId !== requestVersion.current) return;
             setNearbyFallback(false);
-            const orderedProperties = hasBudgetFilter
-                ? [...fetchedProperties].sort((a, b) => Number(a.price) - Number(b.price))
-                : fetchedProperties;
-            setProperties(hasLocationSearch || hasBudgetFilter
-                ? orderedProperties.slice(currentOffset, currentOffset + itemsPerPage)
-                : orderedProperties);
+            const uniqueProperties = Array.from(new Map(fetchedProperties.map(property => [property.property_id, property])).values());
+            // The RPC already applies the selected sort. Do not re-sort here;
+            // doing so overrides direction and featured/exclusive priority.
+            setProperties(shouldPaginateLocally
+                ? uniqueProperties.slice(currentOffset, currentOffset + itemsPerPage)
+                : uniqueProperties);
 
             if (fetchedProperties.length > 0 && fetchedProperties[0].total_count !== undefined) {
                 setTotalProperties(fetchedProperties[0].total_count);
@@ -184,7 +216,9 @@ function Catalogue() {
             setProperties([]);
             setTotalProperties(0);
         } finally {
-            setLoading(false);
+            if (requestId === requestVersion.current) {
+                setLoading(false);
+            }
         }
     }, [debouncedFiltersFromUrl, currentPage, itemsPerPage, showErrorNotification]);
 
@@ -195,6 +229,16 @@ function Catalogue() {
     // --- Event Handlers ---
     const handleFilterChange = useCallback((newFilters: Partial<Omit<PropertiesFilterParams, 'p_offset' | 'p_limit'>>) => {
         const newSearchParams = new URLSearchParams(searchParams);
+
+        // Any filter change starts from the first page. This is especially
+        // important when changing area units because the previous page may no
+        // longer exist in the newly filtered result set.
+        newSearchParams.delete('page');
+
+        if (Object.prototype.hasOwnProperty.call(newFilters, 'p_property_types')) {
+            const nextType = newFilters.p_property_types?.[0];
+            getInvalidFilterKeys(nextType).forEach(key => newSearchParams.delete(key));
+        }
 
         Object.entries(newFilters).forEach(([key, value]) => {
             const filterKey = key as keyof typeof defaultFilters;
@@ -213,9 +257,7 @@ function Catalogue() {
             }
         });
 
-        newSearchParams.delete('page');
-
-        setSearchParams(newSearchParams, { replace: true });
+        setSearchParams(newSearchParams);
     }, [searchParams, setSearchParams]);
 
     const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -236,7 +278,7 @@ function Catalogue() {
             } else {
                 newSearchParams.set('page', String(newPage));
             }
-            setSearchParams(newSearchParams, { replace: true });
+            setSearchParams(newSearchParams);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
@@ -317,6 +359,7 @@ function Catalogue() {
                                 key={property.property_id}
                                 property={property}
                                 variant={viewMode === 'grid' ? 'simple' : 'detailed'}
+                                showFeaturedBadge={false}
                             />
                         ))}
                     </div>
@@ -340,6 +383,10 @@ function Catalogue() {
         <div className="bg-gray-50 min-h-screen">
             {/* Use derived currentFilters for title */}
             <title>Properties {currentFilters.p_location_search ? `in ${currentFilters.p_location_search}` : currentFilters.p_city ? `in ${currentFilters.p_city}` : ''} | {companyName}</title>
+            <meta name="description" content="Browse verified houses, land and buildings for sale or rent with Veedu 360." />
+            <meta property="og:title" content={`Properties | ${companyName}`} />
+            <meta property="og:description" content="Browse verified houses, land and buildings for sale or rent with Veedu 360." />
+            <meta property="og:url" content="https://www.veedu360.com/catalogue" />
 
             {/* Mobile Filter Button */}
             <div className="md:hidden sticky top-[61px] bg-gray-50/90 backdrop-blur-sm z-30 p-2 border-b border-gray-200">

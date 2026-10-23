@@ -25,6 +25,8 @@ interface PropertyCardProps {
     property: Property;
     variant?: 'simple' | 'detailed';
     onInteractionUpdate?: () => void;
+    showFeaturedBadge?: boolean;
+    badgeType?: 'featured' | 'exclusive';
 }
 
 // --- Helper Function to Render Specific Details ---
@@ -79,7 +81,7 @@ const renderPropertySpecificDetails = (property: Property): React.ReactNode[] =>
 };
 
 
-function PropertyCard({ property, variant = 'detailed', onInteractionUpdate }: PropertyCardProps) {
+function PropertyCard({ property, variant = 'detailed', onInteractionUpdate, showFeaturedBadge = true, badgeType }: PropertyCardProps) {
     const [wishlistLoading, setWishlistLoading] = useState(false);
     const [isWishlisted, setIsWishlisted] = useState(property.is_in_wishlist);
     const [bookingLoading, setBookingLoading] = useState(false);
@@ -92,8 +94,10 @@ function PropertyCard({ property, variant = 'detailed', onInteractionUpdate }: P
     const { showSuccessNotification, showErrorNotification, showInfoNotification } = useNotification();
 
     const {
-        property_id, price, area, area_unit, locality, is_featured, listing_type, interaction_status, interaction_id
+        property_id, price, area, area_unit, locality, is_featured, is_exclusive, listing_type, interaction_status, interaction_id
     } = property;
+    const isPromoted = is_featured || is_exclusive;
+    const displayedBadgeType = badgeType || (is_exclusive ? 'exclusive' : 'featured');
     let image_url = "";
     if (Array.isArray(property.property_images) && property.property_images.length > 0) {
         image_url = property.property_images[0]?.image_url || "";
@@ -206,6 +210,12 @@ function PropertyCard({ property, variant = 'detailed', onInteractionUpdate }: P
                         loading="lazy"
                         onError={(e) => { e.currentTarget.src = fallbackImageUrl; }}
                     />
+
+                    {showFeaturedBadge && (isPromoted || badgeType) && (
+                        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FFD700]/90 to-[#FFA500]/90 px-3 py-1 text-xs font-bold text-gray-800 shadow-sm" title={is_exclusive ? 'Exclusive Property' : 'Featured Property'}>
+                            <IconSparkles size={14} stroke={2} /> {displayedBadgeType === 'exclusive' ? 'Exclusive' : 'Featured'}
+                        </span>
+                    )}
 
                     {/* Heart Icon (Top Right) */}
                     <button
@@ -366,9 +376,9 @@ function PropertyCard({ property, variant = 'detailed', onInteractionUpdate }: P
                                 {property.listing_type === 'RENTAL' ? 'For Rent' : 'For Sale'}
                             </span>
                         </span>
-                        {is_featured && (
-                            <span className="bg-gradient-to-r from-[#FFD700]/80 to-[#FFA500]/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-gray-800 shadow-sm flex items-center gap-1.5" title="Featured Property">
-                                <IconSparkles size={14} stroke={2} /> Featured
+                        {showFeaturedBadge && (isPromoted || badgeType) && (
+                            <span className="bg-gradient-to-r from-[#FFD700]/80 to-[#FFA500]/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-gray-800 shadow-sm flex items-center gap-1.5" title={is_exclusive ? 'Exclusive Property' : 'Featured Property'}>
+                                <IconSparkles size={14} stroke={2} /> {displayedBadgeType === 'exclusive' ? 'Exclusive' : 'Featured'}
                             </span>
                         )}
                     </div>

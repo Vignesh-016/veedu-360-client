@@ -146,7 +146,7 @@ class RealEstateApi {
     async getLatestPropertiesUploaded(limit: number = 4): Promise<ApiResponse<Property[]>> {
         return this.getProperties({
             p_limit: limit,
-            p_sort_by: 'created_at',
+            p_sort_by: 'updated_at',
             p_sort_direction: 'DESC',
             p_city: undefined,
             p_location_search: undefined,
@@ -441,6 +441,13 @@ class RealEstateApi {
         return this.handleRpc<number>('create_ticket_customer', payload);
     }
 
+    async updateTicket(payload: { p_ticket_id: number; p_subject: string; p_description: string; p_category: CreateTicketPayload['p_category'] }): Promise<ApiResponse<null>> {
+        const rpc = (name: string, params: Record<string, unknown>) =>
+            (this.supabase.rpc as unknown as (rpcName: string, rpcParams: Record<string, unknown>) => Promise<{ data: unknown; error: PostgrestError | null }>).call(this.supabase, name, params);
+        const { error } = await rpc('update_ticket_customer', payload);
+        return { data: null, error };
+    }
+
     async getMyTickets(offset: number = 0, limit: number = 10): Promise<ApiResponse<MyTickets[]>> {
         return this.handleRpc<MyTickets[]>('get_my_raised_tickets_customer', { p_offset: offset, p_limit: limit });
     }
@@ -448,6 +455,13 @@ class RealEstateApi {
     async addTicketComment(payload: AddTicketCommentPayload): Promise<ApiResponse<null>> {
         const response = await this.handleRpc<void>('add_ticket_comment_customer', payload);
         return { data: null, error: response.error };
+    }
+
+    async subscribeToNewsletter(email: string): Promise<ApiResponse<null>> {
+        const rpc = (name: string, params: Record<string, unknown>) =>
+            (this.supabase.rpc as unknown as (rpcName: string, rpcParams: Record<string, unknown>) => Promise<{ data: unknown; error: PostgrestError | null }>).call(this.supabase, name, params);
+        const { error } = await rpc('subscribe_to_newsletter', { p_email: email });
+        return { data: null, error };
     }
 
     async getTicketDetailsCustomer(ticketId: number): Promise<ApiResponse<TicketDetails | null>> {

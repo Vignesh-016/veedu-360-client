@@ -15,6 +15,7 @@ import { useNotification } from '../components/NotificationProvider';
 import { getSecondaryButtonClasses, getStatusBadgeClasses } from '../lib/twUtils';
 import TicketCommentForm from '../components/TicketCommentForm';
 import TicketCommentCard from '../components/TicketCommentCard';
+import { Constants } from '../database.types';
 
 // Helper to get status text
 const getStatusText = (status: string | null | undefined) => {
@@ -30,6 +31,12 @@ function TicketDetailsPage() {
     const [details, setDetails] = useState<TicketDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [editing, setEditing] = useState(false);
+    const [editSubject, setEditSubject] = useState('');
+    const [editDescription, setEditDescription] = useState('');
+    const [editCategory, setEditCategory] = useState<TicketDetails['category']>('GENERAL_INQUIRY');
+    const [saving, setSaving] = useState(false);
+    const { showSuccessNotification } = useNotification();
 
     const fetchTicketDetails = useCallback(async () => {
         if (!ticketId || isNaN(Number(ticketId))) {
@@ -68,6 +75,37 @@ function TicketDetailsPage() {
 
     const handleCommentAdded = () => {
         fetchTicketDetails();
+    };
+
+    const beginEditing = () => {
+        if (!details) return;
+        setEditSubject(details.subject);
+        setEditDescription(details.description);
+        setEditCategory(details.category);
+        setEditing(true);
+    };
+
+    const saveEdits = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (!details || !editSubject.trim() || !editDescription.trim()) return;
+        setSaving(true);
+        try {
+            const { error: updateError } = await api.updateTicket({
+                p_ticket_id: details.ticket_id,
+                p_subject: editSubject.trim(),
+                p_description: editDescription.trim(),
+                p_category: editCategory,
+            });
+            if (updateError) throw updateError;
+            await fetchTicketDetails();
+            setEditing(false);
+            showSuccessNotification('Ticket Updated', 'Your ticket was updated successfully.');
+        } catch (err) {
+            const message = typeof err === 'string' ? err : err instanceof Error ? err.message : 'Unable to update ticket.';
+            showErrorNotification('Update Failed', message);
+        } finally {
+            setSaving(false);
+        }
     };
 
     // --- Rendering ---
@@ -127,6 +165,9 @@ function TicketDetailsPage() {
                         <span className={getStatusBadgeClasses(details.status) + ' shadow-sm text-sm'}>
                             {statusText}
                         </span>
+                        {isCurrentUserRaiser && !['RESOLVED', 'CLOSED', 'CANCELLED'].includes(details.status) && (
+                            <button type="button" onClick={beginEditing} className={getSecondaryButtonClasses()}>Edit</button>
+                        )}
                     </div>
 
                     {/* Key Details */}
@@ -173,12 +214,29 @@ function TicketDetailsPage() {
 
                 {/* Description */}
                 <div className="bg-white p-6 rounded-lg shadow border border-gray-200 mb-6">
+                    {editing ? (
+                        <form onSubmit={saveEdits} className="space-y-4">
+                            <label className="block text-sm font-medium text-gray-700">Subject
+                                <input value={editSubject} onChange={event => setEditSubject(event.target.value)} maxLength={100} className="mt-1 w-full rounded-md border-gray-300" required />
+                            </label>
+                            <label className="block text-sm font-medium text-gray-700">Category
+                                <select value={editCategory} onChange={event => setEditCategory(event.target.value as TicketDetails['category'])} className="mt-1 w-full rounded-md border-gray-300">
+                                    {Constants.public.Enums.ticket_category_enum.map(category => <option key={category} value={category}>{category.replace(/_/g, ' ')}</option>)}
+                                </select>
+                            </label>
+                            <label className="block text-sm font-medium text-gray-700">Description
+                                <textarea value={editDescription} onChange={event => setEditDescription(event.target.value)} maxLength={1000} className="mt-1 min-h-[120px] w-full rounded-md border-gray-300" required />
+                            </label>
+                            <div className="flex justify-end gap-2"><button type="button" onClick={() => setEditing(false)} className={getSecondaryButtonClasses()}>Cancel</button><button type="submit" disabled={saving} className={getSecondaryButtonClasses()}>{saving ? 'Saving…' : 'Save Changes'}</button></div>
+                        </form>
+                    ) : <>
                     <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <IconClipboardText size={18} /> Description
                     </h2>
                     <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                         {details.description}
                     </p>
+                    </>}
                 </div>
 
                 {/* Attachments */}

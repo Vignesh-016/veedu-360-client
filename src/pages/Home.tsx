@@ -56,6 +56,7 @@ function Home() {
 
                 const { data, error } = await api.getProperties({
                     p_limit: 4,
+                    p_is_featured: true,
                     p_sort_by: 'updated_at',
                     p_sort_direction: 'DESC',
                     p_city: undefined,
@@ -64,13 +65,30 @@ function Home() {
                 if (error) throw error;
 
                 if (data?.length) {
-                    setRecommendations(data);
+                    let featuredProperties = data;
+                    if (data.length < 4) {
+                        const globalFeaturedResponse = await api.getProperties({
+                            p_limit: 4,
+                            p_is_featured: true,
+                            p_sort_by: 'updated_at',
+                            p_sort_direction: 'DESC',
+                        });
+                        if (!globalFeaturedResponse.error && globalFeaturedResponse.data?.length) {
+                            const existingIds = new Set(data.map(property => property.property_id));
+                            featuredProperties = [
+                                ...data,
+                                ...globalFeaturedResponse.data.filter(property => !existingIds.has(property.property_id)),
+                            ].slice(0, 4);
+                        }
+                    }
+                    setRecommendations(featuredProperties);
                     setRecommendationsFallbackLocation(null);
                 } else if (searchLocationForApi) {
                     const location = await geocodeLocation(searchLocationForApi);
                     if (location) {
                         const nearbyResponse = await api.getProperties({
                             p_limit: 100,
+                            p_is_featured: true,
                             p_sort_by: 'updated_at',
                             p_sort_direction: 'DESC',
                             p_location_search: undefined,
@@ -167,6 +185,11 @@ function Home() {
             <title>
                 Find Your Perfect Property {geolocationLoading && currentCity === DEFAULT_CITY ? '' : `in ${currentCity}`} | {companyName}
             </title>
+            <meta name="description" content="Explore verified properties, rental homes, land and property management services with Veedu 360." />
+            <meta property="og:title" content="Veedu 360 | Find Your Perfect Property" />
+            <meta property="og:description" content="Explore verified properties, rental homes, land and property management services with Veedu 360." />
+            <meta property="og:url" content="https://www.veedu360.com/" />
+            <meta property="og:image" content="https://www.veedu360.com/Veedu360%20Logo%20Web-01.png" />
             <div className="home-page bg-gray-50 min-h-screen">
 
                 <HomeEnquiryModal user={user} onSuccess={() => showSuccessNotification('Enquiry sent', 'Our team will contact you shortly.')} />
@@ -228,6 +251,7 @@ function Home() {
                                     key={prop.property_id}
                                     property={prop}
                                     variant="simple"
+                                    badgeType="featured"
                                 />
                             ))}
                         </div>
@@ -558,7 +582,7 @@ function Home() {
 
                                 {/* Email Support */}
                                 <a
-                                    href="mailto:winolicreators@gmail.com"
+                                    href="mailto:admin@veedu360.com"
                                     className="bg-white rounded-xl p-6 flex items-center justify-between hover:shadow-lg transition-shadow duration-300 group cursor-pointer border border-gray-200"
                                 >
                                     <div className="flex items-center gap-4">
@@ -567,7 +591,7 @@ function Home() {
                                         </div>
                                         <div className="text-left">
                                             <h3 className="font-semibold text-gray-800">Email Support</h3>
-                                            <p className="text-sm text-gray-500">winolicreators@gmail.com</p>
+                                            <p className="text-sm text-gray-500">admin@veedu360.com</p>
                                         </div>
                                     </div>
                                     <svg className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1309,6 +1309,7 @@ CREATE OR REPLACE FUNCTION public.get_properties_customer(
     nearest_swimmingpool DECIMAL,
     proximity_unit public.proximity_unit_enum,
     is_featured BOOLEAN,
+    is_exclusive BOOLEAN,
     property_images JSONB,
     updated_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE,
@@ -1338,7 +1339,13 @@ BEGIN
         v_final_sort_direction := 'DESC';
     END IF;
 
-    v_order_by_clause := format('ORDER BY pwc.is_featured DESC, %s %s, pwc.property_id ASC', v_final_sort_by, v_final_sort_direction);
+    IF p_sort_by IS NULL OR p_sort_by = 'updated_at' THEN
+        v_order_by_clause := 'ORDER BY pwc.is_exclusive DESC, COALESCE(pwc.updated_at, pwc.created_at) DESC, pwc.property_id DESC';
+    ELSIF p_sort_by = 'area' THEN
+        v_order_by_clause := format('ORDER BY pwc.is_exclusive DESC, pwc.normalized_area_sqft %s NULLS LAST, COALESCE(pwc.updated_at, pwc.created_at) DESC, pwc.property_id DESC', v_final_sort_direction);
+    ELSE
+        v_order_by_clause := format('ORDER BY pwc.is_exclusive DESC, %s %s NULLS LAST, COALESCE(pwc.updated_at, pwc.created_at) DESC, pwc.property_id DESC', v_final_sort_by, v_final_sort_direction);
+    END IF;
 
     v_sql := $QUERY$
         WITH props_base AS (
@@ -1346,7 +1353,13 @@ BEGIN
                 p.property_id, p.property_type, p.listing_type, p.price, p.advance_amount, p.area, p.area_unit, p.year_built,
                 p.description, p.details, p.youtube_url, p.locality, p.city, p.pincode, p.latitude, p.longitude,
                 p.nearest_hospital, p.nearest_busstop, p.nearest_gym, p.nearest_park, p.nearest_school, p.nearest_swimmingpool,
-                p.proximity_unit, p.is_featured, p.updated_at, p.created_at,
+                p.proximity_unit, p.is_featured, p.is_exclusive, p.updated_at, p.created_at,
+                CASE p.area_unit
+                    WHEN 'SQ_FT' THEN p.area
+                    WHEN 'CENTS' THEN p.area * 435.6
+                    WHEN 'ACRES' THEN p.area * 43560
+                    ELSE NULL
+                END AS normalized_area_sqft,
                 COALESCE(p.details->>'house_name', p.details->>'building_name', p.details->>'land_name', p.locality) AS derived_property_name,
                 (
                     SELECT COALESCE(jsonb_agg(
@@ -1413,7 +1426,7 @@ BEGIN
             pwc.property_id, pwc.property_type, pwc.listing_type, pwc.price, pwc.advance_amount, pwc.area, pwc.area_unit, pwc.year_built,
             pwc.description, pwc.details, pwc.youtube_url, pwc.locality, pwc.city, pwc.pincode, pwc.latitude, pwc.longitude,
             pwc.nearest_hospital, pwc.nearest_busstop, pwc.nearest_gym, pwc.nearest_park, pwc.nearest_school, pwc.nearest_swimmingpool,
-            pwc.proximity_unit, pwc.is_featured, pwc.property_images_data AS property_images,
+            pwc.proximity_unit, pwc.is_featured, pwc.is_exclusive, pwc.property_images_data AS property_images,
             pwc.updated_at, pwc.created_at,
             pwc.is_in_wishlist_flag AS is_in_wishlist,
             pwc.current_interaction_status AS interaction_status,
