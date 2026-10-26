@@ -34,7 +34,10 @@ const createPriceMarkerIcon = (priceFormatted: string, isRental: boolean) => {
 // --- FitBounds Component ---
 const ChangeView = ({ bounds }: { bounds: LatLngBounds | null }) => {
     const map = useMap();
-    useEffect(() => { if (bounds) map.fitBounds(bounds, { padding: [30, 30] }); }, [bounds, map]);
+    useEffect(() => {
+        if (bounds) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+        window.setTimeout(() => map.invalidateSize(), 0);
+    }, [bounds, map]);
     return null;
 };
 
@@ -43,16 +46,19 @@ function PropertiesMapView({ properties, className = 'h-[500px] w-full rounded-l
     const navigate = useNavigate();
 
     // Filter properties with valid coordinates and calculate bounds
-    const validProperties = properties.filter(p => Number.isFinite(Number(p.latitude)) && Number.isFinite(Number(p.longitude)) && Number(p.latitude) >= -90 && Number(p.latitude) <= 90 && Number(p.longitude) >= -180 && Number(p.longitude) <= 180);
+    const validProperties = Array.from(new Map(properties
+        .filter(p => p.latitude != null && p.longitude != null)
+        .filter(p => Number.isFinite(Number(p.latitude)) && Number.isFinite(Number(p.longitude)) && Number(p.latitude) >= -90 && Number(p.latitude) <= 90 && Number(p.longitude) >= -180 && Number(p.longitude) <= 180)
+        .map(property => [property.property_id, property])).values());
     let mapBounds: LatLngBounds | null = null;
     if (validProperties.length > 0) {
         const corner1 = L.latLng(
-            Math.min(...validProperties.map(p => p.latitude!)),
-            Math.min(...validProperties.map(p => p.longitude!))
+            Math.min(...validProperties.map(p => Number(p.latitude))),
+            Math.min(...validProperties.map(p => Number(p.longitude)))
         );
         const corner2 = L.latLng(
-            Math.max(...validProperties.map(p => p.latitude!)),
-            Math.max(...validProperties.map(p => p.longitude!))
+            Math.max(...validProperties.map(p => Number(p.latitude))),
+            Math.max(...validProperties.map(p => Number(p.longitude)))
         );
         mapBounds = L.latLngBounds(corner1, corner2);
     }
@@ -60,7 +66,7 @@ function PropertiesMapView({ properties, className = 'h-[500px] w-full rounded-l
     // Fallback center if no properties or only one property
     const defaultCenter: LatLngExpression = mapBounds && validProperties.length > 1
         ? mapBounds.getCenter()
-        : (validProperties[0] ? [validProperties[0].latitude!, validProperties[0].longitude!] : [10.0, 77.5]); // Default to a generic location
+        : (validProperties[0] ? [Number(validProperties[0].latitude), Number(validProperties[0].longitude)] : [10.0, 77.5]);
 
     const defaultZoom = mapBounds && validProperties.length > 1 ? 12 : 14; // Zoom further if only one property
 
@@ -110,7 +116,7 @@ function PropertiesMapView({ properties, className = 'h-[500px] w-full rounded-l
             {mapBounds && <ChangeView bounds={mapBounds} />}
 
             {validProperties.map((prop) => {
-                const position: LatLngExpression = [prop.latitude!, prop.longitude!];
+                const position: LatLngExpression = [Number(prop.latitude), Number(prop.longitude)];
                 const priceFormatted = formatPrice(prop.price);
                 const isRental = prop.listing_type === 'RENTAL';
                 const PropertyIcon = getPropertyIcon(prop.property_type);

@@ -3,7 +3,7 @@
 import { NavLink } from 'react-router-dom';
 import { IconArrowRight, IconCheckbox, IconLayout, IconApps, IconHeadset } from '@tabler/icons-react';
 
-const companyName = import.meta.env.VITE_COMPANY_NAME || 'Veedu360';
+const companyName = import.meta.env.VITE_COMPANY_NAME || 'Veedu 360';
 
 function AboutUs() {
     return (
@@ -127,7 +127,7 @@ function AboutUs() {
                 <section className="py-24 container mx-auto px-4">
                     <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
                         <h2 className="text-4xl md:text-5xl font-bold text-[#2C4964]">Why Choose Us?</h2>
-                        <p className="text-gray-600 text-lg">We prioritize the security of your data and transactions through robust measures, offering a new standard in property management.</p>
+                        <p className="text-gray-600 text-lg">Built to make property discovery, visits and connections easier and more trustworthy.</p>
                     </div>
 
                     <div className="flex flex-col lg:flex-row items-center justify-center gap-12 max-w-7xl mx-auto">
@@ -137,14 +137,14 @@ function AboutUs() {
                                     <IconCheckbox size={28} />
                                 </div>
                                 <h4 className="text-2xl font-bold text-[#2C4964]">Verified Listings</h4>
-                                <p className="text-gray-600 leading-relaxed italic">"We strive to ensure all properties listed on our platform are verified for authenticity."</p>
+                                <p className="text-gray-600 leading-relaxed italic">We strive to ensure all properties listed on our platform are verified for authenticity.</p>
                             </div>
                             <div className="bg-gray-50 p-8 rounded-2xl space-y-4 hover:bg-white hover:shadow-xl transition-all border border-transparent hover:border-[#2C4964]/20 group relative">
                                 <div className="bg-[#2C4964] w-14 h-14 rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg shadow-[#2C4964]/20">
                                     <IconLayout size={28} />
                                 </div>
                                 <h4 className="text-2xl font-bold text-[#2C4964]">User-Friendly Interface</h4>
-                                <p className="text-gray-600 leading-relaxed italic">"Our platform is designed for ease of use, making property search and management intuitive."</p>
+                                <p className="text-gray-600 leading-relaxed italic">Our platform is designed for ease of use, making property search and management intuitive.</p>
                             </div>
                         </div>
 
@@ -164,14 +164,14 @@ function AboutUs() {
                                     <IconApps size={28} />
                                 </div>
                                 <h4 className="text-2xl font-bold text-[#2C4964]">Comprehensive Services</h4>
-                                <p className="text-gray-600 leading-relaxed italic">"From listings to rent management and maintenance requests, we offer a wide array of services."</p>
+                                <p className="text-gray-600 leading-relaxed italic">From listings to rent management and maintenance requests, we offer a wide array of services.</p>
                             </div>
                             <div className="bg-gray-50 p-8 rounded-2xl space-y-4 hover:bg-white hover:shadow-xl transition-all border border-transparent hover:border-[#2C4964]/20 group relative">
                                 <div className="bg-[#2C4964] w-14 h-14 rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg shadow-[#2C4964]/20">
                                     <IconHeadset size={28} />
                                 </div>
                                 <h4 className="text-2xl font-bold text-[#2C4964]">Dedicated Support</h4>
-                                <p className="text-gray-600 leading-relaxed italic">"Our customer support team is always ready to assist you with any queries or issues."</p>
+                                <p className="text-gray-600 leading-relaxed italic">Our customer support team is always ready to assist you with any queries or issues.</p>
                             </div>
                         </div>
                     </div>

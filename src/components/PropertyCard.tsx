@@ -190,9 +190,14 @@ function PropertyCard({ property, variant = 'detailed', onInteractionUpdate, sho
             const details = property.details as any;
             if (details?.num_bedrooms) tags.push(`${details.num_bedrooms} Beds`);
             if (details?.furnished_status) tags.push(getDisplayValue(furnishedStatusMap, details.furnished_status));
-            tags.push(getDisplayValue(propertyTypeMap, property.property_type));
+            if (details?.house_type) tags.push(getDisplayValue(houseTypeMap, details.house_type));
         } else {
-            tags.push(getDisplayValue(propertyTypeMap, property.property_type));
+            const details = property.details as any;
+            if (property.property_type === 'BUILDING' && details?.building_type) {
+                tags.push(getDisplayValue(buildingTypeMap, details.building_type));
+            } else {
+                tags.push(getDisplayValue(propertyTypeMap, property.property_type));
+            }
         }
         tags.push(areaFormatted);
 
@@ -208,6 +213,7 @@ function PropertyCard({ property, variant = 'detailed', onInteractionUpdate, sho
                         alt={displayName}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         loading="lazy"
+                        decoding="async"
                         onError={(e) => { e.currentTarget.src = fallbackImageUrl; }}
                     />
 
@@ -231,7 +237,7 @@ function PropertyCard({ property, variant = 'detailed', onInteractionUpdate, sho
                     <div className="absolute bottom-0 left-0">
                         <div className="bg-white py-1 px-3 rounded-tr-xl flex items-center gap-1.5 shadow-sm z-10">
                             <IconRosetteDiscountCheck size={16} className="text-green-600 fill-green-600/10" stroke={2.5} />
-                            <span className="text-xs font-semibold text-gray-700">Veedu360 Assured</span>
+                            <span className="text-xs font-semibold text-gray-700">Veedu 360 Assured</span>
                         </div>
                     </div>
                 </div>
@@ -240,7 +246,7 @@ function PropertyCard({ property, variant = 'detailed', onInteractionUpdate, sho
                 <div className="p-3.5 flex flex-col flex-grow">
                     {/* Title & Price */}
                     <div className="mb-3">
-                        <h3 className="text-[17px] font-semibold text-[#2C4964] hover:text-[#D9A619] line-clamp-1 mb-1 leading-tight transition-colors" title={displayName}>
+                        <h3 className="text-[17px] font-semibold text-[#2C4964] hover:text-[#D9A619] line-clamp-2 mb-1 leading-tight transition-colors" title={displayName}>
                             {displayName}
                         </h3>
                         <div className="flex items-baseline gap-1">
@@ -367,6 +373,7 @@ function PropertyCard({ property, variant = 'detailed', onInteractionUpdate, sho
                         alt={displayName}
                         className="w-full h-56 sm:h-86 object-cover transition-transform duration-700 group-hover:scale-105"
                         loading="lazy"
+                        decoding="async"
                         onError={(e) => { e.currentTarget.src = fallbackImageUrl; }}
                     />
                     <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">

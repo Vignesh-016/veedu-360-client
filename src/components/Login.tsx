@@ -1,17 +1,20 @@
 import { IconBrandGoogle } from '@tabler/icons-react';
 import { useAuth } from '../lib/AuthContext';
 
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate, Link, useLocation } from 'react-router-dom';
 import LoadingSpinner from './LoadingSpinner';
 
 function Login() {
     const { user, loading, signInWithGoogle } = useAuth();
+    const location = useLocation();
 
     if (!loading && user) {
-        return <Navigate to="/" replace />;
+        const destination = sessionStorage.getItem('postLoginDestination') || location.state?.from || '/';
+        sessionStorage.removeItem('postLoginDestination');
+        return <Navigate to={destination} replace />;
     }
 
-    const companyName = import.meta.env.VITE_COMPANY_NAME;
+    const companyName = import.meta.env.VITE_COMPANY_NAME?.trim() || 'Veedu 360';
 
     return (
         <>

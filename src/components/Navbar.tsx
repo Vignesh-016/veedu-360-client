@@ -23,7 +23,7 @@ import {
 } from '@tabler/icons-react';
 import { getPrimaryButtonClasses, getSecondaryButtonClasses } from '../lib/twUtils';
 import LoadingSpinner from './LoadingSpinner';
-import { Menu, MenuButton, MenuItem, MenuItems, Popover, PopoverButton, PopoverPanel, Transition } from '@headlessui/react';
+import { Menu, MenuButton, MenuItem, MenuItems, Popover, PopoverButton, PopoverGroup, PopoverPanel, Transition } from '@headlessui/react';
 import api from '../lib/supabaseClient';
 
 
@@ -47,8 +47,6 @@ const renderNavLinks = (closeMobileMenu?: () => void) => {
             subItems: [
                 { name: 'Houses', path: '/catalogue?p_listing_types=RENTAL&p_property_types=HOUSE', icon: IconHome2 },
                 { name: 'Land', path: '/catalogue?p_listing_types=RENTAL&p_property_types=LAND', icon: IconMapPin },
-                { name: 'Buildings', path: '/catalogue?p_listing_types=RENTAL&p_property_types=BUILDING', icon: IconBuildingSkyscraper },
-                { name: 'Apartments', path: '/catalogue?p_listing_types=RENTAL&p_property_types=HOUSE&p_house_types=APARTMENT_FLAT', icon: IconBuildingCommunity },
             ],
         },
         { name: 'Visit Credits', path: '/plans#visit-credits' },
@@ -73,19 +71,19 @@ const renderNavLinks = (closeMobileMenu?: () => void) => {
                     leaveTo="opacity-0 translate-y-1"
                 >
                     <PopoverPanel className="absolute left-0 z-20 mt-2 w-56 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-100 md:origin-top-left">
-                        <div className="py-1">
+                        {({ close }) => <div className="py-1">
                             {item.subItems.map((subItem) => (
                                 <Link
                                     key={subItem.name}
                                     to={subItem.path}
-                                    onClick={closeMobileMenu}
+                                    onClick={() => { close(); closeMobileMenu?.(); }}
                                     className="group flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 no-underline data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
                                 >
                                     <subItem.icon size={16} className="text-gray-400 group-hover:text-[#D9A619]" stroke={1.5} />
                                     {subItem.name}
                                 </Link>
                             ))}
-                        </div>
+                        </div>}
                     </PopoverPanel>
                 </Transition>
                 <div className="ml-4 mt-1 space-y-1 md:hidden">
@@ -337,7 +335,7 @@ function Navbar() {
                                                 leaveFrom="opacity-100 translate-y-0"
                                                 leaveTo="opacity-0 translate-y-1"
                                             >
-                                                <PopoverPanel className="absolute left-0 md:left-auto md:right-auto z-50 mt-[-1px] w-[92vw] sm:w-[500px] md:w-[720px] origin-top-left rounded-b-lg rounded-r-lg bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200 p-4 md:p-6 max-h-[80vh] overflow-y-auto">
+                                                <PopoverPanel className="absolute left-0 md:left-auto md:right-auto z-50 mt-[-1px] w-[92vw] sm:w-[500px] md:w-[720px] origin-top-left rounded-b-lg rounded-r-lg bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200 p-4 md:p-6 max-h-[min(24rem,calc(100vh-6rem))] overflow-y-auto">
                                                     <div className="flex flex-col gap-4">
                                                         <div className="flex items-center gap-2 text-[#E11D48] font-bold text-sm tracking-wider pb-2 border-b border-gray-100">
                                                             <IconMapPin size={16} className="text-[#E11D48]" stroke={2} />
@@ -379,7 +377,9 @@ function Navbar() {
                             </div>
 
                             <nav className="hidden md:flex items-center gap-3 flex-grow justify-center">
-                                {renderNavLinks(closePopover)}
+                                <PopoverGroup className="flex items-center gap-3">
+                                    {renderNavLinks(closePopover)}
+                                </PopoverGroup>
                             </nav>
 
                             <div className="hidden md:flex items-center gap-3 flex-shrink-0">
@@ -511,7 +511,9 @@ function Navbar() {
                                 </div>
 
                                 <nav className="space-y-1 px-2 py-3">
-                                    {renderNavLinks(closePopover)}
+                                    <PopoverGroup className="flex flex-col">
+                                        {renderNavLinks(closePopover)}
+                                    </PopoverGroup>
                                 </nav>
 
                                 {user ? (

@@ -8,40 +8,56 @@ import RequirePhone from './components/RequirePhone';
 import ScrollToTop from './components/ScrollToTop';
 import GoogleAnalytics from './components/GoogleAnalytics';
 
-const Navbar = lazy(() => import('./components/Navbar'));
-const Home = lazy(() => import('./pages/Home'));
-const Login = lazy(() => import('./components/Login'));
-const AuthCallback = lazy(() => import('./components/AuthCallback'));
-const VerifyPhone = lazy(() => import('./pages/VerifyPhone'));
-const Catalogue = lazy(() => import('./pages/Catalogue'));
-const Wishlist = lazy(() => import('./pages/Wishlist'));
-const Plans = lazy(() => import('./pages/Plans'));
-const BuyContactPlans = lazy(() => import('./pages/BuyContactPlans'));
-const PropertySubmission = lazy(() => import('./pages/PropertySubmission'));
-const NotFound = lazy(() => import('./pages/NotFound'));
-const PropertyDetailsPage = lazy(() => import('./pages/PropertyDetailsPage'));
-const Terms = lazy(() => import('./pages/Terms'));
-const Privacy = lazy(() => import('./pages/Privacy'));
-const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
-const DeliveryPolicy = lazy(() => import('./pages/DeliveryPolicy'));
-const Profile = lazy(() => import('./pages/Profile'));
-const Footer = lazy(() => import('./components/Footer'));
-const Transactions = lazy(() => import('./pages/Transactions'));
-const MyOccupiedProperties = lazy(() => import('./pages/MyOccupiedPropertiesPage'));
-const MyListedProperties = lazy(() => import('./pages/MyListedProperties'));
-const MyTicketsPage = lazy(() => import('./pages/MyTicketsPage'));
-const CreateTicket = lazy(() => import('./pages/CreateTicket'));
-const TicketDetailsPage = lazy(() => import('./pages/TicketDetailsPage'));
-const MyPropertyDetailsPage = lazy(() => import('./pages/MyPropertyDetailsPage'));
-const EditPropertyPage = lazy(() => import('./pages/EditPropertyPage'));
-const AboutUs = lazy(() => import('./pages/AboutUs'));
-const ApartmentsForSaleTirunelveli = lazy(() => import('./pages/ApartmentsForSaleTirunelveli'));
-const CommercialPropertiesForSaleTirunelveli = lazy(() => import('./pages/CommercialPropertiesForSaleTirunelveli'));
-const HousesForSaleTirunelveli = lazy(() => import('./pages/HousesForSaleTirunelveli'));
-const PlotsForSaleTirunelveli = lazy(() => import('./pages/PlotsForSaleTirunelveli'));
-const VillasForSaleTirunelveli = lazy(() => import('./pages/VillasForSaleTirunelveli'));
-const MyRentalApplicationsPage = lazy(() => import('./pages/MyRentalApplicationsPage'));
-const MyRentalApplicationDetailsPage = lazy(() => import('./pages/MyRentalApplicationDetailsPage'));
+const lazyWithChunkRecovery = (importer: () => Promise<any>) => lazy(async () => {
+  try {
+    const module = await importer();
+    sessionStorage.removeItem('veedu360-chunk-recovery');
+    return module;
+  } catch (error) {
+    const recoveryKey = 'veedu360-chunk-recovery';
+    if (!sessionStorage.getItem(recoveryKey)) {
+      sessionStorage.setItem(recoveryKey, '1');
+      window.location.reload();
+    }
+    throw error;
+  }
+});
+
+const Navbar = lazyWithChunkRecovery(() => import('./components/Navbar'));
+const Home = lazyWithChunkRecovery(() => import('./pages/Home'));
+const Login = lazyWithChunkRecovery(() => import('./components/Login'));
+const AuthCallback = lazyWithChunkRecovery(() => import('./components/AuthCallback'));
+const VerifyPhone = lazyWithChunkRecovery(() => import('./pages/VerifyPhone'));
+const Catalogue = lazyWithChunkRecovery(() => import('./pages/Catalogue'));
+const Wishlist = lazyWithChunkRecovery(() => import('./pages/Wishlist'));
+const Plans = lazyWithChunkRecovery(() => import('./pages/Plans'));
+const BuyContactPlans = lazyWithChunkRecovery(() => import('./pages/BuyContactPlans'));
+const PropertySubmission = lazyWithChunkRecovery(() => import('./pages/PropertySubmission'));
+const NotFound = lazyWithChunkRecovery(() => import('./pages/NotFound'));
+const PropertyDetailsPage = lazyWithChunkRecovery(() => import('./pages/PropertyDetailsPage'));
+const Terms = lazyWithChunkRecovery(() => import('./pages/Terms'));
+const Privacy = lazyWithChunkRecovery(() => import('./pages/Privacy'));
+const RefundPolicy = lazyWithChunkRecovery(() => import('./pages/RefundPolicy'));
+const DeliveryPolicy = lazyWithChunkRecovery(() => import('./pages/DeliveryPolicy'));
+const Profile = lazyWithChunkRecovery(() => import('./pages/Profile'));
+const Footer = lazyWithChunkRecovery(() => import('./components/Footer'));
+const Transactions = lazyWithChunkRecovery(() => import('./pages/Transactions'));
+const MyOccupiedProperties = lazyWithChunkRecovery(() => import('./pages/MyOccupiedPropertiesPage'));
+const MyListedProperties = lazyWithChunkRecovery(() => import('./pages/MyListedProperties'));
+const MyTicketsPage = lazyWithChunkRecovery(() => import('./pages/MyTicketsPage'));
+const CreateTicket = lazyWithChunkRecovery(() => import('./pages/CreateTicket'));
+const TicketDetailsPage = lazyWithChunkRecovery(() => import('./pages/TicketDetailsPage'));
+const MyPropertyDetailsPage = lazyWithChunkRecovery(() => import('./pages/MyPropertyDetailsPage'));
+const EditPropertyPage = lazyWithChunkRecovery(() => import('./pages/EditPropertyPage'));
+const AboutUs = lazyWithChunkRecovery(() => import('./pages/AboutUs'));
+const ApartmentsForSaleTirunelveli = lazyWithChunkRecovery(() => import('./pages/ApartmentsForSaleTirunelveli'));
+const CommercialPropertiesForSaleTirunelveli = lazyWithChunkRecovery(() => import('./pages/CommercialPropertiesForSaleTirunelveli'));
+const HousesForSaleTirunelveli = lazyWithChunkRecovery(() => import('./pages/HousesForSaleTirunelveli'));
+const PlotsForSaleTirunelveli = lazyWithChunkRecovery(() => import('./pages/PlotsForSaleTirunelveli'));
+const VillasForSaleTirunelveli = lazyWithChunkRecovery(() => import('./pages/VillasForSaleTirunelveli'));
+const ComingSoon = lazyWithChunkRecovery(() => import('./pages/ComingSoon'));
+const MyRentalApplicationsPage = lazyWithChunkRecovery(() => import('./pages/MyRentalApplicationsPage'));
+const MyRentalApplicationDetailsPage = lazyWithChunkRecovery(() => import('./pages/MyRentalApplicationDetailsPage'));
 
 import { IconBrandWhatsapp } from '@tabler/icons-react';
 
@@ -63,7 +79,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         href="https://wa.me/919566034213"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center group"
+        className="fixed bottom-6 left-6 z-50 bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center group"
         aria-label="Contact us on WhatsApp"
         title="Chat with us on WhatsApp"
       >
@@ -101,6 +117,7 @@ function App() {
                 <Route path="/houses-for-sale-in-tirunelveli" element={<HousesForSaleTirunelveli />} />
                 <Route path="/plots-for-sale-in-tirunelveli" element={<PlotsForSaleTirunelveli />} />
                 <Route path="/villas-for-sale-in-tirunelveli" element={<VillasForSaleTirunelveli />} />
+                <Route path="/coming-soon/:category" element={<ComingSoon />} />
 
                 {/* Routes requiring login AND phone */}
                 <Route

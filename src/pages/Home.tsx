@@ -213,7 +213,7 @@ function Home() {
                             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight">
                                 Discover Your Next Property
                                 <span className="block text-[#FFFFFF] mt-3 font-bold">
-                                    {geolocationLoading ? DEFAULT_CITY : currentCity}
+                                    in {geolocationLoading ? DEFAULT_CITY : currentCity}
                                 </span>
                             </h1>
                         </div>
@@ -245,7 +245,7 @@ function Home() {
                             <LoadingSpinner />
                         </div>
                     ) : recommendations.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
                             {recommendations.map((prop) => (
                                 <PropertyCard
                                     key={prop.property_id}
@@ -350,6 +350,7 @@ function Home() {
                                     key={prop.property_id}
                                     property={prop}
                                     variant="simple"
+                                    showFeaturedBadge={false}
                                 />
                             ))}
                         </div>
@@ -364,7 +365,7 @@ function Home() {
                         <div className="text-center mb-10">
                             <h2 className="text-3xl font-bold text-[#2C4964] mb-3">Why Choose Us?</h2>
                             <p className="text-gray-500 max-w-2xl mx-auto text-sm">
-                                We prioritize the security of your data and transactions through robust measures, offering a new standard in property management.
+                                Built to make property discovery, visits and connections easier and more trustworthy.
                             </p>
                         </div>
 
@@ -377,7 +378,7 @@ function Home() {
                                     </div>
                                     <h3 className="font-bold text-gray-800 text-lg mb-2">Verified Listings</h3>
                                     <p className="text-xs text-gray-500 leading-relaxed">
-                                        "We strive to ensure all properties listed on our platform are verified for authenticity."
+                                        We strive to ensure all properties listed on our platform are verified for authenticity.
                                     </p>
                                 </div>
                                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -386,7 +387,7 @@ function Home() {
                                     </div>
                                     <h3 className="font-bold text-gray-800 text-lg mb-2">User-Friendly Interface</h3>
                                     <p className="text-xs text-gray-500 leading-relaxed">
-                                        "Our platform is designed for ease of use, making your property journey smooth."
+                                        Our platform is designed for ease of use, making your property journey smooth.
                                     </p>
                                 </div>
                             </div>
@@ -410,7 +411,7 @@ function Home() {
                                     </div>
                                     <h3 className="font-bold text-gray-800 text-lg mb-2">Comprehensive Services</h3>
                                     <p className="text-xs text-gray-500 leading-relaxed">
-                                        "From listings to rent management and maintenance requests, we offer a wide array of services."
+                                        From listings to rent management and maintenance requests, we offer a wide array of services.
                                     </p>
                                 </div>
                                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -419,7 +420,7 @@ function Home() {
                                     </div>
                                     <h3 className="font-bold text-gray-800 text-lg mb-2">Dedicated Support</h3>
                                     <p className="text-xs text-gray-500 leading-relaxed">
-                                        "Our support team is always ready to assist you with any inquiries or issues you may have."
+                                        Our support team is always ready to assist you with any inquiries or issues you may have.
                                     </p>
                                 </div>
                             </div>
@@ -468,7 +469,7 @@ function Home() {
                                     {homepageSettings?.testimonials?.title || "What Our Customers Say"}
                                 </h2>
                                 <p className="text-gray-600 text-lg leading-relaxed mb-8 max-w-md">
-                                    {homepageSettings?.testimonials?.subtitle || "Hear from homeowners who rely on our management services and tenants who found their perfect homes through Veedu360."}
+                                {homepageSettings?.testimonials?.subtitle || "Hear from homeowners who rely on our management services and tenants who found their perfect homes through Veedu 360."}
                                 </p>
                                 {/* Decorative circle */}
                                 <div className="absolute -left-20 -top-20 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-50 -z-10" />

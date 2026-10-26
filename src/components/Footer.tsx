@@ -16,7 +16,7 @@ const Footer = () => {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { showSuccessNotification, showErrorNotification } = useNotification();
-  const companyName = import.meta.env.VITE_COMPANY_NAME || 'Veedu360';
+  const companyName = import.meta.env.VITE_COMPANY_NAME?.trim() || 'Veedu 360';
   const contactAddress = import.meta.env.VITE_CONTACT_ADDRESS || '233 Pothigai Nagar, Perumalpuram, Tirunelveli - 627007';
   const contactPhone = import.meta.env.VITE_CONTACT_PHONE || '+91 74186 99622';
   const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'admin@veedu360.com';
@@ -112,7 +112,7 @@ const Footer = () => {
             <ul className="space-y-3 text-sm">
               <li><Link to="/" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Home</Link></li>
               <li><Link to="/catalogue" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Properties</Link></li>
-              <li><Link to="/plans" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Visit Plans</Link></li>
+              <li><Link to="/plans" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Visit Credits</Link></li>
               <li><Link to="/submit-property" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">Post Property</Link></li>
               <li><Link to="/about" className="hover:text-white hover:translate-x-1 transition-all inline-block duration-200">About Us</Link></li>
             </ul>
@@ -166,7 +166,6 @@ const Footer = () => {
               <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
               <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link to="/refund-policy" className="hover:text-white transition-colors">Refund Policy</Link>
-              <Link to="/delivery-policy" className="hover:text-white transition-colors">Delivery Policy</Link>
               <a href="/sitemap.xml" className="hover:text-white transition-colors">Sitemap</a>
             </div>
           </div>

@@ -14,6 +14,8 @@ import { Dialog, Transition, TransitionChild, DialogPanel } from '@headlessui/re
 import { useNotification } from '../components/NotificationProvider';
 import { getTertiaryButtonClasses } from '../lib/twUtils';
 import { DEFAULT_CITY, distanceInKilometres, geocodeLocation } from '../lib/geoUtils';
+import { getPropertyLabel } from '../lib/propertyAvailability';
+import PropertyComingSoon from '../components/PropertyComingSoon';
 const PropertiesMapView = lazy(() => import('../components/PropertiesMapView'));
 
 const ITEMS_PER_PAGE = 12;
@@ -145,6 +147,7 @@ function Catalogue() {
             || debouncedFiltersFromUrl.p_price_max !== undefined;
         const hasAreaSort = debouncedFiltersFromUrl.p_sort_by === 'area';
         const shouldPaginateLocally = hasLocationSearch || hasBudgetFilter || hasAreaSort;
+        setProperties([]);
 
         try {
             const { data, error: fetchError } = await api.getProperties({
@@ -207,6 +210,18 @@ function Catalogue() {
                 setTotalProperties(fetchedProperties[0].total_count);
             } else if (currentOffset === 0) {
                 setTotalProperties(0);
+            } else {
+                const countResponse = await api.getProperties({ ...debouncedFiltersFromUrl, p_offset: 0, p_limit: 1 });
+                if (requestId !== requestVersion.current) return;
+                const totalCount = countResponse.data?.[0]?.total_count ?? 0;
+                setTotalProperties(totalCount);
+                if (totalCount > 0) {
+                    setSearchParams(previous => {
+                        const next = new URLSearchParams(previous);
+                        next.delete('page');
+                        return next;
+                    }, { replace: true });
+                }
             }
 
         } catch (err: any) {
@@ -237,6 +252,8 @@ function Catalogue() {
 
         if (Object.prototype.hasOwnProperty.call(newFilters, 'p_property_types')) {
             const nextType = newFilters.p_property_types?.[0];
+            // Remove all incompatible filters from the URL as well as from
+            // the rendered state, so they cannot affect a later request.
             getInvalidFilterKeys(nextType).forEach(key => newSearchParams.delete(key));
         }
 
@@ -288,6 +305,19 @@ function Catalogue() {
     const closeMobileFilters = () => setMobileFiltersOpen(false);
     const totalPages = Math.ceil(totalProperties / itemsPerPage);
     const sortValue = `${currentFilters.p_sort_by || 'updated_at'}-${currentFilters.p_sort_direction || 'DESC'}`;
+    const hasSpecificFilters = Boolean(
+        currentFilters.p_price_min !== undefined || currentFilters.p_price_max !== undefined
+        || currentFilters.p_area_min !== undefined || currentFilters.p_area_max !== undefined
+        || currentFilters.p_num_bedrooms_min !== undefined || currentFilters.p_num_bedrooms_max !== undefined
+        || currentFilters.p_furnished_statuses?.length || currentFilters.p_facing_directions?.length
+        || currentFilters.p_land_types?.length || currentFilters.p_building_types?.length,
+    );
+    const emptyStateTitle = hasSpecificFilters
+        ? 'Matching Properties Coming Soon'
+        : `${getPropertyLabel(currentFilters.p_property_types?.[0], currentFilters.p_house_types?.[0])} for ${currentFilters.p_listing_types?.[0] === 'RENTAL' ? 'Rent' : 'Sale'}${currentFilters.p_location_search || currentFilters.p_city ? ` in ${currentFilters.p_location_search || currentFilters.p_city}` : ''} – Coming Soon`;
+    const emptyStateDescription = hasSpecificFilters
+        ? 'There are currently no active listings matching your selected preferences.'
+        : `There are currently no active ${getPropertyLabel(currentFilters.p_property_types?.[0], currentFilters.p_house_types?.[0]).toLowerCase()} listings${currentFilters.p_listing_types?.[0] === 'RENTAL' ? ' for rent' : ' for sale'}${currentFilters.p_location_search || currentFilters.p_city ? ` in ${currentFilters.p_location_search || currentFilters.p_city}` : ''}.`;
 
     // --- Rendering ---
     const renderContent = () => {
@@ -314,18 +344,7 @@ function Catalogue() {
         // No results found
         if (!loading && totalProperties === 0) {
             return (
-                <div className="bg-white p-8 rounded-lg shadow-sm text-center border border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-700 mb-2">No properties found</h3>
-                    <p className="text-gray-500">Try adjusting your filters or search criteria.</p>
-                    <button
-                        onClick={() => {
-                            setSearchParams({}, { replace: true });
-                        }}
-                        className="mt-4 px-4 py-2 bg-[#D9A619] text-white rounded-md hover:bg-white hover:text-[#D9A619] outline-[#D9A619] transition-colors text-sm"
-                    >
-                        Clear All Filters
-                    </button>
-                </div>
+                <PropertyComingSoon title={emptyStateTitle} description={emptyStateDescription} />
             );
         }
 

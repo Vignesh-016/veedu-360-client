@@ -199,7 +199,6 @@ function Profile() {
                         <span>•</span>
                         <Link to="/refund-policy" className="hover:underline">Refund Policy</Link>
                         <span>•</span>
-                        <Link to="/delivery-policy" className="hover:underline">Delivery Policy</Link>
                     </div>
                 </div>
             </div>

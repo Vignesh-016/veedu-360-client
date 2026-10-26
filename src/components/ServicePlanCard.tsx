@@ -42,7 +42,7 @@ const parseFeatures = (description: string): string[] => {
     return description
         .split('\n')
         .flatMap(line => line.split(/\s*\+\s*/))
-        .map(f => f.trim())
+        .map(f => f.trim().replace(/^\s*["“]+|["”]+\s*$/g, '').replace(/\bEnd\s+to\s+End\b/gi, 'End-to-End').replace(/^Low\s+monthly\s+percentage$/i, 'Competitive monthly management fee'))
         .filter(Boolean);
 };
 
@@ -77,7 +77,7 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
             <div className={`relative p-6 pb-4 border-b transition-all duration-300 ${selected ? 'border-white/20 bg-white/10' : 'border-slate-100 bg-slate-50/70'}`}>
                 <div className={`flex items-center ${showIcon ? 'gap-3.5' : ''}`}>
                     {showIcon && <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 shadow-sm group-hover:shadow-md ${selected ? 'bg-white/20' : 'bg-slate-100/80 group-hover:bg-[#2C4964]'}`}>
-                        {getPlanIcon(plan.name, 0)}
+                        {getPlanIcon(plan.name, Array.from(plan.name).reduce((total, character) => total + character.charCodeAt(0), 0))}
                     </div>}
                     <div className="flex-1">
                         <h3 className={`text-lg md:text-xl font-semibold leading-snug tracking-tight transition-colors ${selected ? 'text-white' : 'text-gray-800 group-hover:text-[#2C4964]'}`}>
@@ -137,7 +137,7 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
                             >
                                 <p className="text-[14px] md:text-[15px] leading-relaxed flex flex-wrap items-center gap-1.5">
                                     <span className={`font-semibold text-xs tracking-wider uppercase ${selected ? 'text-white' : 'text-[#2C4964]'}`}>
-                                        {titlePart}:
+                                        {isCostLine ? titlePart : `${titlePart}:`}
                                     </span>
                                     <span className={`font-medium transition-colors ${selected ? 'text-white/90' : 'text-[#2C4964] group-hover:text-gray-900'}`}>
                                         {bodyPart}
@@ -182,12 +182,12 @@ function ServicePlanCard({ plan, showIcon = true, selected = false, disabled = f
                 >
                     {configuredFreeButton ? (
                         <span className="flex items-baseline justify-center gap-2 normal-case tracking-normal">
-                            <span className="text-[11px] font-medium uppercase tracking-wide opacity-80">Processing fee</span>
+                            <span className="text-[11px] font-medium uppercase tracking-wide opacity-80" title="One-time document processing fee">One-time processing fee</span>
                             <span className="text-lg font-bold">Free</span>
                         </span>
                     ) : plan.document_processing_fee_enabled && postPrice > 0 ? (
                         <span className="flex items-baseline justify-center gap-2 normal-case tracking-normal">
-                            <span className="text-[11px] font-medium uppercase tracking-wide opacity-80">Processing fee</span>
+                            <span className="text-[11px] font-medium uppercase tracking-wide opacity-80" title="One-time document processing fee">One-time processing fee</span>
                             <span className="text-lg font-bold">{formatRupees(postPrice)}</span>
                             {hasStrikePrice && <span className="text-xs font-normal line-through opacity-70">{formatRupees(Number((plan as any).strike_price))}</span>}
                         </span>

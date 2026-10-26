@@ -230,8 +230,20 @@ function Plans() {
     // --- Handle Contact Plan Purchase ---
     const handleContactPurchase = async (planToBuy?: ContactPlan) => {
         const targetPlan = planToBuy || selectedContactPlan;
-        if (!targetPlan || contactPaymentLoading || !user) {
-            if (!user) showErrorNotification('Login Required', 'Please log in to purchase a plan.');
+        if (!targetPlan || contactPaymentLoading) {
+            return;
+        }
+
+        if (!user) {
+            const destination = `${location.pathname}${location.search}${location.hash}`;
+            sessionStorage.setItem('postLoginDestination', destination);
+            navigate('/login', {
+                state: {
+                    from: destination,
+                    loginRequired: true,
+                    message: targetPlan.price === 0 ? 'Please log in to claim your free credits.' : undefined,
+                },
+            });
             return;
         }
 
@@ -322,8 +334,8 @@ function Plans() {
                     {/* SECTION 1: VISIT CREDITS */}
                     <section id="visit-credits" className="scroll-mt-20">
                         <div className="text-center mb-10">
-                            <h1 className="text-4xl font-extrabold text-[#2C4964] mb-3 leading-tight tracking-tight">Choose Your Visit Plan</h1>
-                            <p className="text-gray-600 font-medium">Select a premium plan to buy property visit credits and unlock exclusive features.</p>
+                            <h1 className="text-4xl font-extrabold text-[#2C4964] mb-3 leading-tight tracking-tight">Visit Credits</h1>
+                            <p className="text-gray-600 font-medium">Choose a plan to get property visit credits, priority visit access and member-only benefits.</p>
                         </div>
 
                         {visitLoading && (<div className="flex justify-center items-center py-12"><LoadingSpinner /></div>)}
@@ -412,8 +424,9 @@ function Plans() {
 
                                             <p className="text-gray-500 text-sm leading-relaxed mb-8 flex-grow border-t border-gray-100 pt-6">
                                                 {plan.description || `Get ${plan.visits} property visit credits valid for a lifetime.`}
+                                                <span className="text-xs text-gray-600 font-medium mt-2 block">Validity: Lifetime</span>
                                                 <br />
-                                                <span className="text-xs text-gray-400 mt-2 block">
+                                                <span className="text-xs text-gray-600 font-medium mt-2 block">
                                                     (≈ ₹{Math.round(plan.price / plan.visits)} per visit)
                                                 </span>
                                             </p>
@@ -535,7 +548,7 @@ function Plans() {
                                             <p className="text-gray-500 text-sm leading-relaxed mb-8 flex-grow border-t border-gray-100 pt-6">
                                                 {plan.description || `Get ${plan.contacts} owner contact unlock credits valid for lifetime.`}
                                                 {!isFree && (
-                                                    <span className="text-xs text-gray-400 mt-2 block">
+                                                    <span className="text-xs text-gray-600 font-medium mt-2 block">
                                                         (≈ ₹{Math.round(plan.price / plan.contacts)} per contact)
                                                     </span>
                                                 )}

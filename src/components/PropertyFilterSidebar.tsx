@@ -128,7 +128,7 @@ function FilterSection({ title, children, defaultOpen = false }: { title: string
                 leaveFrom="transform opacity-100 translate-y-0"
                 leaveTo="transform opacity-0 -translate-y-1"
             >
-                <div className="mt-3 space-y-3 pr-1 max-h-60 overflow-y-auto custom-scrollbar">
+                <div className="mt-3 space-y-3 pr-1">
                     {children}
                 </div>
             </Transition>
@@ -182,6 +182,35 @@ interface PropertyFilterSidebarProps {
 }
 
 function PropertyFilterSidebar({ filters, onFilterChange, isMobile = false }: PropertyFilterSidebarProps) {
+    const [priceDraft, setPriceDraft] = useState({
+        min: filters.p_price_min === undefined ? '' : String(filters.p_price_min),
+        max: filters.p_price_max === undefined ? '' : String(filters.p_price_max),
+    });
+
+    React.useEffect(() => {
+        setPriceDraft({
+            min: filters.p_price_min === undefined ? '' : String(filters.p_price_min),
+            max: filters.p_price_max === undefined ? '' : String(filters.p_price_max),
+        });
+    }, [filters.p_price_min, filters.p_price_max]);
+
+    const parsePriceValue = (valueStr: string): number | undefined => {
+        const normalizedValue = valueStr.trim().toLowerCase().replace(/,/g, '');
+        if (!normalizedValue) return undefined;
+        const multiplier = normalizedValue.endsWith('cr') || normalizedValue.endsWith('crore')
+            ? 10000000
+            : normalizedValue.endsWith('l') || normalizedValue.endsWith('lakh')
+                ? 100000
+                : 1;
+        const numericValue = normalizedValue.replace(/(crore|cr|lakh|l)$/, '').trim();
+        const parsedValue = Number(numericValue);
+        return Number.isFinite(parsedValue) && parsedValue >= 0 ? Math.round(parsedValue * multiplier) : undefined;
+    };
+
+    const applyPriceDraft = (field: 'min' | 'max') => {
+        const value = parsePriceValue(priceDraft[field]);
+        onFilterChange(field === 'min' ? { p_price_min: value } : { p_price_max: value });
+    };
 
     const handleMultiCheckboxChange = (filterKey: keyof PropertiesFilterParams, value: string, checked: boolean) => {
         const currentValues = (filters[filterKey] as string[] | undefined) || [];
@@ -329,10 +358,13 @@ function PropertyFilterSidebar({ filters, onFilterChange, isMobile = false }: Pr
                         <label htmlFor="price_min" className="block text-xs font-medium text-gray-500 mb-1">Min Price (₹)</label>
                         <input
                             id="price_min"
-                            type="number"
-                            placeholder="e.g., 10 L"
-                            value={filters.p_price_min ?? ''}
-                            onChange={(e) => handleRangeChange('p_price_min', 'p_price_max', 'min', e.target.value)}
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="e.g., 10,00,000"
+                            value={priceDraft.min}
+                            onChange={(e) => setPriceDraft(previous => ({ ...previous, min: e.target.value }))}
+                            onBlur={() => applyPriceDraft('min')}
+                            onKeyDown={(e) => { if (e.key === 'Enter') applyPriceDraft('min'); }}
                             className={getBaseInputClasses()}
                             min="0"
                             step="100000"
@@ -342,10 +374,13 @@ function PropertyFilterSidebar({ filters, onFilterChange, isMobile = false }: Pr
                         <label htmlFor="price_max" className="block text-xs font-medium text-gray-500 mb-1">Max Price (₹)</label>
                         <input
                             id="price_max"
-                            type="number"
-                            placeholder="e.g., 50 L"
-                            value={filters.p_price_max ?? ''}
-                            onChange={(e) => handleRangeChange('p_price_min', 'p_price_max', 'max', e.target.value)}
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="e.g., 50,00,000"
+                            value={priceDraft.max}
+                            onChange={(e) => setPriceDraft(previous => ({ ...previous, max: e.target.value }))}
+                            onBlur={() => applyPriceDraft('max')}
+                            onKeyDown={(e) => { if (e.key === 'Enter') applyPriceDraft('max'); }}
                             className={getBaseInputClasses()}
                             min="0"
                             step="100000"
