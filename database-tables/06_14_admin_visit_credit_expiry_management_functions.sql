@@ -1,0 +1,2 @@
+-- Canonical source: see supabase/migrations/202610260002_admin_visit_credit_expiry_management.sql.
+-- This file is intentionally kept as the admin module deployment reference.

@@ -10456,4 +10456,7 @@ EXECUTE FUNCTION public.queue_vendor_assignment_sms();
 
 COMMENT ON TRIGGER trigger_queue_vendor_assignment_sms ON public.tickets IS 'After a ticket is assigned to a vendor, queue SMS notifications to both parties.';
 
+-- Admin per-batch Visit Credit expiry management is deployed by
+-- supabase/migrations/202610260002_admin_visit_credit_expiry_management.sql.
+
 

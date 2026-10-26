@@ -19,6 +19,11 @@ function TransactionCard({ transaction }: TransactionCardProps) {
         created_at,
         updated_at // Use updated_at to show when it was paid/failed if different from created_at
     } = transaction;
+    const creditBatch = transaction as MyTransactions & {
+        paid_at?: string | null;
+        expires_at?: string | null;
+        credits_remaining?: number | null;
+    };
 
     const displayDate = status === 'created' ? created_at : updated_at;
     const formattedDate = displayDate ? format(new Date(displayDate), 'PPP p') : 'N/A';
@@ -49,6 +54,11 @@ function TransactionCard({ transaction }: TransactionCardProps) {
                     <IconCalendar size={14} />
                     <span>{formattedDate}</span>
                 </div>
+                {creditBatch.expires_at && (status === 'paid' || status === 'expired') && (
+                    <div className={`mb-3 text-xs font-medium ${new Date(creditBatch.expires_at) <= new Date() ? 'text-red-600' : 'text-gray-600'}`}>
+                        Valid until: {format(new Date(creditBatch.expires_at), 'PPP')} · {new Date(creditBatch.expires_at) <= new Date() ? 'Expired' : 'Active'}
+                    </div>
+                )}
                 {renderId('Order ID', razorpay_order_id)}
                 {renderId('Payment ID', razorpay_payment_id)}
             </div>
