@@ -178,16 +178,12 @@ function Home() {
     const displayCityName = geolocationLoading && currentCity === DEFAULT_CITY ? "your area" : currentCity;
 
 
-    const companyName = import.meta.env.VITE_COMPANY_NAME;
-
     return (
         <>
-            <title>
-                Find Your Perfect Property {geolocationLoading && currentCity === DEFAULT_CITY ? '' : `in ${currentCity}`} | {companyName}
-            </title>
-            <meta name="description" content="Explore verified properties, rental homes, land and property management services with Veedu 360." />
-            <meta property="og:title" content="Veedu 360 | Find Your Perfect Property" />
-            <meta property="og:description" content="Explore verified properties, rental homes, land and property management services with Veedu 360." />
+            <title>Trusted Properties for Sale in Tirunelveli | Veedu 360</title>
+            <meta name="description" content="Discover properties for sale in Tirunelveli with Veedu 360. Explore apartments, houses, villas, commercial properties, and plots to find your ideal property. Your trusted property management platform connecting buyers, sellers, and renters with verified properties." />
+            <meta property="og:title" content="Trusted Properties for Sale in Tirunelveli | Veedu 360" />
+            <meta property="og:description" content="Discover properties for sale in Tirunelveli with Veedu 360. Explore apartments, houses, villas, commercial properties, and plots to find your ideal property. Your trusted property management platform connecting buyers, sellers, and renters with verified properties." />
             <meta property="og:url" content="https://www.veedu360.com/" />
             <meta property="og:image" content="https://www.veedu360.com/Veedu360%20Logo%20Web-01.png" />
             <div className="home-page bg-gray-50 min-h-screen">
