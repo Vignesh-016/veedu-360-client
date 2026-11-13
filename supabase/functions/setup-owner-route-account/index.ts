@@ -56,6 +56,7 @@ Deno.serve(async (req) => {
   if (error || !user) return out({ error: "Unauthorized" }, 401);
   const body = await req.json().catch(() => ({}));
   const target = body.owner_user_id || user.id;
+  const requestedPayoutAccountId = body.payout_account_id || null;
   const refreshOnly = body.refresh_only === true;
   const { data: admin } = await (supabaseAdmin as any)
     .from("admins")
@@ -69,11 +70,19 @@ Deno.serve(async (req) => {
     .select("address_line1,address_line2,city,state,pincode,pan_number")
     .eq("owner_user_id", target)
     .maybeSingle();
-  const { data: payout } = await (supabaseAdmin as any)
+  const payoutQuery = (supabaseAdmin as any)
     .from("owner_payout_accounts")
-    .select("*")
-    .eq("owner_user_id", target)
-    .maybeSingle();
+    .select("*");
+  const { data: payoutRows } = requestedPayoutAccountId
+    ? await payoutQuery
+        .eq("payout_account_id", requestedPayoutAccountId)
+        .eq("owner_user_id", target)
+        .limit(1)
+    : await payoutQuery
+        .eq("owner_user_id", target)
+        .order("created_at", { ascending: true })
+        .limit(2);
+  const payout = payoutRows?.length === 1 ? payoutRows[0] : null;
   console.log("POST onboarding started");
   if (!profile || !payout)
     return out(
@@ -227,7 +236,7 @@ Deno.serve(async (req) => {
           payment_eligible: false,
           updated_at: new Date().toISOString(),
         })
-        .eq("owner_user_id", target);
+        .eq("payout_account_id", payout.payout_account_id);
       if (error)
         throw new Error(
           "Linked account was created but could not be saved locally.",
@@ -268,7 +277,7 @@ Deno.serve(async (req) => {
           razorpay_stakeholder_id: stakeholderId,
           updated_at: new Date().toISOString(),
         })
-        .eq("owner_user_id", target);
+        .eq("payout_account_id", payout.payout_account_id);
     }
     let product: any;
     if (!productId) {
@@ -288,7 +297,7 @@ Deno.serve(async (req) => {
           razorpay_product_id: productId,
           updated_at: new Date().toISOString(),
         })
-        .eq("owner_user_id", target);
+        .eq("payout_account_id", payout.payout_account_id);
     } else
       product = await call(`/v2/accounts/${accountId}/products/${productId}`);
     const before = String(
@@ -323,7 +332,11 @@ Deno.serve(async (req) => {
     // A bank edit resets the local payout row to pending. Re-submit the
     // settlement configuration to the existing Route product in that state;
     // never create a second linked account for a bank change.
-    const bankConfigUpdated = bankChanged && (settlementNeedsUpdate || payout.status === 'PENDING_VERIFICATION' || payout.payment_eligible !== true);
+    const bankConfigUpdated =
+      bankChanged &&
+      (settlementNeedsUpdate ||
+        payout.status === "PENDING_VERIFICATION" ||
+        payout.payment_eligible !== true);
     if (bankConfigUpdated)
       product = await call(
         `/v2/accounts/${accountId}/products/${productId}`,
@@ -381,7 +394,7 @@ Deno.serve(async (req) => {
         last_status_checked_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq("owner_user_id", target);
+      .eq("payout_account_id", payout.payout_account_id);
     console.log(
       "Razorpay product inspection:",
       JSON.stringify(safeProductLog(product)),
@@ -428,7 +441,7 @@ Deno.serve(async (req) => {
         payment_eligible: false,
         updated_at: new Date().toISOString(),
       })
-      .eq("owner_user_id", target);
+      .eq("payout_account_id", payout.payout_account_id);
     return out(
       {
         success: false,
