@@ -35,6 +35,7 @@ Deno.serve(async (req) => {
   try {
     const b = await req.json();
     const owner = String(b.target_owner_user_id || "");
+    const propertyId = String(b.property_id || "");
     const holder = String(b.account_holder_name || "").trim();
     const account = String(b.account_number || "").trim();
     const confirm = String(b.confirm_account_number || "").trim();
@@ -63,6 +64,16 @@ Deno.serve(async (req) => {
     const { data: target } = await supabaseAdmin.auth.admin.getUserById(owner);
     if (!target?.user)
       return out({ message: "Selected owner was not found." }, 404);
+    if (propertyId) {
+      const { data: property } = await (supabaseAdmin as any)
+        .from("properties")
+        .select("submitter")
+        .eq("property_id", propertyId)
+        .maybeSingle();
+      if (!property) return out({ message: "Property was not found." }, 404);
+      if (property.submitter !== owner)
+        return out({ message: "Payout owner does not match this property." }, 409);
+    }
     const payoutId = String(b.payout_account_id || "");
     const lookupColumn = payoutId ? "payout_account_id" : "owner_user_id";
     const { data: old } = await (supabaseAdmin as any)

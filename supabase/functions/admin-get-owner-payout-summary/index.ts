@@ -32,6 +32,7 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => ({}));
   let ownerId = String(body.owner_user_id || "");
   let selectedId = String(body.payout_account_id || "");
+  const propertyScoped = Boolean(body.property_id);
   if (body.property_id) {
     const { data: property } = await (supabaseAdmin as any)
       .from("properties")
@@ -76,7 +77,7 @@ Deno.serve(async (req) => {
     exists: mapped.length > 0,
     payout:
       mapped.find((p: any) => p.payout_account_id === selectedId) ||
-      mapped[0] ||
+      (propertyScoped ? null : mapped[0]) ||
       null,
     accounts: mapped,
   });
