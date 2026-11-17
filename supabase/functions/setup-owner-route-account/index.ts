@@ -204,7 +204,7 @@ Deno.serve(async (req) => {
           legal_business_name: fullName,
           customer_facing_business_name: fullName,
           business_type: "individual",
-          reference_id: target,
+          reference_id: payout.payout_account_id,
           profile: {
             category,
             subcategory,

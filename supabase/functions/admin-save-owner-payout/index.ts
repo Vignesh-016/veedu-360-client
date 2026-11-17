@@ -75,14 +75,15 @@ Deno.serve(async (req) => {
         return out({ message: "Payout owner does not match this property." }, 409);
     }
     const payoutId = String(b.payout_account_id || "");
-    const lookupColumn = payoutId ? "payout_account_id" : "owner_user_id";
-    const { data: old } = await (supabaseAdmin as any)
-      .from("owner_payout_accounts")
-      .select(
-        "payout_account_id,owner_user_id,account_number,ifsc_code,account_holder_name",
-      )
-      .eq(lookupColumn, payoutId || owner)
-      .maybeSingle();
+    const { data: old } = payoutId
+      ? await (supabaseAdmin as any)
+          .from("owner_payout_accounts")
+          .select(
+            "payout_account_id,owner_user_id,account_number,ifsc_code,account_holder_name",
+          )
+          .eq("payout_account_id", payoutId)
+          .maybeSingle()
+      : { data: null };
     if (old && old.owner_user_id !== owner)
       return out(
         { message: "Payout account does not belong to the selected owner." },
@@ -125,8 +126,9 @@ Deno.serve(async (req) => {
         { onConflict: "owner_user_id" },
       );
     if (profileError) throw profileError;
+    const createPropertyScopedAccount = Boolean(propertyId && changed);
     const payload: any = {
-      ...(old?.payout_account_id
+      ...(!createPropertyScopedAccount && old?.payout_account_id
         ? { payout_account_id: old.payout_account_id }
         : {}),
       owner_user_id: owner,
@@ -150,6 +152,7 @@ Deno.serve(async (req) => {
       success: true,
       owner_user_id: owner,
       payout_account_id: saved.payout_account_id,
+      created_new_account: createPropertyScopedAccount || !old,
       status: "PENDING_VERIFICATION",
       changed,
     });
