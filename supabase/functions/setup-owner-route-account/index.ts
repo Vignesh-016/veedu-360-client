@@ -41,6 +41,11 @@ const canonicalIndianState = (raw: string) => {
   };
   return states[value] || raw.trim();
 };
+const createRouteEmailAlias = (email: string, referenceId: string) => {
+  const [localPart, domain] = email.trim().toLowerCase().split("@");
+  if (!localPart || !domain) throw new Error("Owner email is invalid.");
+  return `${localPart.slice(0, 40)}+${referenceId}@${domain}`;
+};
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     console.log("OPTIONS request handled");
@@ -131,6 +136,7 @@ Deno.serve(async (req) => {
       );
       (err as any).step = step;
       (err as any).upstreamStatus = r.status;
+      (err as any).upstreamDescription = description;
       (err as any).safeCode = e.code;
       (err as any).requestId =
         r.headers.get("x-razorpay-request-id") ||
@@ -188,6 +194,45 @@ Deno.serve(async (req) => {
     const phone = normalizeIndianMobile(String(targetUser.phone || ""));
     const category = Deno.env.get("RAZORPAY_ROUTE_CATEGORY");
     const subcategory = Deno.env.get("RAZORPAY_ROUTE_SUBCATEGORY");
+    const canReuseVerifiedAccount =
+      !accountId ||
+      payout.status === "VERIFICATION_FAILED" ||
+      payout.razorpay_product_status === "verification_failed";
+    if (canReuseVerifiedAccount) {
+      const { data: reusableAccounts } = await (supabaseAdmin as any)
+        .from("owner_payout_accounts")
+        .select(
+          "payout_account_id,razorpay_account_id,razorpay_account_status,razorpay_stakeholder_id,razorpay_product_id,razorpay_product_status,payment_eligible",
+        )
+        .eq("owner_user_id", target)
+        .eq("account_number", payout.account_number)
+        .eq("ifsc_code", payout.ifsc_code)
+        .not("razorpay_account_id", "is", null)
+        .neq("payout_account_id", payout.payout_account_id)
+        .order("created_at", { ascending: true });
+      const reusable = reusableAccounts?.find(
+        (row: any) =>
+          row.payment_eligible === true ||
+          row.razorpay_product_status === "activated",
+      );
+      if (reusable) {
+        accountId = reusable.razorpay_account_id;
+        stakeholderId = reusable.razorpay_stakeholder_id;
+        productId = reusable.razorpay_product_id;
+        await (supabaseAdmin as any)
+          .from("owner_payout_accounts")
+          .update({
+            razorpay_account_id: accountId,
+            razorpay_account_status: reusable.razorpay_account_status,
+            razorpay_stakeholder_id: stakeholderId,
+            razorpay_product_id: productId,
+            razorpay_product_status: reusable.razorpay_product_status,
+            payment_eligible: reusable.payment_eligible,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("payout_account_id", payout.payout_account_id);
+      }
+    }
     if (!accountId) {
       if (!category || !subcategory)
         return out(
@@ -195,33 +240,51 @@ Deno.serve(async (req) => {
           400,
         );
       console.log("Creating Razorpay linked account");
-      account = await call(
-        "/v2/accounts",
-        "POST",
-        {
-          email: targetUser.email,
-          phone,
-          legal_business_name: fullName,
-          customer_facing_business_name: fullName,
-          business_type: "individual",
-          reference_id: payout.payout_account_id,
-          profile: {
-            category,
-            subcategory,
-            addresses: {
-              registered: {
-                street1: profile.address_line1,
-                street2: profile.address_line2 || undefined,
-                city: profile.city,
-                state: canonicalIndianState(profile.state),
-                postal_code: profile.pincode,
-                country: "IN",
+      const createLinkedAccount = (email: string) =>
+        call(
+          "/v2/accounts",
+          "POST",
+          {
+            email,
+            phone,
+            type: "route",
+            reference_id: payout.razorpay_reference_id,
+            legal_business_name: fullName,
+            customer_facing_business_name: fullName,
+            business_type: "individual",
+            profile: {
+              category,
+              subcategory,
+              addresses: {
+                registered: {
+                  street1: profile.address_line1,
+                  street2: profile.address_line2 || undefined,
+                  city: profile.city,
+                  state: canonicalIndianState(profile.state),
+                  postal_code: profile.pincode,
+                  country: "IN",
+                },
               },
             },
           },
-        },
-        "linked_account",
-      );
+          "linked_account",
+        );
+      try {
+        account = await createLinkedAccount(String(targetUser.email || ""));
+      } catch (caught) {
+        const duplicateEmail =
+          (caught as any)?.upstreamStatus === 400 &&
+          /merchant email already exists/i.test(
+            String((caught as any)?.upstreamDescription || caught),
+          );
+        if (!duplicateEmail) throw caught;
+        account = await createLinkedAccount(
+          createRouteEmailAlias(
+            String(targetUser.email || ""),
+            payout.razorpay_reference_id,
+          ),
+        );
+      }
       accountId = account?.id;
       if (!accountId)
         throw new Error(

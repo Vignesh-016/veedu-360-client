@@ -49,16 +49,23 @@ Deno.serve(async (req) => {
     return out({ error: 'Forbidden: Insufficient permissions' }, 403);
   }
 
-  const { owner_user_id } = await req.json().catch(() => ({}));
+  const { owner_user_id, payout_account_id } = await req.json().catch(() => ({}));
   if (typeof owner_user_id !== 'string') {
     return out({ error: 'owner_user_id is required' }, 400);
   }
 
-  const { data: payout } = await (supabaseAdmin as any)
+  let payoutQuery = (supabaseAdmin as any)
     .from('owner_payout_accounts')
-    .select('razorpay_account_id,razorpay_product_id')
-    .eq('owner_user_id', owner_user_id)
-    .maybeSingle();
+    .select('payout_account_id,razorpay_account_id,razorpay_product_id')
+    .eq('owner_user_id', owner_user_id);
+  if (typeof payout_account_id === 'string' && payout_account_id) {
+    payoutQuery = payoutQuery.eq('payout_account_id', payout_account_id);
+  } else {
+    payoutQuery = payoutQuery
+      .order('payment_eligible', { ascending: false })
+      .order('created_at', { ascending: true });
+  }
+  const { data: payout } = await payoutQuery.limit(1).maybeSingle();
 
   if (!payout?.razorpay_account_id || !payout?.razorpay_product_id) {
     return out({ error: 'Payout account not ready for status sync' }, 400);
@@ -108,12 +115,13 @@ Deno.serve(async (req) => {
         last_status_checked_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
-      .eq('owner_user_id', owner_user_id);
+      .eq('payout_account_id', payout.payout_account_id);
 
     return out({
       status: eligible ? 'Verified' : 'Verification In Progress',
       payment_eligible: eligible,
-      razorpay_product_status: productStatus
+      razorpay_product_status: productStatus,
+      payout_account_id: payout.payout_account_id,
     });
 
   } catch (err) {
