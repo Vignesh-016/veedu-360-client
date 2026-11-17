@@ -66,3 +66,21 @@ verify_jwt = false
 import_map = "./functions/import_map.json"
 entrypoint = "./functions/process-rent-notifications/index.ts"
 
+[functions.admin-save-owner-payout]
+enabled = true
+verify_jwt = true
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/admin-save-owner-payout/index.ts"
+
+[functions.admin-get-owner-payout-summary]
+enabled = true
+verify_jwt = true
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/admin-get-owner-payout-summary/index.ts"
+
+[functions.setup-owner-route-account]
+enabled = true
+verify_jwt = true
+import_map = "./functions/import_map.json"
+entrypoint = "./functions/setup-owner-route-account/index.ts"
+
