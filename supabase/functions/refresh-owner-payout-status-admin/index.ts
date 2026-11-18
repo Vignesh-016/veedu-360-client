@@ -102,25 +102,42 @@ Deno.serve(async (req) => {
 
     const productStatus = (product.activation_status || product.status || 'requested').toLowerCase();
     const accountStatus = (account.status || 'requested').toLowerCase();
+    const requirements = Array.isArray(product.requirements)
+      ? product.requirements.map((requirement: any) => ({
+          field: String(requirement?.field_reference || requirement?.field || 'unknown'),
+          status: String(requirement?.status || requirement?.reason_code || 'pending'),
+        }))
+      : [];
 
-    const eligible = productStatus === 'activated';
+    const eligible = accountStatus === 'activated' && productStatus === 'activated';
 
-    await (supabaseAdmin as any)
+    const { error: updateError } = await (supabaseAdmin as any)
       .from('owner_payout_accounts')
       .update({
         razorpay_account_status: accountStatus,
         razorpay_product_status: productStatus,
         payment_eligible: eligible,
         status: eligible ? 'VERIFIED' : productStatus === 'needs_clarification' ? 'ACTION_REQUIRED' : productStatus === 'verification_failed' ? 'VERIFICATION_FAILED' : productStatus === 'suspended' ? 'SUSPENDED' : 'PENDING_VERIFICATION',
+        route_onboarding_error: null,
         last_status_checked_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
       .eq('payout_account_id', payout.payout_account_id);
+    if (updateError) {
+      console.error('[refresh-owner-payout-status-admin] Status persistence failed.', {
+        payout_account_id: payout.payout_account_id,
+        code: updateError.code,
+        message: updateError.message,
+      });
+      return out({ error: 'Razorpay status was fetched but could not be saved' }, 500);
+    }
 
     return out({
       status: eligible ? 'Verified' : 'Verification In Progress',
       payment_eligible: eligible,
+      razorpay_account_status: accountStatus,
       razorpay_product_status: productStatus,
+      requirements,
       payout_account_id: payout.payout_account_id,
     });
 
