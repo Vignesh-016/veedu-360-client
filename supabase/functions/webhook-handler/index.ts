@@ -99,7 +99,18 @@ Deno.serve(async (req: Request) => {
     if (rentAttempt.data) {
       const orderId = event.payload?.order?.entity?.id || event.payload?.payment?.entity?.order_id;
       if (event.event === 'order.paid' || event.event === 'payment.captured') {
-        await (supabaseAdmin as any).rpc('complete_rent_payment', { p_order_id: orderId, p_payment_id: event.payload?.payment?.entity?.id });
+        const { error: completionError } = await (supabaseAdmin as any).rpc('complete_rent_payment', {
+          p_order_id: orderId,
+          p_payment_id: event.payload?.payment?.entity?.id,
+        });
+        if (completionError) {
+          console.error('Rent payment finalization failed; requesting webhook retry.', {
+            orderId,
+            code: completionError.code,
+            message: completionError.message,
+          });
+          return response({ error: 'Rent payment finalization failed' }, 500);
+        }
         try {
           const url = `${Deno.env.get('SUPABASE_URL')}/functions/v1/process-rent-route-transfer`;
           await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ rent_record_id: rentAttempt.data.rent_record_id }) });

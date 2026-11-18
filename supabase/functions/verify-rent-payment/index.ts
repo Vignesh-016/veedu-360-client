@@ -34,6 +34,13 @@ Deno.serve(async req=>{
     const payment:any=await rp.payments.fetch(razorpay_payment_id);
     if(payment.order_id!==razorpay_order_id) return json({success:false,step:'order_validation',error:'Razorpay order does not match the payment attempt.'},400);
     if(payment.currency!=='INR'||Number(payment.amount)!==Number(attempt.amount_paise)||payment.status!=='captured') return json({success:false,step:'amount_validation',error:'Razorpay payment did not match the rent amount or captured state.',razorpay_status:payment.status},400);
+    step='payment_id_persistence';
+    const {error:paymentIdError}=await (supabaseAdmin as any)
+      .from('rent_payment_attempts')
+      .update({razorpay_payment_id,updated_at:new Date().toISOString()})
+      .eq('payment_attempt_id',attempt.payment_attempt_id)
+      .in('status',['CREATED','PAID']);
+    if(paymentIdError) return json({success:false,step,error:'Could not persist the captured payment reference.',...dbError(paymentIdError)},500);
     step='complete_rent_payment';
     const {error:completeError}=await supabaseAdmin.rpc('complete_rent_payment',{p_order_id:razorpay_order_id,p_payment_id:razorpay_payment_id});
     if(completeError) {
